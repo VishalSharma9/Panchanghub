@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Sade Sati</h1>
+<p class="sub">Saturn over the 12th, 1st and 2nd signs from the natal Moon. The 4th and 8th are the smaller Panoti, sometimes called Dhaiya. This uses the Moon sign only. It is not a score.</p>
+<form class="f" method="get" action="/sade-sati">
+<label>Janma rashi<select name="rashi"><option value="">Choose</option>{% for i in range(12) %}<option value="{{ i+1 }}" {{ 'selected' if rashi==i+1 }}>{{ RASHIS[i] }}</option>{% endfor %}</select></label>
+<button class="btn alt" type="submit">From this Moon sign</button>
+</form>
+<p class="sub">Or from a birth, which fixes the Moon sign for you.</p>
+<form class="f" method="get" action="/sade-sati">
+<label>Birth date<input type="date" name="date" value="{{ b.date if b else '' }}" min="0001-01-01" max="3000-12-31"></label>
+<label>Birth time<input type="time" name="time" value="{{ b.time[:5] if b else '10:30' }}"></label>
+<label>Place<input data-place="" name="city" value="{{ b.city if b and b.city else loc.city }}" autocomplete="off"></label>
+<input type="hidden" name="lat" value="{{ b.latitude if b else loc.lat }}">
+<input type="hidden" name="lon" value="{{ b.longitude if b else loc.lon }}">
+<input type="hidden" name="tz" value="{{ b.timezone if b else loc.tz }}">
+<button class="btn" type="submit">From this birth</button>
+</form>
+{% if moon_name %}
+<section class="card"><h2>Moon in {{ moon_name }}</h2><div class="body">
+{% if current %}
+<p class="verdict bad">In {{ current.phase }} now, Saturn in {{ current.saturn_sign }}, until {{ current.end }}.</p>
+<p class="sub">This stretch began {{ current.start }}.</p>
+{% else %}
+<p class="verdict good">Not in Sade Sati or Dhaiya today.</p>
+{% if nxt %}<p>Next: {{ nxt.phase }}, Saturn in {{ nxt.saturn_sign }}, {{ nxt.start }} to {{ nxt.end }}.</p>{% endif %}
+{% endif %}
+<table class="t"><tr><th>Phase</th><th>Saturn</th><th>From</th><th>To</th></tr>
+{% for s in periods %}<tr><td>{{ s.phase }}</td><td>{{ s.saturn_sign }}</td><td>{{ s.start }}</td><td>{{ s.end }}</td></tr>{% endfor %}
+</table>
+</div></section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,399 @@
+import pytest
+from fastapi.testclient import TestClient
+from app.main import app
+
+client = TestClient(app)
+
+SAMPLE_BIRTH = {
+    "name": "Arjuna",
+    "date": "1990-05-15",
+    "time": "10:30:00",
+    "latitude": 28.6139,
+    "longitude": 77.2090,
+    "timezone": "Asia/Kolkata",
+    "house_system": "whole_sign",
+    "ayanamsa": "lahiri",
+    "true_node": False,
+    "dasha_levels": 3
+}
+
+def test_vargas_endpoint():
+    res = client.post("/api/kundli/vargas", json=SAMPLE_BIRTH)
+    assert res.status_code == 200, res.text
+    data = res.json()
+    assert "vargas" in data
+    vargas = data["vargas"]
+    # Verify all 16 Shodashavargas are present
+    expected_vargas = ["D1", "D2", "D3", "D4", "D7", "D9", "D10", "D12", "D16", "D20", "D24", "D27", "D30", "D40", "D45", "D60"]
+    for v in expected_vargas:
+        assert v in vargas, f"Missing {v}"
+        v_data = vargas[v]
+        assert "ascendant" in v_data
+        assert "planets" in v_data
+        assert len(v_data["planets"]) >= 9
+    assert "vargottama" in data
+    assert "varga_strengths" in data
+
+def test_current_dasha_endpoint():
+    res = client.post("/api/kundli/dashas/current", json=SAMPLE_BIRTH)
+    assert res.status_code == 200, res.text
+    data = res.json()
+    assert "mahadasha" in data
+    assert "antardasha" in data
+    assert "pratyantardasha" in data
+    assert "summary" in data
+
+def test_yogini_dasha_endpoint():
+    res = client.post("/api/kundli/dashas/yogini", json=SAMPLE_BIRTH)
+    assert res.status_code == 200, res.text
+    data = res.json()
+    assert data["system"] == "Yogini Dasha (36 Years)"
+    assert "birth_balance" in data
+    assert "periods" in data
+    assert len(data["periods"]) > 0
+    first_p = data["periods"][0]
+    assert "antardashas" in first_p
+    assert len(first_p["antardashas"]) == 8
+
+def test_chara_karakas_endpoint():
+    res = client.post("/api/kundli/dashas/chara", json=SAMPLE_BIRTH)
+    assert res.status_code == 200, res.text
+    data = res.json()
+    assert "karakas" in data
+    assert len(data["karakas"]) == 7
+    assert "atmakaraka" in data
+    assert "karakamsha_sign" in data
+
+def test_holistic_reading_endpoint():
+    res = client.post("/api/kundli/reading", json=SAMPLE_BIRTH)
+    assert res.status_code == 200, res.text
+    data = res.json()
+    assert "ascendant_profile" in data
+    assert "house_lords" in data
+    assert len(data["house_lords"]) == 12
+    assert "shad_phala" in data
+    assert len(data["shad_phala"]) == 12
+
+def test_comprehensive_yogas_endpoint():
+    res = client.post("/api/kundli/yogas", json=SAMPLE_BIRTH)
+    assert res.status_code == 200, res.text
+    data = res.json()
+    assert "total_yogas_detected" in data
+    assert "yogas" in data
+    assert data["total_yogas_detected"] > 0
+
+def test_ayanamshas_comparison_endpoint():
+    res = client.post("/api/kundli/ayanamshas", json=SAMPLE_BIRTH)
+    assert res.status_code == 200, res.text
+    data = res.json()
+    assert "modes" in data
+    modes = data["modes"]
+    for m in ["lahiri", "raman", "kp", "kp_new", "yukteshwar", "bhasin", "sayana"]:
+        assert m in modes, f"Missing mode {m}"
+
+def test_web_vargas_page():
+    # Empty form
+    r1 = client.get("/vargas")
+    assert r1.status_code == 200
+    assert "Shodashavargas" in r1.text
+
+    # With birth query
+    q = "date=1990-05-15&time=10:30:00&lat=28.6139&lon=77.2090&tz=Asia/Kolkata&style=north"
+    r2 = client.get(f"/vargas?{q}")
+    assert r2.status_code == 200
+    assert "D60" in r2.text
+    assert "D9" in r2.text
+    assert "Vargottama" in r2.text
+
+def test_web_yogas_page():
+    # Empty form
+    r1 = client.get("/yogas")
+    assert r1.status_code == 200
+    assert "Classical Vedic Yogas Scanner" in r1.text
+
+    # With birth query
+    q = "date=1990-05-15&time=10:30:00&lat=28.6139&lon=77.2090&tz=Asia/Kolkata"
+    r2 = client.get(f"/yogas?{q}")
+    assert r2.status_code == 200
+    assert "Auspiciousness Index" in r2.text
+    assert "Pancha Mahapurusha" in r2.text or "Yoga" in r2.text
+
+def test_web_reading_page():
+    # Empty form
+    r1 = client.get("/reading")
+    assert r1.status_code == 200
+    assert "Holistic Vedic Life Reading" in r1.text
+
+    # With birth query
+    q = "date=1990-05-15&time=10:30:00&lat=28.6139&lon=77.2090&tz=Asia/Kolkata"
+    r2 = client.get(f"/reading?{q}")
+    assert r2.status_code == 200
+    assert "Ascendant (Lagna) Foundation" in r2.text
+    assert "House 1 Lord" in r2.text
+    assert "Shad Phala" in r2.text
+
+def test_enhanced_kundli_pdf_generation():
+    res = client.post("/api/kundli/pdf", json=SAMPLE_BIRTH)
+    assert res.status_code == 200
+    assert res.headers["content-type"] == "application/pdf"
+    assert res.content.startswith(b"%PDF-")
+    assert len(res.content) > 10000
+
+def test_planetary_placements_corpus():
+    res = client.post("/api/kundli/corpus/planetary-placements", json=SAMPLE_BIRTH)
+    assert res.status_code == 200, res.text
+    data = res.json()
+    assert "ascendant_portfolio" in data
+    assert "ascendant_drekkana" in data
+    assert "graha_rashi_readings" in data
+    assert len(data["graha_rashi_readings"]) == 9
+
+def test_comprehensive_life_corpus():
+    res = client.post("/api/kundli/corpus/comprehensive-life", json=SAMPLE_BIRTH)
+    assert res.status_code == 200, res.text
+    data = res.json()
+    assert "ascendant_portfolio" in data
+    assert "graha_rashi_readings" in data
+    assert "house_lords" in data
+    assert len(data["house_lords"]) == 12
+    assert "shad_phala" in data
+    assert "yogas" in data
+    assert "karakas" in data
+    assert "current_dasha" in data
+
+
+
+
+
+def test_classical_interpretations_and_slokas():
+    res = client.post('/api/kundli/vargas', json=SAMPLE_BIRTH)
+    assert res.status_code == 200
+    vargas = res.json()['vargas']
+    d9_ci = vargas['D9'].get('classical_interpretation')
+    assert d9_ci is not None
+    assert 'saravali_sloka' in d9_ci
+    assert len(d9_ci['saravali_sloka']) > 10
+    assert 'd9_lagna_sign' in d9_ci
+    d10_ci = vargas['D10'].get('classical_interpretation')
+    assert d10_ci is not None
+    assert 'career_sphere' in d10_ci
+    assert 'classical_sloka' in d10_ci
+    d3_ci = vargas['D3'].get('classical_interpretation')
+    assert d3_ci is not None
+    assert '22nd_drekkana' in d3_ci
+    assert 'drekkana_lord' in d3_ci['22nd_drekkana']
+
+def test_holistic_reading_with_bphs_slokas():
+    res = client.post('/api/kundli/reading', json=SAMPLE_BIRTH)
+    assert res.status_code == 200
+    data = res.json()
+    hl0 = data['house_lords'][0]
+    assert 'bphs_sloka' in hl0
+    assert 'verse' in hl0['bphs_sloka']
+    assert 'Brihat Parashara Hora Shastra' in hl0['bphs_sloka']['source']
+    assert len(hl0['bphs_sloka']['verse']) > 10
+    assert 'navamsha_synthesis' in data
+    assert 'saravali_sloka' in data['navamsha_synthesis']
+    assert 'kharesh_diagnostic' in data
+    assert 'decanate_number' in data['kharesh_diagnostic']
+
+def test_web_vargas_and_reading_render_slokas():
+    q = 'date=1990-05-15&time=10:30:00&lat=28.6139&lon=77.2090&tz=Asia/Kolkata'
+    rv = client.get(f'/vargas?{q}')
+    assert rv.status_code == 200
+    assert 'Classical Scriptural Interpretation' in rv.text
+    assert 'Saravali (Chapter 51)' in rv.text
+    rr = client.get(f'/reading?{q}')
+    assert rr.status_code == 200
+    assert 'Brihat Parashara Hora Shastra' in rr.text
+    assert 'D9 Navamsha Soul Blueprint' in rr.text
+    assert '22nd Drekkana (Kharesh)' in rr.text
+
+
+def test_all_31_vargas_suite():
+    res = client.post('/api/kundli/vargas', json=SAMPLE_BIRTH)
+    assert res.status_code == 200
+    vargas = res.json()['vargas']
+    # All 31 vargas
+    all_31_expected = [
+        'D1', 'D2', 'D3', 'D4', 'D7', 'D9', 'D10', 'D12', 'D16', 'D20', 'D24', 'D27', 'D30', 'D40', 'D45', 'D60',
+        'D5', 'D6', 'D8', 'D11', 'D150',
+        'D2_IYER', 'D2_IYER3', 'D3_IYER', 'D4_IYER', 'D10_IYER', 'D12_IYER', 'D30_IYER', 'D5_IYER', 'D16_IYER', 'D11_IYER'
+    ]
+    assert len(vargas) == 31
+    for vk in all_31_expected:
+        assert vk in vargas, f'Missing varga {vk}'
+        v = vargas[vk]
+        assert 'ascendant' in v
+        assert 'planets' in v
+        assert len(v['planets']) >= 9
+
+def test_tajika_sahams_and_nadiamsha_endpoint():
+    res = client.post('/api/kundli/tajika/sahams', json=SAMPLE_BIRTH)
+    assert res.status_code == 200
+    data = res.json()
+    assert 'sahams' in data
+    assert len(data['sahams']) == 24
+    saham_names = [s['name'] for s in data['sahams']]
+    assert 'Punya Saham' in saham_names
+    assert 'Vidya Saham' in saham_names
+    assert 'Yashas Saham' in saham_names
+    
+    assert 'ascendant_nadiamsha' in data
+    assert 'deity' in data['ascendant_nadiamsha']
+    assert 1 <= data['ascendant_nadiamsha']['nadiamsha_number'] <= 150
+    
+    assert 'ascendant_drekkana_body_part' in data
+    assert 'governed_body_part' in data['ascendant_drekkana_body_part']
+
+
+def test_special_lagnas_endpoint():
+    res = client.post('/api/kundli/special-lagnas', json=SAMPLE_BIRTH)
+    assert res.status_code == 200
+    data = res.json()
+    assert 'hora_lagna' in data
+    assert 'ghati_lagna' in data
+    assert 'bhava_lagna' in data
+    assert 'sree_lagna' in data
+    assert 'pranapada_lagna' in data
+    assert 'indu_lagna' in data
+    assert 'interpretation' in data['indu_lagna']
+    assert 'arudha_padas' in data
+    assert len(data['arudha_padas']) == 12
+    assert 'A1' in data['arudha_padas']
+    assert 'A12' in data['arudha_padas']
+
+
+def test_ashtakavarga_reductions_endpoint():
+    res = client.post('/api/kundli/ashtakavarga/reductions', json=SAMPLE_BIRTH)
+    assert res.status_code == 200
+    data = res.json()
+    assert data['sav_total'] == 337
+    assert 'trikona_shodhana' in data
+    assert 'shodhita_ashtakavarga' in data
+    assert 'shodhita_sav' in data
+    assert 'shodhya_pindas' in data
+    assert len(data['shodhya_pindas']) == 7
+    sun_pinda = data['shodhya_pindas']['Sun']
+    assert 'rashi_pinda' in sun_pinda and 'graha_pinda' in sun_pinda and 'yoga_pinda' in sun_pinda
+    assert sun_pinda['yoga_pinda'] == sun_pinda['rashi_pinda'] + sun_pinda['graha_pinda']
+    assert 'kakshas_matrix' in data
+
+
+def test_sudarshan_chakra_endpoint():
+    res = client.post('/api/kundli/sudarshan', json=SAMPLE_BIRTH)
+    assert res.status_code == 200
+    data = res.json()
+    assert '<svg' in data['svg']
+    assert 'SUDARSHAN' in data['svg']
+    assert len(data['sectors']) == 12
+    sec1 = data['sectors'][0]
+    assert 'lagna_sign' in sec1
+    assert 'moon_sign' in sec1
+    assert 'sun_sign' in sec1
+
+
+def test_varshaphala_endpoint():
+    payload = {**SAMPLE_BIRTH, 'year': 2026}
+    res = client.post('/api/kundli/varshaphala', json=payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert data['year'] == 2026
+    assert 'year_lord' in data
+    assert 'muntha' in data
+    assert 'pancha_adhikari' in data
+    assert 'mudda_dasha' in data
+    assert len(data['mudda_dasha']) == 9
+    assert 'tajik_yogas' in data
+    assert 'sahams_full_24' in data
+    assert len(data['sahams_full_24']) == 24
+
+
+def test_kp_endpoint():
+    res = client.post('/api/kundli/kp', json=SAMPLE_BIRTH)
+    assert res.status_code == 200
+    data = res.json()
+    assert len(data['cusps']) == 12
+    c1 = data['cusps'][0]
+    assert 'sign_lord' in c1 and 'star_lord' in c1 and 'sub_lord' in c1
+    assert 'ruling_planets' in data
+    assert 'planet_significators' in data
+    assert 'house_significators' in data
+
+    # Test KP Horary 1..249
+    h_res = client.post('/api/kundli/kp', json={**SAMPLE_BIRTH, 'horary_number': 108})
+    assert h_res.status_code == 200
+    h_data = h_res.json()
+    assert 'horary' in h_data
+    assert h_data['horary']['number'] == 108
+
+
+def test_worksheets_endpoint():
+    res = client.post('/api/kundli/worksheets', json=SAMPLE_BIRTH)
+    assert res.status_code == 200
+    data = res.json()
+    assert 'birth_chart' in data
+    assert 'vargas_core_four' in data
+    assert 'sudarshan' in data
+    assert 'special_lagnas' in data
+    assert 'ashtakavarga' in data
+    assert 'shadbala' in data
+
+
+def test_web_pages_render_worksheets_varshaphala_and_kp():
+    q = 'date=1990-05-15&time=10:30:00&lat=28.6139&lon=77.2090&tz=Asia/Kolkata'
+    
+    # Kundli with 10 worksheets
+    rk = client.get(f'/kundli?{q}')
+    assert rk.status_code == 200
+    assert 'Vedic Astrology Worksheets' in rk.text
+    assert 'Sudarshan Chakra' in rk.text
+    assert 'Special Lagnas' in rk.text
+    assert 'Ashtakavarga Suite' in rk.text
+    assert 'Shodhya Pindas' in rk.text
+    assert 'Paka Lagna' in rk.text
+    assert 'Indu Lagna' in rk.text
+    
+    # Dedicated Varshaphala page
+    rv = client.get(f'/varshaphala?{q}&year=2026')
+    assert rv.status_code == 200
+    assert 'Tajika Varshaphala' in rv.text
+    assert 'Year Lord (Varshesha)' in rv.text
+    assert 'Muntha' in rv.text
+    assert 'Mudda Dasha' in rv.text
+    assert 'Pancha Adhikaris' in rv.text
+    assert '24 Classical Tajika Sahams' in rv.text
+
+    # Dedicated KP page
+    rkp = client.get(f'/kp?{q}&horary=108')
+    assert rkp.status_code == 200
+    assert 'Krishnamurti Paddhati' in rkp.text
+    assert 'Ruling Planets' in rkp.text
+    assert 'KP Placidus House Cusps' in rkp.text
+    assert '4-Fold House Significators' in rkp.text
+    assert 'Horary Number #108' in rkp.text
+
+def test_enhanced_pdf_generation_endpoint():
+    res = client.post('/api/kundli/pdf', json={
+        'name': 'Test Native',
+        'date': '1990-05-15',
+        'time': '06:30:00',
+        'latitude': 23.0225,
+        'longitude': 72.5714,
+        'timezone': 'Asia/Kolkata'
+    })
+    assert res.status_code == 200
+    assert res.headers['content-type'] == 'application/pdf'
+    assert len(res.content) > 15000
+    assert res.content[:5] == b'%PDF-'
+
+def test_ephem_lru_cache():
+    from app.core import ephem
+    jd = 2448026.5
+    p1 = ephem.all_positions(jd)
+    p2 = ephem.all_positions(jd)
+    assert p1['Sun']['longitude'] == p2['Sun']['longitude']
+    h1 = ephem.houses(jd, 23.0, 72.0)
+    h2 = ephem.houses(jd, 23.0, 72.0)
+    assert h1[1] == h2[1]
+

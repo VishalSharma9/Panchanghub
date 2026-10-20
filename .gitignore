@@ -1,0 +1,23 @@
+# Virtual environment
+.venv/
+venv/
+ENV/
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# IDE / OS metadata
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Large binary database (>100MB blocked by GitHub git push limit)
+# Note: Full places.sqlite (1.06GB) is included in the release asset Panchanghub-Full-Package.zip
+api/data/places.sqlite
+
+# Release zip archives
+*.zip

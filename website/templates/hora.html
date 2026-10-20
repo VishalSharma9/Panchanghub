@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% from "_macros.html" import datebar with context %}
+{% block content %}{% set ref = d.isoformat() %}
+<h1>Shubha Hora – {{ loc.city }}</h1><p class="sub">{{ d.strftime('%A, %d %B %Y') }}</p>{{ datebar('/hora', d, prev, next, locq) }}
+<div class="grid2">{% for label, part in [('Day Hora','day'),('Night Hora','night')] %}<section class="card"><h2>{{ label }}</h2><div class="body"><table class="t"><tr><th>Hora lord</th><th>Time</th></tr>
+{% for x in h.horas if x.period==part %}<tr><td class="{{ 'good' if x.lord in ['Jupiter','Venus','Mercury','Moon'] else 'bad' if x.lord in ['Saturn','Mars'] else 'neutral' }}">{{ x.lord }}</td><td>{{ span(x, ref) }}</td></tr>{% endfor %}</table></div></section>{% endfor %}</div>
+{% endblock %}

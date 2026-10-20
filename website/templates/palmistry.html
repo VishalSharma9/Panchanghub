@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Palmistry Guide</h1>
+<section class="card"><h2>Describe your palm</h2><div class="body"><form class="f" method="get" action="/palmistry">
+{% for nm, opts in [('hand_shape',['earth','air','fire','water']),('heart',['curved','straight','long','short']),('head',['straight','sloping','long','short']),('life',['deep','faint','wide curve','close to thumb']),('fate',['present','absent','broken'])] %}
+<label>{{ nm.replace('_',' ')|title }}<select name="{{ nm }}"><option value="">—</option>{% for o in opts %}<option {{ 'selected' if q.get(nm)==o }}>{{ o }}</option>{% endfor %}</select></label>{% endfor %}
+<button class="btn alt">Read</button></form></div></section>
+{% if r.reading %}<section class="card"><h2>Your reading</h2><div class="body reading">{% for x in r.reading %}<p>{{ x }}</p>{% endfor %}</div></section>{% endif %}
+<div class="grid2">{% for sec in ['hand_shapes','lines','mounts','fingers'] %}<section class="card"><h2>{{ sec.replace('_',' ')|title }}</h2><div class="body"><table class="kv">{% for kk, v in r.reference[sec].items() %}<tr><td>{{ kk }}</td><td>{{ v }}</td></tr>{% endfor %}</table></div></section>{% endfor %}</div>
+<p class="neutral">{{ r.note }}</p>
+{% endblock %}

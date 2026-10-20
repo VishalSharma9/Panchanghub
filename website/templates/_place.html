@@ -1,0 +1,9 @@
+{% set ref = x.date %}
+<table class="kv">
+<tr><td>Sunrise</td><td>{{ x.sunrise|hm }}</td></tr>
+<tr><td>Sunset</td><td>{{ x.sunset|hm }}</td></tr>
+<tr><td>Tithi at sunrise</td><td>{{ x.tithi[0].name }} upto {{ x.tithi[0].end|hm(ref) }}</td></tr>
+<tr><td>Nakshatra</td><td>{{ x.nakshatra[0].name }} upto {{ x.nakshatra[0].end|hm(ref) }}</td></tr>
+<tr><td>Rahu Kalam</td><td class="bad">{{ span(x.muhurta.rahu_kalam, ref) }}</td></tr>
+<tr><td>Abhijit</td><td class="good">{{ span(x.muhurta.abhijit, ref) if x.muhurta.abhijit else 'None' }}</td></tr>
+</table>

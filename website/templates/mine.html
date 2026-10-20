@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}{% set ref = p.date %}
+<h1>For you — {{ d.strftime('%A, %d %B %Y') }}</h1>
+<p class="sub">{% if loc.source != 'default' %}{{ loc.city }} · {% endif %}The sky is the same one Drik prints. These hours are marked for your birth star.</p>
+<form class="datebar" method="get" action="/mine">{% if prev %}<a class="btn" href="/mine?date={{ prev }}&{{ locq }}">‹ Prev</a>{% endif %}<input type="date" name="date" value="{{ d.isoformat() }}" min="0001-01-01" max="3000-12-31" onchange="this.form.submit()" aria-label="Choose date"><input type="hidden" name="city" value="{{ loc.city }}"><input type="hidden" name="lat" value="{{ loc.lat }}"><input type="hidden" name="lon" value="{{ loc.lon }}"><input type="hidden" name="tz" value="{{ loc.tz }}"><input type="hidden" name="janma_rashi" value="{{ jr or '' }}"><input type="hidden" name="janma_nakshatra" value="{{ jn or '' }}">{% if next %}<a class="btn" href="/mine?date={{ next }}&{{ locq }}">Next ›</a>{% endif %}<a class="btn alt" href="/mine?{{ locq }}">Today</a></form>
+<form class="f" method="get" action="/mine">
+<input type="hidden" name="date" value="{{ d.isoformat() }}">
+<input type="hidden" name="city" value="{{ loc.city }}"><input type="hidden" name="lat" value="{{ loc.lat }}"><input type="hidden" name="lon" value="{{ loc.lon }}"><input type="hidden" name="tz" value="{{ loc.tz }}">
+<label>Janma rashi<select name="janma_rashi" onchange="this.form.submit()"><option value="">Not set</option>{% for i in range(12) %}<option value="{{ i+1 }}" {{ 'selected' if jr==i+1 }}>{{ RASHIS[i] }}</option>{% endfor %}</select></label>
+<label>Janma nakshatra<select name="janma_nakshatra" onchange="this.form.submit()"><option value="">Not set</option>{% for i in range(27) %}<option value="{{ i+1 }}" {{ 'selected' if jn==i+1 }}>{{ NAKSHATRAS[i] }}</option>{% endfor %}</select></label>
+</form>
+<div class="grid2">
+<section class="card"><h2>Chandrabala</h2><div class="body">
+{% if you.chandra and you.chandra.now %}
+<p class="verdict {{ 'good' if you.chandra.now.favourable else 'bad' }}">{{ 'Favourable' if you.chandra.now.favourable else 'Not favourable' }} while the Moon is in {{ you.chandra.now.moon }}{% if you.chandra.now.ashtama %} — this is Ashtama, the 8th from {{ you.chandra.rashi }}{% endif %}</p>
+<p class="sub">Until {{ you.chandra.now.until|hm(ref) }}. Favourable houses from the birth sign are 1, 3, 6, 7, 10 and 11.</p>
+{% else %}<p>Set your janma rashi. Until then this is only the general day, the way Drik shows it.</p>{% endif %}
+</div></section>
+<section class="card"><h2>Tarabala</h2><div class="body">
+{% if you.tara and you.tara.now %}
+<p class="verdict {{ 'good' if you.tara.now.favourable else 'bad' }}">{{ 'Favourable' if you.tara.now.favourable else 'Not favourable' }} while the Moon is in {{ you.tara.now.moon_nakshatra }}</p>
+<p class="sub">Until {{ you.tara.now.until|hm(ref) }}. Counted in the nine-tara cycle from {{ you.tara.nakshatra }}.</p>
+{% else %}<p>Set your janma nakshatra to see whether the Moon’s star supports you.</p>{% endif %}
+</div></section>
+</div>
+<div class="grid3">
+<section class="card"><h2>Puja and new work</h2><div class="body">
+{% if you.puja %}<p class="verdict good">{{ you.puja.name }} · {{ you.puja.quality }}</p><p>{{ you.puja.start|hm(ref) }} – {{ you.puja.end|hm(ref) }}</p>
+<p class="sub">Amrit, Shubh or Labh choghadiya, outside Rahu Kalam.</p>
+{% else %}<p>No Amrit, Shubh or Labh choghadiya left outside Rahu Kalam.</p>{% endif %}
+</div></section>
+<section class="card"><h2>Travel</h2><div class="body">
+{% if you.travel %}<p class="verdict">Char</p><p>{{ you.travel.start|hm(ref) }} – {{ you.travel.end|hm(ref) }}</p>
+<p class="sub">Char is the moving choghadiya. This one does not sit inside Rahu Kalam. Do not set out toward {{ p.disha_shool }}.</p>
+{% else %}<p>No Char choghadiya left outside Rahu Kalam.</p>{% endif %}
+</div></section>
+<section class="card"><h2>Money and trade</h2><div class="body">
+{% if you.money %}<p class="verdict good">Labh</p><p>{{ you.money.start|hm(ref) }} – {{ you.money.end|hm(ref) }}</p>
+<p class="sub">Labh choghadiya outside Rahu Kalam.</p>
+{% else %}<p>No Labh choghadiya left outside Rahu Kalam.</p>{% endif %}
+</div></section>
+</div>
+<section class="card"><h2>Fixed muhurtas</h2><div class="body"><table class="kv">
+<tr><td>Abhijit</td><td class="good">{{ span(you.abhijit, ref) if you.abhijit else 'None on Wednesday' }}</td></tr>
+<tr><td>Rahu Kalam</td><td class="bad">{{ span(you.rahu, ref) }}</td></tr>
+</table>
+<p class="sub">Abhijit is the 8th daytime muhurta, except Wednesday. Rahu Kalam is excluded from the three windows above.</p>
+</div></section>
+{% endblock %}

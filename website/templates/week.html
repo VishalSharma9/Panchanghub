@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>This week</h1>
+<p class="sub">{% if loc.source != 'default' %}{{ loc.city }} · {% endif %}Seven sunrise-to-sunrise days. The puja hour is the next Amrit, Shubh or Labh choghadiya outside Rahu Kalam{% if jr or jn %}, read against your birth star{% endif %}.</p>
+<form class="f" method="get" action="/week">
+<input type="hidden" name="date" value="{{ d.isoformat() }}">
+<input type="hidden" name="city" value="{{ loc.city }}"><input type="hidden" name="lat" value="{{ loc.lat }}"><input type="hidden" name="lon" value="{{ loc.lon }}"><input type="hidden" name="tz" value="{{ loc.tz }}">
+<label>Janma rashi<select name="janma_rashi" onchange="this.form.submit()"><option value="">Not set</option>{% for i in range(12) %}<option value="{{ i+1 }}" {{ 'selected' if jr==i+1 }}>{{ RASHIS[i] }}</option>{% endfor %}</select></label>
+<label>Janma nakshatra<select name="janma_nakshatra" onchange="this.form.submit()"><option value="">Not set</option>{% for i in range(27) %}<option value="{{ i+1 }}" {{ 'selected' if jn==i+1 }}>{{ NAKSHATRAS[i] }}</option>{% endfor %}</select></label>
+</form>
+<section class="card"><h2>{{ rows[0].d.strftime('%d %b') }} – {{ rows[-1].d.strftime('%d %b %Y') }}</h2><div class="body" style="overflow-x:auto"><table class="t">
+<tr><th>Day</th><th>Tithi</th><th>Chandrabala</th><th>Tarabala</th><th>Puja hour</th><th>Rahu</th><th>Avoid</th></tr>
+{% for row in rows %}{% set ref = row.p.date %}{% set y = row.you %}
+<tr>
+<td><a href="/panchang?date={{ row.d.isoformat() }}&{{ locq }}">{{ row.d.strftime('%a %d') }}</a></td>
+<td>{{ row.p.tithi[0].name }}</td>
+<td>{% if y.chandra and y.chandra.now %}<span class="{{ 'good' if y.chandra.now.favourable else 'bad' }}">{{ 'Yes' if y.chandra.now.favourable else 'No' }}</span>{% else %}—{% endif %}</td>
+<td>{% if y.tara and y.tara.now %}<span class="{{ 'good' if y.tara.now.favourable else 'bad' }}">{{ 'Yes' if y.tara.now.favourable else 'No' }}</span>{% else %}—{% endif %}</td>
+<td>{% if y.puja %}{{ y.puja.name }} {{ y.puja.start|hm(ref) }}{% else %}None left{% endif %}</td>
+<td class="bad">{{ row.p.muhurta.rahu_kalam.start|hm(ref) }}</td>
+<td>{{ row.p.disha_shool }}</td>
+</tr>{% endfor %}
+</table>
+<p class="sub">Chandrabala and Tarabala are for the Moon at the start of that panchang day. “Avoid” is Disha Shool, the direction not to set out toward. Open the day for the full timings.</p>
+</div></section>
+{% endblock %}

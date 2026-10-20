@@ -1,0 +1,530 @@
+{
+ "mesha_2026": {
+  "punya": [
+   "05:57 AM",
+   "01:55 PM"
+  ],
+  "maha": [
+   "07:30 AM",
+   "11:47 AM"
+  ],
+  "moment": [
+   "09:39 AM"
+  ],
+  "date": [
+   "Tuesday, April 14, 2026"
+  ]
+ },
+ "mesha_2025": {
+  "punya": [
+   "05:57 AM",
+   "12:22 PM"
+  ],
+  "maha": [
+   "05:57 AM",
+   "08:05 AM"
+  ],
+  "moment": [
+   "03:30 AM"
+  ],
+  "date": [
+   "Monday, April 14, 2025"
+  ]
+ },
+ "vrishabha_2026": {
+  "punya": [
+   "05:30 AM",
+   "06:28 AM"
+  ],
+  "maha": [
+   "05:30 AM",
+   "06:28 AM"
+  ],
+  "moment": [
+   "06:28 AM"
+  ],
+  "date": [
+   "Friday, May 15, 2026"
+  ]
+ },
+ "vrishabha_2025": {
+  "punya": [
+   "05:30 AM",
+   "12:18 PM"
+  ],
+  "maha": [
+   "05:30 AM",
+   "07:46 AM"
+  ],
+  "moment": [
+   "12:21 AM"
+  ],
+  "date": [
+   "Thursday, May 15, 2025"
+  ]
+ },
+ "mithuna_2026": {
+  "punya": [
+   "12:59 PM",
+   "07:20 PM"
+  ],
+  "maha": [
+   "12:59 PM",
+   "03:19 PM"
+  ],
+  "moment": [
+   "12:59 PM"
+  ],
+  "date": [
+   "Monday, June 15, 2026"
+  ]
+ },
+ "mithuna_2025": {
+  "punya": [
+   "06:53 AM",
+   "02:19 PM"
+  ],
+  "maha": [
+   "06:53 AM",
+   "09:12 AM"
+  ],
+  "moment": [
+   "06:53 AM"
+  ],
+  "date": [
+   "Sunday, June 15, 2025"
+  ]
+ },
+ "karka_2026": {
+  "punya": [
+   "12:27 PM",
+   "07:21 PM"
+  ],
+  "maha": [
+   "05:03 PM",
+   "07:21 PM"
+  ],
+  "moment": [
+   "11:45 PM"
+  ],
+  "date": [
+   "Thursday, July 16, 2026"
+  ]
+ },
+ "karka_2025": {
+  "punya": [
+   "05:40 AM",
+   "05:40 PM"
+  ],
+  "maha": [
+   "03:22 PM",
+   "05:40 PM"
+  ],
+  "moment": [
+   "05:40 PM"
+  ],
+  "date": [
+   "Wednesday, July 16, 2025"
+  ]
+ },
+ "simha_2026": {
+  "punya": [
+   "05:51 AM",
+   "08:04 AM"
+  ],
+  "maha": [
+   "05:52 AM",
+   "08:04 AM"
+  ],
+  "moment": [
+   "08:04 AM"
+  ],
+  "date": [
+   "Monday, August 17, 2026"
+  ]
+ },
+ "simha_2025": {
+  "punya": [
+   "05:51 AM",
+   "12:25 PM"
+  ],
+  "maha": [
+   "05:51 AM",
+   "08:03 AM"
+  ],
+  "moment": [
+   "02:00 AM"
+  ],
+  "date": [
+   "Sunday, August 17, 2025"
+  ]
+ },
+ "kanya_2026": {
+  "punya": [
+   "07:58 AM",
+   "02:31 PM"
+  ],
+  "maha": [
+   "07:58 AM",
+   "10:01 AM"
+  ],
+  "moment": [
+   "07:58 AM"
+  ],
+  "date": [
+   "Thursday, September 17, 2026"
+  ]
+ },
+ "kanya_2025": {
+  "punya": [
+   "06:07 AM",
+   "12:15 PM"
+  ],
+  "maha": [
+   "06:07 AM",
+   "08:10 AM"
+  ],
+  "moment": [
+   "01:55 AM"
+  ],
+  "date": [
+   "Wednesday, September 17, 2025"
+  ]
+ },
+ "tula_2026": {
+  "punya": [
+   "12:06 PM",
+   "05:50 PM"
+  ],
+  "maha": [
+   "03:55 PM",
+   "05:50 PM"
+  ],
+  "moment": [
+   "07:57 PM"
+  ],
+  "date": [
+   "Saturday, October 17, 2026"
+  ]
+ },
+ "tula_2025": {
+  "punya": [
+   "10:05 AM",
+   "05:43 PM"
+  ],
+  "maha": [
+   "12:00 PM",
+   "03:48 PM"
+  ],
+  "moment": [
+   "01:54 PM"
+  ],
+  "date": [
+   "Friday, October 17, 2025"
+  ]
+ },
+ "vrishchika_2026": {
+  "punya": [
+   "12:06 PM",
+   "05:27 PM"
+  ],
+  "maha": [
+   "03:40 PM",
+   "05:27 PM"
+  ],
+  "moment": [
+   "07:48 PM"
+  ],
+  "date": [
+   "Monday, November 16, 2026"
+  ]
+ },
+ "vrishchika_2025": {
+  "punya": [
+   "08:02 AM",
+   "01:45 PM"
+  ],
+  "maha": [
+   "11:58 AM",
+   "01:45 PM"
+  ],
+  "moment": [
+   "01:45 PM"
+  ],
+  "date": [
+   "Sunday, November 16, 2025"
+  ]
+ },
+ "dhanu_2026": {
+  "punya": [
+   "10:29 AM",
+   "04:00 PM"
+  ],
+  "maha": [
+   "10:29 AM",
+   "12:13 PM"
+  ],
+  "moment": [
+   "10:29 AM"
+  ],
+  "date": [
+   "Wednesday, December 16, 2026"
+  ]
+ },
+ "dhanu_2025": {
+  "punya": [
+   "07:07 AM",
+   "12:17 PM"
+  ],
+  "maha": [
+   "07:07 AM",
+   "08:50 AM"
+  ],
+  "moment": [
+   "04:27 AM"
+  ],
+  "date": [
+   "Tuesday, December 16, 2025"
+  ]
+ },
+ "makar_2026": {
+  "punya": [
+   "03:13 PM",
+   "05:45 PM"
+  ],
+  "maha": [
+   "03:13 PM",
+   "04:58 PM"
+  ],
+  "moment": [
+   "03:13 PM"
+  ],
+  "date": [
+   "Wednesday, January 14, 2026"
+  ]
+ },
+ "makar_2025": {
+  "punya": [
+   "09:03 AM",
+   "05:46 PM"
+  ],
+  "maha": [
+   "09:03 AM",
+   "10:48 AM"
+  ],
+  "moment": [
+   "09:03 AM"
+  ],
+  "date": [
+   "Tuesday, January 14, 2025"
+  ]
+ },
+ "kumbha_2026": {
+  "punya": [
+   "07:01 AM",
+   "12:35 PM"
+  ],
+  "maha": [
+   "07:01 AM",
+   "08:53 AM"
+  ],
+  "moment": [
+   "04:14 AM"
+  ],
+  "date": [
+   "Friday, February 13, 2026"
+  ]
+ },
+ "kumbha_2025": {
+  "punya": [
+   "12:35 PM",
+   "06:09 PM"
+  ],
+  "maha": [
+   "04:18 PM",
+   "06:09 PM"
+  ],
+  "moment": [
+   "10:04 PM"
+  ],
+  "date": [
+   "Wednesday, February 12, 2025"
+  ]
+ },
+ "meena_2026": {
+  "punya": [
+   "06:31 AM",
+   "12:30 PM"
+  ],
+  "maha": [
+   "06:31 AM",
+   "08:31 AM"
+  ],
+  "moment": [
+   "01:08 AM"
+  ],
+  "date": [
+   "Sunday, March 15, 2026"
+  ]
+ },
+ "meena_2025": {
+  "punya": [
+   "12:30 PM",
+   "06:29 PM"
+  ],
+  "maha": [
+   "04:29 PM",
+   "06:29 PM"
+  ],
+  "moment": [
+   "06:59 PM"
+  ],
+  "date": [
+   "Friday, March 14, 2025"
+  ]
+ },
+ "makar_2023": {
+  "punya": [
+   "07:15 AM",
+   "05:46 PM"
+  ],
+  "maha": [
+   "07:15 AM",
+   "09:00 AM"
+  ],
+  "moment": [
+   "08:57 PM"
+  ],
+  "date": [
+   "Sunday, January 15, 2023"
+  ]
+ },
+ "makar_2024": {
+  "punya": [
+   "07:15 AM",
+   "05:46 PM"
+  ],
+  "maha": [
+   "07:15 AM",
+   "09:00 AM"
+  ],
+  "moment": [
+   "02:54 AM"
+  ],
+  "date": [
+   "Monday, January 15, 2024"
+  ]
+ },
+ "makar_2027": {
+  "punya": [
+   "07:15 AM",
+   "05:46 PM"
+  ],
+  "maha": [
+   "07:15 AM",
+   "09:00 AM"
+  ],
+  "moment": [
+   "09:14 PM"
+  ],
+  "date": [
+   "Friday, January 15, 2027"
+  ]
+ },
+ "makar_2028": {
+  "punya": [
+   "07:15 AM",
+   "05:46 PM"
+  ],
+  "maha": [
+   "07:15 AM",
+   "09:00 AM"
+  ],
+  "moment": [
+   "03:26 AM"
+  ],
+  "date": [
+   "Saturday, January 15, 2028"
+  ]
+ },
+ "karka_2021": {
+  "punya": [
+   "05:34 AM",
+   "05:09 PM"
+  ],
+  "maha": [
+   "02:51 PM",
+   "05:09 PM"
+  ],
+  "moment": [
+   "05:09 PM"
+  ],
+  "date": [
+   "Friday, July 16, 2021"
+  ]
+ },
+ "karka_2022": {
+  "punya": [
+   "12:27 PM",
+   "07:21 PM"
+  ],
+  "maha": [
+   "05:03 PM",
+   "07:21 PM"
+  ],
+  "moment": [
+   "11:11 PM"
+  ],
+  "date": [
+   "Saturday, July 16, 2022"
+  ]
+ },
+ "karka_2023": {
+  "punya": [
+   "12:27 PM",
+   "07:21 PM"
+  ],
+  "maha": [
+   "05:03 PM",
+   "07:21 PM"
+  ],
+  "moment": [
+   "05:19 AM"
+  ],
+  "date": [
+   "Sunday, July 16, 2023"
+  ]
+ },
+ "karka_2024": {
+  "punya": [
+   "05:34 AM",
+   "11:29 AM"
+  ],
+  "maha": [
+   "09:11 AM",
+   "11:29 AM"
+  ],
+  "moment": [
+   "11:29 AM"
+  ],
+  "date": [
+   "Tuesday, July 16, 2024"
+  ]
+ },
+ "karka_2027": {
+  "punya": [
+   "05:34 AM",
+   "05:52 AM"
+  ],
+  "maha": [
+   "05:34 AM",
+   "05:52 AM"
+  ],
+  "moment": [
+   "05:52 AM"
+  ],
+  "date": [
+   "Saturday, July 17, 2027"
+  ]
+ }
+}

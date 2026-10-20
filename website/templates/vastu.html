@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Vastu Shastra Guide</h1>
+<section class="card"><h2>Check your home</h2><div class="body"><form class="f" method="get" action="/vastu">
+<label>Main door facing<select name="facing"><option value="">—</option>{% for d in dirs if d!='Centre' %}<option {{ 'selected' if q.get('facing')==d }}>{{ d }}</option>{% endfor %}</select></label>
+{% for r in rooms[:9] %}<label>{{ r|title }}<select name="room_{{ r.replace(' ','_') }}"><option value="">—</option>{% for d in dirs %}<option {{ 'selected' if q.get('room_'+r.replace(' ','_'))==d }}>{{ d }}</option>{% endfor %}</select></label>{% endfor %}
+<button class="btn alt">Evaluate</button></form></div></section>
+{% if v.facing %}<section class="card"><h2>Entrance</h2><div class="body"><p><b>{{ v.facing.direction }}</b>: {{ v.facing.remark }}</p></div></section>{% endif %}
+{% if v.evaluation %}<section class="card"><h2>Score: {{ v.score_percent }}%</h2><div class="body"><table class="t"><tr><th>Room</th><th>Direction</th><th>Points</th><th>Advice</th></tr>
+{% for r in v.evaluation %}<tr><td>{{ r.room|title }}</td><td>{{ r.direction }}</td><td>{{ r.points }}/10</td><td>{{ r.advice }}</td></tr>{% endfor %}</table></div></section>{% endif %}
+<section class="card"><h2>The nine zones</h2><div class="body" style="overflow-x:auto"><table class="t"><tr><th>Direction</th><th>Deity</th><th>Element</th><th>Planet</th><th>Good for</th><th>Avoid</th></tr>
+{% for d, x in v.directions.items() %}<tr><td><b>{{ d }}</b></td><td>{{ x.deity }}</td><td>{{ x.element }}</td><td>{{ x.planet }}</td><td>{{ x.good_for|join(', ') }}</td><td>{{ x.avoid|join(', ') }}</td></tr>{% endfor %}</table></div></section>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% from "_macros.html" import birthform %}
+{% block content %}
+<h1>Western Natal Chart</h1><p class="sub">Tropical zodiac · Placidus houses · major aspects</p>
+<section class="card"><h2>Birth details</h2><div class="body"><form method="get" action="/western">{{ birthform('', b, 'Native') }}<p><button class="btn alt">Calculate chart</button></p></form></div></section>
+{% if c %}<div class="grid2"><section class="card"><h2>Wheel</h2><div class="body charts">{{ svg|safe }}</div></section>
+<section class="card"><h2>Angles</h2><div class="body"><table class="kv"><tr><td>Ascendant</td><td>{{ c.ascendant.sign }} {{ c.ascendant.dms }}</td></tr><tr><td>Midheaven</td><td>{{ c.midheaven.sign }} {{ c.midheaven.dms }}</td></tr></table>
+<table class="t"><tr><th>House</th><th>Cusp</th></tr>{% for h in c.houses %}<tr><td>{{ h.house }}</td><td>{{ h.sign }} {{ '%.2f'|format(h.cusp % 30) }}°</td></tr>{% endfor %}</table></div></section></div>
+<section class="card"><h2>Planets</h2><div class="body"><table class="t"><tr><th>Planet</th><th>Sign</th><th>Degree</th><th>House</th><th></th></tr>{% for p in c.planets %}<tr><td>{{ p.name }}</td><td>{{ p.sign }}</td><td>{{ p.dms }}</td><td>{{ p.house }}</td><td>{{ 'Rx' if p.retrograde }}</td></tr>{% endfor %}</table></div></section>
+<section class="card"><h2>Aspects</h2><div class="body"><table class="t"><tr><th>Planets</th><th>Aspect</th><th>Orb</th></tr>{% for a in c.aspects %}<tr><td>{{ a.planet1 }} – {{ a.planet2 }}</td><td>{{ a.aspect }}</td><td>{{ '%.2f'|format(a.orb) }}°</td></tr>{% endfor %}</table></div></section>{% endif %}
+{% endblock %}

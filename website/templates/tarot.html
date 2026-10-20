@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Tarot Reading</h1>
+<section class="card"><h2>Ask a question</h2><div class="body"><form class="f" method="get"><label>Question<input name="question" value="{{ q.get('question','') }}"></label>
+<label>Spread<select name="spread">{% for s in ['single','yes_no','three_card','love','celtic_cross'] %}<option value="{{ s }}" {{ 'selected' if sp==s }}>{{ s.replace('_',' ')|title }}</option>{% endfor %}</select></label><button class="btn alt">Draw cards</button></form></div></section>
+<section class="card"><h2>{{ t.spread.replace('_',' ')|title }}{% if t.answer %} – Answer: {{ t.answer }}{% endif %}</h2><div class="body"><div class="grid3">{% for c in t.cards %}<div class="card"><h3>{{ c.position }}</h3><div class="body"><b>{{ c.card }}</b>{{ ' (reversed)' if c.reversed }}<p>{{ c.meaning }}</p></div></div>{% endfor %}</div></div></section>
+{% endblock %}

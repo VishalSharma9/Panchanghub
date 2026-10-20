@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="{{ lang or 'en' }}">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ title }}</title>
+<meta name="description" content="{{ desc }}">
+<link rel="canonical" href="{{ canonical }}">
+<meta property="og:site_name" content="{{ BRAND }}"><meta property="og:title" content="{{ title }}"><meta property="og:description" content="{{ desc }}">
+<meta property="og:url" content="{{ canonical }}"><meta property="og:type" content="website"><meta property="og:image" content="{{ SITE }}/static/logo.svg">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#8e1b3a">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/style.css?v=18">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"{{ BRAND }}","url":"{{ SITE }}/","potentialAction":{"@type":"SearchAction","target":"{{ SITE }}/panchang?city={search_term_string}","query-input":"required name=search_term_string"}}</script>
+</head>
+<body>
+<header class="top">
+  <div class="wrap topbar">
+    <a class="brand" href="/" aria-label="{{ BRAND }} home"><img src="/static/logo.svg" alt="{{ BRAND }}" width="190" height="42"><span class="tag">Hindu almanac<br>Lahiri · local time</span></a>
+    <div class="toptools">
+      <time id="liveClock" data-tz="{{ loc.tz }}" data-pending="{{ '1' if loc.source == 'default' else '0' }}">—</time>
+      <span class="topdate" id="civilDate"></span>
+      <select id="langSel" aria-label="Language" class="langsel">{% for code, nm in LANGS.items() %}<option value="{{ code }}" {{ 'selected' if code==lang }}>{{ nm }}</option>{% endfor %}</select>
+      <div class="userauth" style="display:inline-flex;align-items:center;margin-left:4px">
+        {% if current_user and current_user.is_verified %}
+          <a href="/login" class="user-pill" style="font-size:12px;font-weight:700;color:var(--good);background:#e8f5e9;border:1px solid #c5e1a5;border-radius:14px;padding:3px 9px;text-decoration:none" title="Verified Member">✓ {{ current_user.email.split('@')[0] }}</a>
+          <a href="/logout" style="font-size:11.5px;color:var(--muted);margin-left:6px;text-decoration:none">Sign out</a>
+        {% else %}
+          <a href="/login" class="user-pill" style="font-size:12px;font-weight:700;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:14px;padding:3px 10px;text-decoration:none">👤 Sign In</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="locbar">
+    <div class="wrap locbar-in">
+      <div class="curloc" id="curloc" data-source="{{ loc.source }}">
+        {% if loc.source == 'default' %}
+        <span class="locname" id="locLabel">Detecting your location…</span>
+        <span class="loctz">Allow location so the panchang matches where you are</span>
+        {% elif loc.source == 'timezone' %}
+        <span class="locname">{{ loc.city }}</span>
+        <span class="loctz">From your timezone · search if this is not your city</span>
+        {% else %}
+        <span class="locname">{{ loc.city }}</span>
+        <span class="loctz">{{ loc.tz }} · local time</span>
+        {% endif %}
+      </div>
+      <div class="locbox">
+        <input id="citySearch" placeholder="Change city or town…" autocomplete="off" aria-label="Search city or town">
+        <div id="citySugg" class="sugg" hidden></div>
+        <button id="geoBtn" type="button">Use my location</button>
+      </div>
+    </div>
+  </div>
+<nav class="main"><div class="wrap">{% for href,label in NAV[:16] %}<a href="{{ href }}" class="{{ 'on' if path==href }}">{{ label }}</a>{% endfor %}<a href="/api/docs">API</a></div></nav>
+</header>
+<div class="wrap layout">
+<aside class="side">
+  <h4>Panchang</h4><a href="/mine">For your birth star</a><a href="/week">This week</a><a href="/compare">Two cities</a><a href="/names">Naming syllable</a><a href="/sade-sati">Sade Sati</a><a href="/panchang">Day Panchang</a><a href="/calendar">Month Calendar</a><a href="/choghadiya">Choghadiya</a><a href="/hora">Shubha Hora</a><a href="/rahu-kaal">Rahu Kaal</a><a href="/lagna-table">Lagna Table</a><a href="/lagna-table#gowri">Gowri Panchangam</a>
+  <h4>Calendars</h4><a href="/festivals">Festivals {{ '' }}</a><a href="/festivals?type=ekadashi">Ekadashi</a><a href="/festivals?type=purnima">Purnima</a><a href="/festivals?type=amavasya">Amavasya</a><a href="/festivals?type=pradosh">Pradosh</a><a href="/festivals?type=sankashti">Sankashti</a><a href="/festivals?type=sankranti">Sankranti</a><a href="/festivals?type=eclipse">Eclipses</a>
+  <h4>Jyotish</h4><a href="/kundli">Janma Kundli</a><a href="/prashna">Prashna Kundali (Horary)</a><a href="/vargas">Divisional Charts (31)</a><a href="/varshaphala">Varshaphala (Solar Return)</a><a href="/kp">KP System (Krishnamurti)</a><a href="/yogas">Classical Yogas (60+)</a><a href="/reading">Vedic Reading &amp; Lords</a><a href="/matching">Kundli Matching</a><a href="/muhurat">Muhurat</a><a href="/transits">Transits</a><a href="/horoscope">Rashifal</a>
+  <h4>More</h4><a href="/western">Western Chart</a><a href="/numerology">Numerology</a><a href="/tarot">Tarot</a><a href="/human-design">Human Design</a><a href="/vastu">Vastu</a><a href="/iching">I-Ching</a><a href="/palmistry">Palmistry</a><a href="/regional">Regional Calendars &amp; Doshas</a><a href="/tools">Mayan · Chinese · Kabbalah · Dreams · Crystals</a><a href="/api/docs">Developer API</a>
+</aside>
+<main>{% block content %}{% endblock %}</main>
+</div>
+<footer><div class="wrap">© {{ BRAND }} · Swiss Ephemeris, sidereal Lahiri, calibrated to canonical Drik Ganita astronomical standards. Any day from 1 CE through 3000 CE. Places: GeoNames (CC-BY). Times are local, including DST. · <a href="/api/docs">REST API</a></div></footer>
+<script src="/static/app.js?v=18" defer></script>
+</body></html>

@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% from "_macros.html" import birthform %}
+{% block content %}
+<h1>Kundli Matching</h1><p class="sub">Ashtakoota Guna Milan (36) and South Indian 10 Porutham</p>
+<section class="card"><h2>Enter birth details</h2><div class="body"><form method="get" action="/matching"><div class="grid2">{{ birthform('b_', bb, 'Boy') }}{{ birthform('g_', gg, 'Girl') }}</div><p><button class="btn alt">Match Horoscopes</button></p></form></div></section>
+{% if m %}{% set a = m.ashtakoota %}
+<section class="card"><h2>Guna Milan: {{ a.total }} / 36 – {{ a.verdict }}</h2><div class="body">
+<p>Boy: {{ a.boy.rashi }}, {{ a.boy.nakshatra }} · Girl: {{ a.girl.rashi }}, {{ a.girl.nakshatra }} {% for d in a.doshas %}<span class="pill bad">{{ d }}</span>{% endfor %}</p>
+<table class="t"><tr><th>Koota</th><th>Boy / Girl</th><th>Obtained</th><th>Max</th></tr>{% for x in a.kootas %}<tr><td>{{ x.koota }}</td><td>{{ x.detail }}</td><td class="{{ 'good' if x.obtained==x.max else 'bad' if x.obtained==0 else '' }}">{{ x.obtained }}</td><td>{{ x.max }}</td></tr>{% endfor %}
+<tr><td colspan="2"><b>Total</b></td><td><b>{{ a.total }}</b></td><td>36</td></tr></table></div></section>
+<section class="card"><h2>Porutham: {{ m.porutham.matched }} / 10 – {{ m.porutham.verdict }}</h2><div class="body"><table class="t"><tr><th>Porutham</th><th>Result</th></tr>
+{% for x in m.porutham.poruthams %}<tr><td>{{ x.name }}</td><td class="{{ 'good' if x.match else 'bad' }}">{{ 'Uthamam (match)' if x.match else 'No match' }}</td></tr>{% endfor %}</table></div></section>
+{% endif %}
+{% endblock %}

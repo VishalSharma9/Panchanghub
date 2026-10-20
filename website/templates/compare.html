@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}{% set ref = p.date %}
+<h1>Two cities, one day</h1>
+<p class="sub">{{ d.strftime('%A, %d %B %Y') }}. Drik makes you switch place. Here both panchangs stay on the page, so a family split across countries can see whose sunrise the tithi belongs to.</p>
+<form class="datebar" method="get" action="/compare">{% if prev %}<a class="btn" href="/compare?date={{ prev }}&{{ locq }}">‹ Prev</a>{% endif %}<input type="date" name="date" value="{{ d.isoformat() }}" min="0001-01-01" max="3000-12-31" onchange="this.form.submit()" aria-label="Choose date"><input type="hidden" name="city" value="{{ loc.city }}"><input type="hidden" name="lat" value="{{ loc.lat }}"><input type="hidden" name="lon" value="{{ loc.lon }}"><input type="hidden" name="tz" value="{{ loc.tz }}">{% if loc2 %}<input type="hidden" name="city2" value="{{ loc2.city }}"><input type="hidden" name="lat2" value="{{ loc2.lat }}"><input type="hidden" name="lon2" value="{{ loc2.lon }}"><input type="hidden" name="tz2" value="{{ loc2.tz }}">{% endif %}{% if next %}<a class="btn" href="/compare?date={{ next }}&{{ locq }}">Next ›</a>{% endif %}<a class="btn alt" href="/compare?{{ locq }}">Today</a></form>
+<form class="f" method="get" action="/compare">
+<input type="hidden" name="date" value="{{ d.isoformat() }}">
+<input type="hidden" name="city" value="{{ loc.city }}"><input type="hidden" name="lat" value="{{ loc.lat }}"><input type="hidden" name="lon" value="{{ loc.lon }}"><input type="hidden" name="tz" value="{{ loc.tz }}">
+<label>Other place<input data-compare placeholder="Search the other city or town" autocomplete="off" value="{{ loc2.city if loc2 else '' }}"></label>
+<input type="hidden" name="city2" value="{{ loc2.city if loc2 else '' }}">
+<input type="hidden" name="lat2" value="{{ loc2.lat if loc2 else '' }}">
+<input type="hidden" name="lon2" value="{{ loc2.lon if loc2 else '' }}">
+<input type="hidden" name="tz2" value="{{ loc2.tz if loc2 else '' }}">
+</form>
+<div class="grid2">
+<section class="card"><h2>{{ loc.city if loc.source != 'default' else 'This place' }}</h2><div class="body">{% set x = p %}{% include "_place.html" %}</div></section>
+<section class="card"><h2>{{ loc2.city if loc2 else 'Other place' }}</h2><div class="body">
+{% if p2 %}{% set x = p2 %}{% include "_place.html" %}{% else %}<p>Search a second city. Timings for the first place are already on the left.</p>{% endif %}
+</div></section>
+</div>
+{% if p2 and p.tithi[0].name != p2.tithi[0].name %}
+<p class="bad">Sunrise tithi differs: {{ p.tithi[0].name }} here, {{ p2.tithi[0].name }} there. A vrat dated from sunrise will not fall on the same civil day in both places.</p>
+{% elif p2 %}<p class="good">Sunrise tithi matches in both places: {{ p.tithi[0].name }}.</p>{% endif %}
+{% endblock %}

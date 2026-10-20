@@ -1,0 +1,177 @@
+{% extends "base.html" %}{% from "_macros.html" import birthform %}
+{% block content %}
+<h1>Tajika Varshaphala</h1>
+<p class="sub">Annual Solar Return Chart • Muntha • Varshesha Year Lord • Mudda Dasha • 24 Sahams • Tajika Yogas</p>
+
+<section class="card">
+  <h2>Birth Details &amp; Return Year</h2>
+  <div class="body">
+    <form method="get" action="/varshaphala">
+      {{ birthform('', b, 'Native') }}
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:10px">
+        <label>Return Year: 
+          <input type="number" name="year" value="{{ year }}" min="1900" max="2100" style="padding:6px 10px;border-radius:6px;border:1px solid var(--line);width:100px;font-weight:700">
+        </label>
+        <label>Chart Style: 
+          <select name="style">
+            {% for s in ['north','south','east'] %}
+              <option value="{{ s }}" {{ 'selected' if style==s }}>{{ s|title }} Indian</option>
+            {% endfor %}
+          </select>
+        </label>
+        <button class="btn alt" type="submit">Calculate Varshaphala</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+{% if vdata %}
+<div class="quick-nav">
+  <a href="#summary">🌟 Year Highlights</a>
+  <a href="#chart">☸️ Varsha Kundli</a>
+  <a href="#adhikaris">👑 Pancha Adhikaris</a>
+  <a href="#mudda">⏳ Mudda Dasha</a>
+  <a href="#sahams">🎯 24 Tajika Sahams</a>
+  <a href="#yogas">📜 Tajika Yogas</a>
+</div>
+
+<!-- 1. Year Summary -->
+<section class="card" id="summary">
+  <h2>Solar Return Overview for Year {{ vdata.year }} (Age {{ vdata.age }})</h2>
+  <div class="body">
+    <div class="suntimes" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));">
+      <div><span>Solar Return Moment</span><b>{{ vdata.solar_return_moment[:19].replace('T',' ') }}</b></div>
+      <div><span>Year Lord (Varshesha)</span><b style="color:var(--good)">{{ vdata.year_lord }}</b></div>
+      <div><span>Muntha Location</span><b>{{ vdata.muntha.sign }} (H{{ vdata.muntha.house }})</b></div>
+      <div><span>Varsha Lagna</span><b>{{ vdata.varsha_lagna.rashi }} {{ vdata.varsha_lagna.dms }}</b></div>
+    </div>
+    <p style="margin-top:10px;font-size:13.5px;color:var(--muted)">{{ vdata.year_lord_note }}</p>
+  </div>
+</section>
+
+<!-- 2. Varsha Kundli Chart & Planetary Table -->
+<div class="grid2" id="chart">
+  <section class="card">
+    <h2>Varsha Kundli (D1 Solar Return)</h2>
+    <div class="body" style="text-align:center">
+      {% if varsha_chart_svg %}
+        <div style="display:inline-block;max-width:100%">{{ varsha_chart_svg|safe }}</div>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Planetary Positions in Varsha Pravesha</h2>
+    <div class="body" style="overflow-x:auto">
+      <table class="t">
+        <tr><th>Planet</th><th>Sign</th><th>Degree</th><th>House</th><th>Speed</th><th>Status</th></tr>
+        {% for p in vdata.planets %}
+        <tr>
+          <td><b>{{ p.name }}</b></td>
+          <td>{{ p.rashi }}</td>
+          <td>{{ p.dms }}</td>
+          <td>House {{ p.house }}</td>
+          <td>{{ p.speed }}°/d</td>
+          <td>
+            {% if p.retrograde %}<span class="pill pill-retro">Retro</span>{% endif %}
+            {% if p.combust %}<span class="pill pill-combust">Combust</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </section>
+</div>
+
+<!-- 3. Pancha Adhikaris (Year Lord Selection) -->
+<section class="card" id="adhikaris">
+  <h2>Pancha Adhikaris (The 5 Office Bearers for Year Lord Selection)</h2>
+  <div class="body" style="overflow-x:auto">
+    <p class="neutral">Per Tajika Neelakanthi, the Year Lord is chosen from among five planetary candidates based on aspectual sambandha with Varsha Lagna and strength:</p>
+    <table class="t">
+      <tr><th>Office</th><th>Candidate Lord</th><th>Virupa Strength</th><th>Selection Status</th></tr>
+      <tr><td><b>1. Muntha Lord</b></td><td>{{ vdata.pancha_adhikari.muntha_lord }}</td><td>{{ vdata.adhikari_strength_virupas.get(vdata.pancha_adhikari.muntha_lord, '—') }}</td><td>{{ '👑 Chosen Year Lord' if vdata.year_lord == vdata.pancha_adhikari.muntha_lord else 'Eligible' }}</td></tr>
+      <tr><td><b>2. Janma Lagna Lord</b></td><td>{{ vdata.pancha_adhikari.janma_lagna_lord }}</td><td>{{ vdata.adhikari_strength_virupas.get(vdata.pancha_adhikari.janma_lagna_lord, '—') }}</td><td>{{ '👑 Chosen Year Lord' if vdata.year_lord == vdata.pancha_adhikari.janma_lagna_lord else 'Eligible' }}</td></tr>
+      <tr><td><b>3. Varsha Lagna Lord</b></td><td>{{ vdata.pancha_adhikari.varsha_lagna_lord }}</td><td>{{ vdata.adhikari_strength_virupas.get(vdata.pancha_adhikari.varsha_lagna_lord, '—') }}</td><td>{{ '👑 Chosen Year Lord' if vdata.year_lord == vdata.pancha_adhikari.varsha_lagna_lord else 'Eligible' }}</td></tr>
+      <tr><td><b>4. Dina / Ratri Lord</b></td><td>{{ vdata.pancha_adhikari.dina_ratri_lord }} ({{ 'Day' if vdata.birth_in_day else 'Night' }} Chart)</td><td>{{ vdata.adhikari_strength_virupas.get(vdata.pancha_adhikari.dina_ratri_lord, '—') }}</td><td>{{ '👑 Chosen Year Lord' if vdata.year_lord == vdata.pancha_adhikari.dina_ratri_lord else 'Eligible' }}</td></tr>
+      <tr><td><b>5. Tri-Rashi Lord</b></td><td>{{ vdata.pancha_adhikari.trirashi_lord }}</td><td>{{ vdata.adhikari_strength_virupas.get(vdata.pancha_adhikari.trirashi_lord, '—') }}</td><td>{{ '👑 Chosen Year Lord' if vdata.year_lord == vdata.pancha_adhikari.trirashi_lord else 'Eligible' }}</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- 4. Mudda Dasha -->
+<section class="card" id="mudda">
+  <h2>Mudda Dasha (1-Year Compressed Vimshottari)</h2>
+  <div class="body" style="overflow-x:auto">
+    <p class="neutral">120-year Vimshottari periods compressed proportionally to govern the 365 days of the solar return year:</p>
+    <table class="t">
+      <tr><th>Order</th><th>Dasha Lord</th><th>Commencement</th><th>Conclusion</th><th>Span</th></tr>
+      {% for md in vdata.mudda_dasha %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td><b>{{ md.lord }}</b></td>
+        <td>{{ md.start }}</td>
+        <td>{{ md.end }}</td>
+        <td>{{ '3 days / year-fraction' }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</section>
+
+<!-- 5. 24 Classical Tajika Sahams -->
+<section class="card" id="sahams">
+  <h2>24 Classical Tajika Sahams (Sensitive Arabic / Tajika Points)</h2>
+  <div class="body" style="overflow-x:auto">
+    <table class="t">
+      <tr><th>#</th><th>Saham</th><th>Sign</th><th>Degree</th><th>House</th><th>Classical Signification</th></tr>
+      {% for sinfo in vdata.sahams_full_24 %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td><b>{{ sinfo.name }} Saham</b></td>
+        <td>{{ sinfo.sign }}</td>
+        <td>{{ sinfo.dms }}</td>
+        <td>House {{ sinfo.house_from_lagna }}</td>
+        <td style="font-size:12.5px;color:var(--muted)">{{ sinfo.signification }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</section>
+
+<!-- 6. Tajika Yogas -->
+<section class="card" id="yogas">
+  <h2>Tajika Planetary Yogas (Aspectual Configurations &amp; Dynamics)</h2>
+  <div class="body">
+    <table class="t">
+      <tr><th>Planets Involved</th><th>Yoga Name</th><th>Aspect Orb</th><th>Astrological Signification</th></tr>
+      {% for y in vdata.tajik_yogas %}
+      <tr>
+        <td><b>{{ y.planets|join(' & ') }}</b></td>
+        <td>
+          {% if y.yoga == 'Ithasala' %}
+            <span class="tajika-badge tajika-ithasala">Ithasala (Muthashila)</span>
+          {% elif y.yoga == 'Ishrafa' %}
+            <span class="tajika-badge tajika-ishrafa">Ishrafa (Musaripha)</span>
+          {% elif y.yoga == 'Nakta' %}
+            <span class="tajika-badge tajika-nakta">Nakta Yoga</span>
+          {% elif y.yoga == 'Yamaya' %}
+            <span class="tajika-badge tajika-yamaya">Yamaya Yoga</span>
+          {% elif y.yoga == 'Kamboola' %}
+            <span class="tajika-badge tajika-kamboola">Kamboola Yoga</span>
+          {% else %}
+            <span class="tajika-badge">{{ y.yoga }}</span>
+          {% endif %}
+        </td>
+        <td>{{ y.aspect }}°</td>
+        <td style="font-size:13px">{{ y.note or ('Applying aspect' if y.yoga == 'Ithasala' else 'Separating aspect') }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4">No major Tajika aspectual yogas active in this return chart.</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+</section>
+
+{% endif %}
+{% endblock %}

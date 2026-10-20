@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ period|title }} Horoscope</h1><p class="sub">{{ 'Moon-sign (Vedic, sidereal)' if system=='vedic' else 'Sun-sign (Western, tropical)' }} · generated from real planetary transits</p>
+<div class="tabs">{% for p in ['daily','weekly','monthly','yearly'] %}<a class="{{ 'on' if period==p }}" href="/horoscope?period={{ p }}&system={{ system }}">{{ p|title }}</a>{% endfor %} · {% for s in ['vedic','western'] %}<a class="{{ 'on' if system==s }}" href="/horoscope?period={{ period }}&system={{ s }}">{{ s|title }}</a>{% endfor %}</div><br>
+<div class="grid3">{% for h in hs %}<section class="card"><h3>{{ h.sign }} / {{ h.rashi }} {{ '★'*h.rating }}{{ '☆'*(5-h.rating) }}</h3><div class="body" style="font-size:14px"><p>{{ h.prediction }}</p><p class="neutral">Lucky colour {{ h.lucky_color }} · number {{ h.lucky_number }}</p></div></section>{% endfor %}</div>
+{% endblock %}

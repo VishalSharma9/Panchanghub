@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="worksheet-bar">
+  <div class="ws-header">
+    <span class="ws-title">🔐 Member Access &amp; Email Verification</span>
+    <span class="ws-subtitle">Verify your email to prevent bot spam and unlock unlimited access to all advanced Vedic astrology engines</span>
+  </div>
+</div>
+
+<div style="max-width:540px;margin:24px auto">
+  {% if user and user.is_verified %}
+  <section class="card" style="border-top:4px solid var(--good);text-align:center;padding:24px">
+    <span style="font-size:42px;display:block;margin-bottom:8px">✨</span>
+    <h2 style="margin:0 0 8px 0;color:var(--good)">Verified Account Active</h2>
+    <p style="margin:0 0 16px 0;font-size:14.5px;color:var(--ink)">
+      Signed in as <b>{{ user.email }}</b>
+    </p>
+    <div style="background:#f1f8e9;border:1px solid #c5e1a5;border-radius:8px;padding:12px;margin-bottom:18px;text-align:left;font-size:13.5px;line-height:1.6">
+      ✓ <b>Full Unrestricted Access:</b> 31 Divisional Charts (D1–D60), Tajika Prashna, KP System, Sudarshan Chakra, Atmakaraka Soul Guidance, and High-Resolution PDF Life Reports.
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <a href="/kundli" class="btn" style="padding:10px 18px">Open Janma Kundli →</a>
+      <a href="/prashna" class="btn alt" style="padding:10px 18px">Ask a Prashna →</a>
+      <a href="/logout" class="btn neutral" style="padding:10px 14px">Sign Out</a>
+    </div>
+  </section>
+  {% else %}
+
+  <section class="card" style="border-top:4px solid var(--kumkum)">
+    <h2>Sign In / Verify Email</h2>
+    <div class="body">
+      <div style="background:#fffaf3;border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:13px;line-height:1.55">
+        <b style="color:var(--kumkum-d)">💡 Anti-Spam Verification:</b> Basic daily Panchang is 100% open to the public. For resource-intensive planetary computations (D1–D60, PDF reports, Prashna, KP), verify your email. <b>Gmail users (@gmail.com) are verified instantly!</b>
+      </div>
+
+      <div id="authAlert" style="display:none;padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:14px"></div>
+
+      <!-- Quick Sign-In Form -->
+      <form id="authForm" onsubmit="handleAuthSubmit(event)">
+        <div style="margin-bottom:12px">
+          <label for="email" style="font-size:13.5px;font-weight:700"><b>Email Address:</b></label>
+          <input type="email" id="email" name="email" required placeholder="your.name@gmail.com" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--line);margin-top:4px">
+          <span style="font-size:12px;color:var(--muted)">Instant 1-step verification for all @gmail.com accounts</span>
+        </div>
+
+        <div style="margin-bottom:16px">
+          <label for="password" style="font-size:13.5px;font-weight:700"><b>Password (Optional for Gmail):</b></label>
+          <input type="password" id="password" name="password" placeholder="Create or enter password" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--line);margin-top:4px">
+        </div>
+
+        <div style="display:flex;gap:10px;align-items:center">
+          <button type="submit" id="submitBtn" class="btn" style="flex:1;padding:11px;font-weight:700;font-size:14.5px">Continue with Email / Gmail →</button>
+        </div>
+      </form>
+
+      <!-- OTP Verification Form (Hidden by default) -->
+      <form id="otpForm" onsubmit="handleOtpSubmit(event)" style="display:none;margin-top:16px;border-top:1px dashed var(--line);padding-top:16px">
+        <h3 style="margin:0 0 8px 0;font-size:14.5px;color:var(--kumkum)">Enter 6-Digit Verification Code</h3>
+        <p style="margin:0 0 10px 0;font-size:13px;color:var(--muted)">We generated a verification OTP for your email. Enter it below:</p>
+        <div style="margin-bottom:12px">
+          <input type="text" id="otpCode" name="code" maxlength="8" placeholder="e.g. 748291" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--line);font-size:18px;letter-spacing:0.2em;text-align:center;font-weight:800">
+        </div>
+        <button type="submit" id="otpBtn" class="btn" style="width:100%;padding:10px;font-weight:700">Verify Code &amp; Unlock Suite →</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Member Benefits List -->
+  <section class="card" style="margin-top:16px">
+    <h2>Why Verify Your Email?</h2>
+    <div class="body">
+      <ul style="margin:0;padding-left:20px;font-size:13.5px;line-height:1.7;color:var(--ink)">
+        <li><b>D1 through D60 Shodashavargas:</b> Complete 31 harmonic vargas without rate limits.</li>
+        <li><b>High-Res PDF Life Report:</b> Instant export of comprehensive multi-page Janam Kundali dossier.</li>
+        <li><b>Prashna Kundali:</b> Horary queries with real-time Tajika yogas and exact timeline estimation.</li>
+        <li><b>KP System Astrological Desk:</b> Placidus house cusps, 4-fold significators and 1-249 sub-lords.</li>
+        <li><b>Bot &amp; Scraper Protection:</b> Keeps the high-precision Swiss Ephemeris engine fast and free for genuine human seekers.</li>
+      </ul>
+    </div>
+  </section>
+  {% endif %}
+</div>
+
+<script>
+async function handleAuthSubmit(e) {
+  e.preventDefault();
+  const btn = document.getElementById('submitBtn');
+  const alertBox = document.getElementById('authAlert');
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  btn.disabled = true;
+  btn.textContent = 'Processing...';
+  alertBox.style.display = 'none';
+
+  try {
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email, password: password || 'gmail_instant_pass'})
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || data.message || 'Authentication failed');
+
+    if (data.user && data.user.is_verified) {
+      alertBox.style.display = 'block';
+      alertBox.style.background = '#e8f5e9';
+      alertBox.style.color = '#2e7d32';
+      alertBox.innerHTML = '<b>Success!</b> Verified account. Redirecting...';
+      setTimeout(() => {
+        const nextUrl = new URLSearchParams(location.search).get('next') || '/kundli';
+        location.href = nextUrl;
+      }, 1000);
+    } else {
+      // OTP required
+      alertBox.style.display = 'block';
+      alertBox.style.background = '#fff8e1';
+      alertBox.style.color = '#f57f17';
+      alertBox.innerHTML = `<b>Verification Code Required:</b> ${data.message}`;
+      document.getElementById('otpForm').style.display = 'block';
+      btn.textContent = 'Submit';
+    }
+  } catch (err) {
+    alertBox.style.display = 'block';
+    alertBox.style.background = '#ffebee';
+    alertBox.style.color = '#c62828';
+    alertBox.textContent = err.message;
+    btn.disabled = false;
+    btn.textContent = 'Continue with Email / Gmail →';
+  }
+}
+
+async function handleOtpSubmit(e) {
+  e.preventDefault();
+  const btn = document.getElementById('otpBtn');
+  const alertBox = document.getElementById('authAlert');
+  const email = document.getElementById('email').value.trim();
+  const code = document.getElementById('otpCode').value.trim();
+
+  btn.disabled = true;
+  btn.textContent = 'Verifying...';
+
+  try {
+    const res = await fetch('/api/auth/verify-otp', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email, code})
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || data.message || 'OTP verification failed');
+
+    alertBox.style.display = 'block';
+    alertBox.style.background = '#e8f5e9';
+    alertBox.style.color = '#2e7d32';
+    alertBox.innerHTML = '<b>Email Verified!</b> Redirecting...';
+    setTimeout(() => {
+      const nextUrl = new URLSearchParams(location.search).get('next') || '/kundli';
+      location.href = nextUrl;
+    }, 1000);
+  } catch (err) {
+    alertBox.style.display = 'block';
+    alertBox.style.background = '#ffebee';
+    alertBox.style.color = '#c62828';
+    alertBox.textContent = err.message;
+    btn.disabled = false;
+    btn.textContent = 'Verify Code & Unlock Suite →';
+  }
+}
+</script>
+{% endblock %}

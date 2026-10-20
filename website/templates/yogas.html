@@ -1,0 +1,123 @@
+{% extends "base.html" %}{% from "_macros.html" import birthform %}
+{% block content %}
+<h1>Classical Vedic Yogas Scanner</h1>
+<p class="sub">Comprehensive detection and evaluation of 60+ classical planetary combinations from Brihat Parashara Hora Shastra, Phaladeepika, and Saravali</p>
+
+<section class="card">
+  <h2>Birth details &amp; preferences</h2>
+  <div class="body">
+    <form method="get" action="/yogas">
+      {{ birthform('', b, 'Native') }}
+      <p style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:10px">
+        <label>Ayanamsha
+          <select name="ayanamsa">
+            {% for code, lbl in [('lahiri','Lahiri / Chitrapaksha'),('lahiri_swiss','Lahiri (Swiss)'),('raman','B.V. Raman'),('kp','Krishnamurti (KP)'),('kp_new','KP New (VP291)'),('yukteshwar','Sri Yukteshwar'),('bhasin','J.N. Bhasin'),('true_chitra','True Chitra'),('fagan_bradley','Fagan-Bradley'),('suryasiddhanta','Surya Siddhanta'),('sayana','Sayana (Tropical)')] %}
+            <option value="{{ code }}" {{ 'selected' if ayanamsa==code }}>{{ lbl }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <button class="btn alt" type="submit" style="margin-top:16px">Analyze Classical Yogas</button>
+      </p>
+    </form>
+  </div>
+</section>
+
+{% if ydata %}
+<section class="card">
+  <h2>Yoga Synthesis &amp; Auspiciousness Metrics</h2>
+  <div class="body">
+    <div class="grid3">
+      <div style="background:#fffaf0;border:1px solid var(--line);border-radius:8px;padding:12px;text-align:center">
+        <span style="font-size:12px;color:var(--muted);text-transform:uppercase;font-weight:700">Total Combinations Found</span>
+        <div style="font-size:32px;font-weight:700;color:var(--kumkum);margin-top:4px">{{ ydata.total_yogas_detected }}</div>
+      </div>
+      <div style="background:#fffaf0;border:1px solid var(--line);border-radius:8px;padding:12px;text-align:center">
+        <span style="font-size:12px;color:var(--muted);text-transform:uppercase;font-weight:700">Auspiciousness Index</span>
+        <div style="font-size:32px;font-weight:700;color:var(--good);margin-top:4px">{{ ydata.auspiciousness_index }} / 100</div>
+      </div>
+      <div style="background:#fffaf0;border:1px solid var(--line);border-radius:8px;padding:12px;text-align:center">
+        <span style="font-size:12px;color:var(--muted);text-transform:uppercase;font-weight:700">Chart Alignment</span>
+        <div style="font-size:20px;font-weight:700;color:var(--kumkum-d);margin-top:10px">
+          {% if ydata.auspiciousness_index >= 80 %}
+          Highly Eminent &amp; Auspicious
+          {% elif ydata.auspiciousness_index >= 60 %}
+          Balanced &amp; Favorable
+          {% else %}
+          Karmic Rectification Indicated
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Detected Classical Yogas ({{ ydata.yogas|length }})</h2>
+  <div class="body">
+    {% if ydata.yogas %}
+    <div style="display:flex;flex-direction:column;gap:14px">
+      {% for y in ydata.yogas %}
+      <div style="border:1px solid var(--line);border-left:4px solid {% if 'Inauspicious' in y.nature or 'Affliction' in y.nature %}var(--bad){% else %}var(--kumkum){% endif %};border-radius:6px;padding:12px;background:#fffaf3">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <h3 style="margin:0;font-size:17px;color:var(--kumkum-d)">
+            {{ y.name }}
+          </h3>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span class="pill">{{ y.category }}</span>
+            <span class="pill {% if 'Inauspicious' in y.nature or 'Affliction' in y.nature %}bad{% else %}good{% endif %}">
+              {{ y.nature }}
+            </span>
+            <span class="pill" style="font-weight:700">{{ y.strength_score }} pts</span>
+          </div>
+        </div>
+
+        <p style="margin:8px 0 6px 0;font-size:14px;color:var(--ink)">
+          <b>Classical Manifestation:</b> {{ y.description }}
+        </p>
+
+        <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:6px;border-top:1px dashed var(--line);padding-top:6px">
+          <div><b>Trigger Condition:</b> {{ y.condition }}</div>
+          <div><b>Planets:</b> {{ y.planets_involved|join(', ') }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="neutral">No major classical yogas detected under current parameters.</p>
+    {% endif %}
+  </div>
+</section>
+
+<section class="card">
+  <h2>Classical Yoga Categories Explained</h2>
+  <div class="body">
+    <table class="kv">
+      <tr>
+        <td>Pancha Mahapurusha Yogas</td>
+        <td>Formed when non-luminaries (Mars, Mercury, Jupiter, Venus, Saturn) occupy Kendras in own or exaltation signs. Bestows peerless personal, professional, or ethical distinction.</td>
+      </tr>
+      <tr>
+        <td>Raja Yogas</td>
+        <td>Dynamic partnerships between Kendra lords (action, pillar houses) and Trikona lords (dharma, grace). Grants sovereign leadership, professional authority, and enduring prosperity.</td>
+      </tr>
+      <tr>
+        <td>Viparita Raja Yogas</td>
+        <td>Formed by lords of Dusthana houses (6th, 8th, 12th) situated exclusively in other Dusthana houses without benefic contamination. Converts sudden crisis into unexpected triumph.</td>
+      </tr>
+      <tr>
+        <td>Dhana Yogas</td>
+        <td>Interconnections linking the 2nd (treasury), 5th (speculative intellect), 9th (fortune), and 11th (gains) houses. Generates enduring material abundance and financial resilience.</td>
+      </tr>
+      <tr>
+        <td>Solar &amp; Lunar Yogas</td>
+        <td>Planetary placements flanking the Sun (Vesi, Vosi, Ubhayachari) or Moon (Sunapha, Anapha, Durudhura, Gaja Kesari, Adhi Yoga), molding constitutional vigor and emotional magnetism.</td>
+      </tr>
+      <tr>
+        <td>Knowledge &amp; Renunciation Yogas</td>
+        <td>Saraswati, Budhaditya, and Pravrajya yogas cultivating supreme literary mastery, analytical genius, public honor, and spiritual detachment.</td>
+      </tr>
+    </table>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

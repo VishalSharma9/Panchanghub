@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>More Tools</h1>
+<div class="grid2">
+<section class="card"><h2>Mayan calendar</h2><div class="body"><form class="f" method="get"><label>Date<input type="date" name="on" value="{{ d.isoformat() }}"></label><button class="btn alt">Show</button></form>
+<table class="kv"><tr><td>Long Count</td><td>{{ mayan.long_count }}</td></tr><tr><td>Tzolk'in</td><td><b>{{ mayan.tzolkin }}</b> — {{ mayan.meaning }}</td></tr><tr><td>Haab'</td><td>{{ mayan.haab }}</td></tr></table></div></section>
+<section class="card"><h2>Chinese yearly forecast</h2><div class="body"><form class="f" method="get"><label>Birth year<input type="number" name="birth_year" value="{{ by }}"></label><button class="btn alt">Forecast</button></form>
+<table class="kv"><tr><td>Your animal</td><td>{{ cf.animal }}</td></tr><tr><td>{{ cf.year }}</td><td>{{ cf.year_animal }} · {{ cf.relationship }}</td></tr><tr><td>Career</td><td>{{ cf.career }}</td></tr><tr><td>Love</td><td>{{ cf.love }}</td></tr><tr><td>Money</td><td>{{ cf.money }}</td></tr><tr><td>Health</td><td>{{ cf.health }}</td></tr></table></div></section>
+<section class="card"><h2>Kabbalah name number</h2><div class="body"><form class="f" method="get"><label>Name<input name="name" value="{{ q.get('name','') }}"></label><button class="btn alt">Calculate</button></form>
+{% if kab %}<table class="kv"><tr><td>Ordinal value</td><td>{{ kab.ordinal_value }}</td></tr><tr><td>Path</td><td>{{ kab.path_number }}</td></tr><tr><td>Sephirah</td><td>{{ kab.sephirah }}</td></tr></table>{% endif %}</div></section>
+<section class="card"><h2>Dream meanings</h2><div class="body"><form class="f" method="get"><label>Symbol<input name="symbol" value="{{ q.get('symbol','') }}" placeholder="snake, water, flying…"></label><button class="btn alt">Look up</button></form>
+{% if dream %}{% for kk, v in dream.meanings.items() %}<p><b>{{ kk }}</b>: {{ v }}</p>{% endfor %}{% endif %}</div></section>
+</div>
+<section class="card"><h2>Crystals by sign</h2><div class="body"><table class="t"><tr><th>Sign</th><th>Crystals</th></tr>{% for s, c in crys.by_sign.items() %}<tr><td>{{ s }}</td><td>{{ c|join(', ') }}</td></tr>{% endfor %}</table>
+<h3>Vedic gemstones by planet</h3><table class="t">{% for p, c in crys.by_planet.items() %}<tr><td>{{ p }}</td><td>{{ c }}</td></tr>{% endfor %}</table></div></section>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Festivals &amp; Vrat Calendar {{ year }}</h1><p class="sub">{{ loc.city }}{% if typ %} · {{ typ|title }} dates{% endif %}</p>
+<div class="datebar">{% if year > 1 %}<a class="btn" href="/festivals?year={{ year-1 }}{{ '&type='+typ if typ }}">‹ {{ year-1 }}</a>{% endif %}{% if year < 3000 %}<a class="btn" href="/festivals?year={{ year+1 }}{{ '&type='+typ if typ }}">{{ year+1 }} ›</a>{% endif %}<a class="btn alt" href="/festivals.ics?year={{ year }}&{{ locq }}">Add year to calendar</a></div>
+<p class="sub">Festival lists for every year from 1 CE through 3000 CE.</p>
+<div class="tabs"><a href="/festivals?year={{ year }}" class="{{ 'on' if not typ }}">All</a>{% for t in types %}<a href="/festivals?year={{ year }}&type={{ t }}" class="{{ 'on' if typ==t }}">{{ t|title }}</a>{% endfor %}</div><br>
+{% for mon, evs in months.items() %}<section class="card"><h2>{{ mon }}</h2><div class="body"><table class="t"><tr><th style="width:150px">Date</th><th>Event</th><th>Details</th></tr>
+{% for e in evs %}<tr><td>{{ e.date }} <span class="neutral">{{ e.weekday[:3] }}</span></td><td><b>{{ e.name }}</b></td><td class="neutral">{{ e.moment|hm(e.date) if e.moment }}{{ e.maximum|hm(e.date) if e.maximum }}{{ e.month or '' }} {{ e.rule or '' }}</td></tr>{% endfor %}</table></div></section>{% endfor %}
+{% endblock %}

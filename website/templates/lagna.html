@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% from "_macros.html" import datebar with context %}
+{% block content %}{% set ref = d.isoformat() %}
+<h1>Lagna Table &amp; Gowri Panchangam – {{ loc.city }}</h1><p class="sub">{{ d.strftime('%A, %d %B %Y') }}</p>{{ datebar('/lagna-table', d, prev, next, locq) }}
+<div class="grid2"><section class="card"><h2>Udaya Lagna</h2><div class="body"><table class="t"><tr><th>Lagna</th><th>Time</th></tr>
+{% for x in lt.lagnas %}<tr><td>{{ x.rashi }} ({{ x.sign }})</td><td>{{ span(x, ref) }}</td></tr>{% endfor %}</table></div></section>
+<section class="card" id="gowri"><h2>Gowri Nalla Neram</h2><div class="body"><table class="t"><tr><th>Day</th><th>Time</th></tr>
+{% for x in gw.day %}<tr><td class="{{ 'good' if x.good else 'bad' }}">{{ x.name }}</td><td>{{ span(x, ref) }}</td></tr>{% endfor %}<tr><th>Night</th><th></th></tr>
+{% for x in gw.night %}<tr><td class="{{ 'good' if x.good else 'bad' }}">{{ x.name }}</td><td>{{ span(x, ref) }}</td></tr>{% endfor %}</table></div></section></div>
+{% endblock %}

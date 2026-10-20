@@ -1,0 +1,294 @@
+{% extends "base.html" %}{% from "_macros.html" import birthform %}
+{% block content %}
+<h1>Holistic Vedic Life Reading &amp; 144 House Lords Analysis</h1>
+<p class="sub">In-depth synthesis of Ascendant temperament, 144 Bhava Lord combinations, Graha Rashi phala, Drekkana nature, 12-house Shad Phala, and dasha timeline</p>
+
+<section class="card">
+  <h2>Birth details &amp; preferences</h2>
+  <div class="body">
+    <form method="get" action="/reading">
+      {{ birthform('', b, 'Native') }}
+      <p style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:10px">
+        <label>Ayanamsha
+          <select name="ayanamsa">
+            {% for code, lbl in [('lahiri','Lahiri / Chitrapaksha'),('lahiri_swiss','Lahiri (Swiss)'),('raman','B.V. Raman'),('kp','Krishnamurti (KP)'),('kp_new','KP New (VP291)'),('yukteshwar','Sri Yukteshwar'),('bhasin','J.N. Bhasin'),('true_chitra','True Chitra'),('fagan_bradley','Fagan-Bradley'),('suryasiddhanta','Surya Siddhanta'),('sayana','Sayana (Tropical)')] %}
+            <option value="{{ code }}" {{ 'selected' if ayanamsa==code }}>{{ lbl }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <button class="btn alt" type="submit" style="margin-top:16px">Generate Full Vedic Reading</button>
+      </p>
+    </form>
+  </div>
+</section>
+
+{% if rdata %}
+<section class="card">
+  <h2>Ascendant (Lagna) Foundation – {{ rdata.ascendant_profile.sign }} ({{ rdata.ascendant_profile.rashi }})</h2>
+  <div class="body">
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px">
+      <span class="pill"><b>Governing Lord:</b> {{ rdata.ascendant_profile.ruler }}</span>
+      <span class="pill"><b>Cosmic Element:</b> {{ rdata.ascendant_profile.element }}</span>
+      {% if corpus_data and corpus_data.ascendant_drekkana %}
+      <span class="pill good"><b>Lagna Drekkana:</b> {{ corpus_data.ascendant_drekkana.type }} · {{ corpus_data.ascendant_drekkana.deity }}</span>
+      {% endif %}
+    </div>
+    <p style="font-size:15px;line-height:1.6;color:var(--ink)">
+      <b>Core Portrait:</b> {{ rdata.ascendant_profile.portrait }}
+    </p>
+
+    {% if corpus_data and corpus_data.ascendant_portfolio %}
+    {% set p = corpus_data.ascendant_portfolio %}
+    <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+      <div style="background:#fffaf3;border:1px solid var(--line);border-radius:6px;padding:8px 12px">
+        <b>Physical Constitution:</b> {{ p.physical }}
+      </div>
+      <div style="background:#fffaf3;border:1px solid var(--line);border-radius:6px;padding:8px 12px">
+        <b>Mental &amp; Psychological Nature:</b> {{ p.mental }}
+      </div>
+      <div style="background:#fffaf3;border:1px solid var(--line);border-radius:6px;padding:8px 12px">
+        <b>Career, Profession &amp; Wealth Potential:</b> {{ p.career_finance }}
+      </div>
+      <div style="background:#fffaf3;border:1px solid var(--line);border-radius:6px;padding:8px 12px">
+        <b>Romance, Marriage &amp; Partnership:</b> {{ p.romance_marriage }}
+      </div>
+      <div style="background:#fffaf3;border:1px solid var(--line);border-radius:6px;padding:8px 12px">
+        <b>Health Vulnerabilities &amp; Preventive Care:</b> {{ p.health_guidance }}
+      </div>
+      <div style="background:#fffaf0;border:1px solid var(--line);border-radius:6px;padding:8px 12px;display:flex;gap:12px;flex-wrap:wrap">
+        <span><b>Prescribed Gemstone:</b> {{ p.lucky_factors.gemstone }}</span>
+        <span><b>Harmonious Metal:</b> {{ p.lucky_factors.metal }}</span>
+        <span><b>Auspicious Day:</b> {{ p.lucky_factors.day }}</span>
+        <span><b>Vibrant Numbers:</b> {{ p.lucky_factors.numbers|join(', ') }}</span>
+        <span><b>Colors:</b> {{ p.lucky_factors.color }}</span>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="grid2" style="margin-top:12px">
+      <div style="background:#fffaf0;border:1px solid var(--line);border-radius:8px;padding:10px">
+        <h4 style="margin:0 0 6px 0;color:var(--good)">Key Innate Strengths</h4>
+        <p style="margin:0;font-size:14px">{{ rdata.ascendant_profile.strengths }}</p>
+      </div>
+      <div style="background:#fffaf0;border:1px solid var(--line);border-radius:8px;padding:10px">
+        <h4 style="margin:0 0 6px 0;color:var(--kumkum)">Growth Areas &amp; Self-Mastery</h4>
+        <p style="margin:0;font-size:14px">{{ rdata.ascendant_profile.growth_areas }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% if cur_dasha %}
+<section class="card">
+  <h2>Active Dasha Timeline (Vimshottari Decomposition)</h2>
+  <div class="body">
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;background:#fff8ee;padding:12px;border-radius:8px;border:1px solid var(--line)">
+      <div>
+        <span style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700">Mahadasha</span>
+        <div style="font-size:18px;font-weight:700;color:var(--kumkum-d)">{{ cur_dasha.mahadasha.lord }}</div>
+        <div style="font-size:12px;color:var(--muted)">{{ cur_dasha.mahadasha.start }} → {{ cur_dasha.mahadasha.end }}</div>
+      </div>
+      <div style="color:var(--haldi);font-weight:700">›</div>
+      <div>
+        <span style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700">Antardasha</span>
+        <div style="font-size:18px;font-weight:700;color:var(--kumkum-d)">{{ cur_dasha.antardasha.lord }}</div>
+        <div style="font-size:12px;color:var(--muted)">{{ cur_dasha.antardasha.start }} → {{ cur_dasha.antardasha.end }}</div>
+      </div>
+      <div style="color:var(--haldi);font-weight:700">›</div>
+      <div>
+        <span style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700">Pratyantardasha</span>
+        <div style="font-size:18px;font-weight:700;color:var(--kumkum-d)">{{ cur_dasha.pratyantardasha.lord }}</div>
+        <div style="font-size:12px;color:var(--muted)">{{ cur_dasha.pratyantardasha.start }} → {{ cur_dasha.pratyantardasha.end }}</div>
+      </div>
+      {% if cur_dasha.sookshma %}
+      <div style="color:var(--haldi);font-weight:700">›</div>
+      <div>
+        <span style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700">Sookshmadasha</span>
+        <div style="font-size:18px;font-weight:700;color:var(--kumkum-d)">{{ cur_dasha.sookshma.lord }}</div>
+        <div style="font-size:12px;color:var(--muted)">{{ cur_dasha.sookshma.start }} → {{ cur_dasha.sookshma.end }}</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if karakas %}
+<section class="card">
+  <h2>Jaimini Chara Karakas (Soul &amp; Life Indicators)</h2>
+  <div class="body">
+    <table class="t">
+      <tr>
+        <th>Karaka Role</th>
+        <th>Planet</th>
+        <th>Degree in Sign</th>
+        <th>Sign</th>
+        <th>Significance</th>
+      </tr>
+      {% for k in karakas.karakas %}
+      <tr>
+        <td><b>{{ k.role }}</b></td>
+        <td><b>{{ k.planet }}</b></td>
+        <td>{{ k.degree_in_sign }}°</td>
+        <td>{{ k.sign }} ({{ k.rashi }})</td>
+        <td>{{ k.description }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    <p style="font-size:13px;color:var(--muted);margin-top:8px">
+      <b>Karakamsha:</b> Soul significator (Atmakaraka {{ karakas.atmakaraka }}) occupies <b>{{ karakas.karakamsha_sign }} ({{ karakas.karakamsha_rashi }})</b> in Navamsa (governed by {{ karakas.karakamsha_lord }}).
+    </p>
+  </div>
+</section>
+{% endif %}
+
+{% if corpus_data and corpus_data.graha_rashi_readings %}
+<section class="card">
+  <h2>Graha Rashi &amp; Drekkana Decanate Placements</h2>
+  <div class="body">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      {% for gr in corpus_data.graha_rashi_readings %}
+      <div style="border:1px solid var(--line);border-radius:6px;padding:10px;background:#fff">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <b>{{ gr.planet }} in {{ gr.sign }} ({{ gr.rashi }}) {{ gr.degree }}°</b>
+          <span class="pill">{{ gr.drekkana_type }} · {{ gr.drekkana_deity }}</span>
+        </div>
+        <p style="margin:6px 0 0 0;font-size:13.5px;color:var(--ink);line-height:1.5">
+          {{ gr.reading }}
+        </p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="card">
+  <h2>144 House Lord Placement Analysis</h2>
+  <div class="body">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      {% for hl in rdata.house_lords %}
+      <div style="border:1px solid var(--line);border-radius:8px;padding:12px;background:#fffaf3">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <h3 style="margin:0;font-size:16px;color:var(--kumkum-d)">
+            House {{ hl.house }} Lord ({{ hl.ruler }}) placed in House {{ hl.placed_in_house }}
+          </h3>
+          <span class="pill">Occupies {{ hl.placed_in_sign }} ({{ hl.rashi }})</span>
+        </div>
+        {% if hl.bphs_sloka and hl.bphs_sloka.verse %}
+        <div style="margin:10px 0 6px 0;padding:8px 12px;background:#fff;border-left:3px solid var(--kumkum);border-radius:4px;font-size:13.5px;line-height:1.55">
+          <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--kumkum);font-weight:700">{{ hl.bphs_sloka.source }}:</span>
+          <p style="margin:4px 0 0 0;font-style:italic">"{{ hl.bphs_sloka.verse }}"</p>
+        </div>
+        {% endif %}
+        <p style="margin:8px 0 0 0;font-size:14px;line-height:1.55;color:var(--ink)">
+          {{ hl.interpretation }}
+        </p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% if rdata.navamsha_synthesis %}
+{% set ns = rdata.navamsha_synthesis %}
+<section class="card">
+  <h2>D9 Navamsha Soul Blueprint &amp; Dharma Synthesis</h2>
+  <div class="body">
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+      <span class="pill"><b>Navamsha Lagna:</b> {{ ns.d9_lagna_sign }} ({{ ns.d9_lagna_rashi }})</span>
+      <span class="pill"><b>Navamsha Pada:</b> {{ ns.navamsha_pada }}</span>
+      <span class="pill"><b>Governing Deity:</b> {{ ns.deity }}</span>
+      <span class="pill"><b>Lagna Lord:</b> {{ ns.d9_lagna_lord }}</span>
+      {% if ns.is_vargottama %}<span class="pill good">Vargottama</span>{% endif %}
+      {% if ns.is_pushkara %}<span class="pill good">Pushkara Navamsha</span>{% endif %}
+    </div>
+
+    {% if ns.saravali_sloka %}
+    <div style="background:#fffaf3;border:1px solid var(--line);border-left:4px solid var(--kumkum);border-radius:6px;padding:12px 14px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--kumkum);font-weight:700">Saravali (Chapter 51) Scriptural Shloka &amp; Portents:</span>
+        <span class="pill" style="font-size:11px">{{ ns.saravali_source }}</span>
+      </div>
+      <p style="margin:4px 0 0 0;font-style:italic;line-height:1.6;font-size:14px;color:var(--ink)">
+        "{{ ns.saravali_sloka }}"
+      </p>
+    </div>
+    {% endif %}
+
+    {% if ns.karakamsha_reading %}
+    <div style="background:#fffaf3;border:1px solid var(--line);border-left:4px solid var(--kumkum-d);border-radius:6px;padding:12px 14px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--kumkum-d);font-weight:700">Karakamsha (Soul Indicator in D9) – BPHS Ch. 35:</span>
+        <span class="pill" style="font-size:11px">{{ ns.karakamsha_source }}</span>
+      </div>
+      <p style="margin:4px 0 0 0;font-style:italic;line-height:1.6;font-size:14px;color:var(--ink)">
+        "{{ ns.karakamsha_reading }}"
+      </p>
+    </div>
+    {% endif %}
+
+    <div style="background:#fff;border:1px solid var(--line);border-radius:6px;padding:12px 14px">
+      <h4 style="margin:0 0 6px 0;color:var(--kumkum);font-size:14px">D9 Dharma &amp; Life Unfolding Synthesis</h4>
+      <p style="margin:0;font-size:14px;line-height:1.6;color:var(--ink)">{{ ns.synthesis }}</p>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if rdata.kharesh_diagnostic %}
+{% set kd = rdata.kharesh_diagnostic %}
+<section class="card">
+  <h2>22nd Drekkana (Kharesh) Vitality &amp; Longevity Shield</h2>
+  <div class="body">
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+      <span class="pill"><b>Kharesh Decanate:</b> #{{ kd.decanate_number }}</span>
+      <span class="pill"><b>Zodiac Span:</b> {{ kd.degree_range }}</span>
+      <span class="pill"><b>Ruling Lord:</b> {{ kd.drekkana_lord }}</span>
+      <span class="pill" style="font-size:11px">{{ kd.source }}</span>
+    </div>
+
+    {% if kd.classical_text %}
+    <div style="background:#fffaf3;border:1px solid var(--line);border-left:4px solid var(--kumkum);border-radius:6px;padding:12px 14px;margin-bottom:12px">
+      <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--kumkum);font-weight:700">Saravali (Chapter 50) Scriptural Guidance:</span>
+      <p style="margin:4px 0 0 0;font-style:italic;line-height:1.6;font-size:14px;color:var(--ink)">
+        "{{ kd.classical_text }}"
+      </p>
+    </div>
+    {% endif %}
+
+    <div style="background:#fff;border:1px solid var(--line);border-radius:6px;padding:12px 14px">
+      <h4 style="margin:0 0 6px 0;color:var(--kumkum);font-size:14px">Remedial Balance &amp; Protective Mitigations</h4>
+      <p style="margin:0;font-size:14px;line-height:1.6;color:var(--muted)">{{ kd.guidance }}</p>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="card">
+  <h2>12 Houses Shad Phala (Auspicious vs Inauspicious Balance)</h2>
+  <div class="body">
+    <div class="grid2">
+      {% for sp in rdata.shad_phala %}
+      <div style="border:1px solid var(--line);border-radius:8px;padding:12px;background:#fff">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <h4 style="margin:0;color:var(--kumkum)">House {{ sp.house }}: {{ sp.title }}</h4>
+          {% if sp.occupants %}
+          <span class="pill good">{{ sp.occupants|join(', ') }}</span>
+          {% else %}
+          <span class="pill neutral">Unoccupied</span>
+          {% endif %}
+        </div>
+        <p style="font-size:13px;margin:4px 0">
+          <b style="color:var(--good)">Favorable Manifestation:</b> {{ sp.favorable_potential }}
+        </p>
+        <p style="font-size:13px;margin:4px 0">
+          <b style="color:var(--kumkum)">Growth Considerations:</b> {{ sp.growth_considerations }}
+        </p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Shubh Muhurat Finder</h1><p class="sub">{{ loc.city }}</p>
+<section class="card"><h2>Search</h2><div class="body"><form class="f" method="get" action="/muhurat">
+<label>Purpose<select name="type">{% for v,l in [('marriage','Vivah (Marriage)'),('griha_pravesh','Griha Pravesh'),('vehicle','Vehicle Purchase'),('property','Property Purchase'),('naming','Namkaran'),('mundan','Mundan'),('annaprashan','Annaprashan'),('business','Business Opening')] %}<option value="{{ v }}" {{ 'selected' if typ==v }}>{{ l }}</option>{% endfor %}</select></label>
+<label>From<input type="date" name="start" value="{{ s.isoformat() }}" min="0001-01-01" max="3000-12-31"></label><label>To<input type="date" name="end" value="{{ e.isoformat() }}" min="0001-01-01" max="3000-12-31"></label><button class="btn alt">Find muhurat</button></form>
+<p class="sub">Any day from year 1 through 3000. One search can cover up to 10 years.</p>
+{% if err %}<p class="bad">{{ err }}</p>{% endif %}</div></section>
+{% if res %}<section class="card"><h2>{{ res.label }} muhurats ({{ res.muhurats|length }})</h2><div class="body"><table class="t"><tr><th>Date</th><th>Time window</th><th>Nakshatra</th><th>Tithi</th></tr>
+{% for x in res.muhurats %}<tr><td>{{ x.date }} {{ x.weekday[:3] }}</td><td>{{ span(x, x.date) }}</td><td>{{ x.nakshatra }}</td><td>{{ x.tithi }}</td></tr>{% else %}<tr><td colspan="4">No muhurat in range.</td></tr>{% endfor %}</table><p class="neutral">{{ res.note }}</p></div></section>{% endif %}
+{% endblock %}

@@ -1,0 +1,432 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="hero-section" style="margin-bottom: 24px;">
+    <h1 style="margin: 0 0 8px 0; font-size: 28px; display: flex; align-items: center; gap: 10px;">
+        <span>🔢</span> Astro-Numerology & Destiny Engine
+    </h1>
+    <p class="neutral" style="margin: 0; font-size: 15px;">
+        Vedic Anka Shastra, Kundli Planetary Synthesis, Lucky Power Numbers, Shatru Anka (Numbers to Avoid), Karmic Debts & 4 Life Pinnacles.
+    </p>
+</div>
+
+<section class="card" style="margin-bottom: 24px;">
+    <h2>Birth & Numerology Profile Details</h2>
+    <div class="body">
+        <form class="f" method="get" action="/numerology">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                <label>
+                    Full Name
+                    <input type="text" name="name" value="{{ q.get('name', 'Soul Seeker') }}" required placeholder="e.g. Vishal Sharma">
+                </label>
+                <label>
+                    Date of Birth
+                    <input type="date" name="dob" value="{{ q.get('dob', '1990-05-15') }}" required>
+                </label>
+                <label>
+                    Calculation System
+                    <select name="system">
+                        <option value="pythagorean" {{ 'selected' if q.get('system') == 'pythagorean' }}>Pythagorean (Western Standard)</option>
+                        <option value="chaldean" {{ 'selected' if q.get('system') == 'chaldean' }}>Chaldean (Ancient Vedic / Hebrew)</option>
+                    </select>
+                </label>
+            </div>
+
+            <div style="margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--border, #e2e8f0); display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px;">
+                <label>
+                    Birth Time (Optional for Kundli)
+                    <input type="time" name="time" value="{{ q.get('time', '12:00') }}" step="60">
+                </label>
+                <label>
+                    City / Place (Optional for Kundli)
+                    <input type="text" name="city" id="city_search" value="{{ q.get('city', 'New Delhi') }}" placeholder="Search city..." autocomplete="off">
+                    <input type="hidden" name="lat" id="city_lat" value="{{ q.get('lat', '28.6139') }}">
+                    <input type="hidden" name="lon" id="city_lon" value="{{ q.get('lon', '77.2090') }}">
+                    <input type="hidden" name="tz" id="city_tz" value="{{ q.get('tz', 'Asia/Kolkata') }}">
+                    <div id="city_results" class="city-dropdown" style="display:none; position:absolute; z-index:100; background:var(--card-bg, #fff); border:1px solid var(--border, #cbd5e1); border-radius:6px; max-height:200px; overflow-y:auto; width:220px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);"></div>
+                </label>
+                <div style="display: flex; align-items: flex-end;">
+                    <button type="submit" class="btn alt" style="width: 100%; height: 40px; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600;">
+                        <span>✨</span> Calculate Astro-Numerology
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+{% if n %}
+<!-- Interactive Tabs Navigation -->
+<div class="tabs-nav" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid var(--border, #e2e8f0); padding-bottom: 8px;">
+    <button class="btn tab-btn active" onclick="openTab(event, 'tab-core')" style="padding: 8px 16px; border-radius: 6px; cursor: pointer;">✨ Core Vibrations</button>
+    <button class="btn tab-btn" onclick="openTab(event, 'tab-astro')" style="padding: 8px 16px; border-radius: 6px; cursor: pointer;">☸️ Astro-Kundli Synthesis</button>
+    <button class="btn tab-btn" onclick="openTab(event, 'tab-lucky')" style="padding: 8px 16px; border-radius: 6px; cursor: pointer;">🍀 Lucky Power Numbers</button>
+    <button class="btn tab-btn" onclick="openTab(event, 'tab-avoid')" style="padding: 8px 16px; border-radius: 6px; cursor: pointer; color: #dc2626;">⚠️ Numbers to Avoid</button>
+    <button class="btn tab-btn" onclick="openTab(event, 'tab-karmic')" style="padding: 8px 16px; border-radius: 6px; cursor: pointer;">📜 Karmic Debts & Pinnacles</button>
+    <button class="btn tab-btn" onclick="openTab(event, 'tab-loshu')" style="padding: 8px 16px; border-radius: 6px; cursor: pointer;">🔮 Lo Shu Magic Square</button>
+</div>
+
+<!-- TAB 1: CORE VIBRATIONS -->
+<div id="tab-core" class="tab-pane active" style="display: block;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <div class="card" style="border-left: 4px solid #3b82f6;">
+            <div class="body" style="padding: 16px;">
+                <div style="font-size: 13px; text-transform: uppercase; color: var(--text-muted, #64748b); font-weight: 600;">Life Path Number</div>
+                <div style="font-size: 38px; font-weight: 800; color: #1e40af; margin: 4px 0;">{{ n.life_path.number }}</div>
+                <div style="font-size: 14px; font-weight: 500;">{{ n.life_path.meaning }}</div>
+                <div style="font-size: 12px; color: var(--text-muted, #64748b); margin-top: 6px;">Your central life mission and evolutionary purpose.</div>
+            </div>
+        </div>
+
+        <div class="card" style="border-left: 4px solid #10b981;">
+            <div class="body" style="padding: 16px;">
+                <div style="font-size: 13px; text-transform: uppercase; color: var(--text-muted, #64748b); font-weight: 600;">Moolank (Psychic Number)</div>
+                <div style="font-size: 38px; font-weight: 800; color: #065f46; margin: 4px 0;">{{ n.vedic.psychic_number_moolank }}</div>
+                <div style="font-size: 14px; font-weight: 500;">Ruler: {{ n.vedic.ruling_planet }} (Graha)</div>
+                <div style="font-size: 12px; color: var(--text-muted, #64748b); margin-top: 6px;">Governs internal character, conscious drives, and soul temperament.</div>
+            </div>
+        </div>
+
+        <div class="card" style="border-left: 4px solid #f59e0b;">
+            <div class="body" style="padding: 16px;">
+                <div style="font-size: 13px; text-transform: uppercase; color: var(--text-muted, #64748b); font-weight: 600;">Bhagyank (Destiny Number)</div>
+                <div style="font-size: 38px; font-weight: 800; color: #b45309; margin: 4px 0;">{{ n.vedic.destiny_number_bhagyank }}</div>
+                <div style="font-size: 14px; font-weight: 500;">Total Life Sum Vibration</div>
+                <div style="font-size: 12px; color: var(--text-muted, #64748b); margin-top: 6px;">Governs outer destiny, karmic fortune, and worldly accomplishments.</div>
+            </div>
+        </div>
+
+        <div class="card" style="border-left: 4px solid #8b5cf6;">
+            <div class="body" style="padding: 16px;">
+                <div style="font-size: 13px; text-transform: uppercase; color: var(--text-muted, #64748b); font-weight: 600;">Namank (Expression / Name)</div>
+                <div style="font-size: 38px; font-weight: 800; color: #5b21b6; margin: 4px 0;">{{ n.expression_destiny.number }}</div>
+                <div style="font-size: 14px; font-weight: 500;">Chaldean Root: {{ n.vedic.name_number_chaldean }}</div>
+                <div style="font-size: 12px; color: var(--text-muted, #64748b); margin-top: 6px;">Talents, capabilities, and social expression of your name.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid2">
+        <section class="card">
+            <h2>Detailed Core Vibrations</h2>
+            <div class="body">
+                <table class="kv">
+                    <tr><td><b>Soul Urge (Heart's Desire)</b></td><td><b>{{ n.soul_urge.number }}</b> – {{ n.soul_urge.meaning }}</td></tr>
+                    <tr><td><b>Personality Number</b></td><td><b>{{ n.personality.number }}</b> – {{ n.personality.meaning }}</td></tr>
+                    <tr><td><b>Birthday Number</b></td><td><b>{{ n.birthday }}</b> (Born on day {{ n.date_of_birth.split('-')[2] }})</td></tr>
+                    <tr><td><b>Maturity Number</b></td><td><b>{{ n.maturity }}</b> (Life Path + Expression combined)</td></tr>
+                    <tr><td><b>Hidden Passion Number</b></td><td><b>{{ n.hidden_passion_number }}</b> (Most concentrated vibration in your name)</td></tr>
+                    <tr><td><b>Current Epicycle Phase</b></td><td><b>{{ n.transits_numerology.personal_cycle.nine_year_cycle_phase }}</b></td></tr>
+                </table>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Today's Transit Numerology ({{ n.transits_numerology.transit_date }})</h2>
+            <div class="body">
+                <table class="kv">
+                    <tr><td><b>Personal Year</b></td><td><b>{{ n.transits_numerology.personal_cycle.personal_year }}</b> – {{ n.transits_numerology.personal_cycle.personal_year_theme }}</td></tr>
+                    <tr><td><b>Personal Month</b></td><td><b>{{ n.transits_numerology.personal_cycle.personal_month }}</b></td></tr>
+                    <tr><td><b>Personal Day</b></td><td><b>{{ n.transits_numerology.personal_cycle.personal_day }}</b> – {{ n.transits_numerology.personal_cycle.today_energy_theme }}</td></tr>
+                    <tr><td><b>Today's Lucky Numbers</b></td><td><span style="font-size: 16px; font-weight: 700; color: #16a34a;">{{ n.transits_numerology.transit_harmonized_lucky_numbers|join(', ') }}</span></td></tr>
+                    <tr><td><b>Today's Lucky Color</b></td><td><b>{{ n.transits_numerology.today_lucky_color }}</b></td></tr>
+                </table>
+            </div>
+        </section>
+    </div>
+</div>
+
+<!-- TAB 2: ASTRO-NUMEROLOGY KUNDLI SYNTHESIS -->
+<div id="tab-astro" class="tab-pane" style="display: none;">
+    {% if n.astro_numerology %}
+    <section class="card" style="margin-bottom: 20px; border-top: 4px solid #6366f1;">
+        <h2>Cosmic Concordance & Astro-Numerology Synthesis</h2>
+        <div class="body">
+            <div style="background: var(--bg-alt, #f8fafc); border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <span style="font-weight: 700; font-size: 16px;">Planetary & Numerical Harmony Score</span>
+                    <span style="font-size: 24px; font-weight: 800; color: #4338ca;">{{ n.astro_numerology.cosmic_harmony_score_percent }}%</span>
+                </div>
+                <div style="width: 100%; height: 12px; background: #e2e8f0; border-radius: 6px; overflow: hidden;">
+                    <div style="width: {{ n.astro_numerology.cosmic_harmony_score_percent }}%; height: 100%; background: linear-gradient(90deg, #6366f1, #10b981); border-radius: 6px;"></div>
+                </div>
+                <p style="margin-top: 14px; font-size: 15px; font-weight: 500; color: var(--text-color, #1e293b);">
+                    {{ n.astro_numerology.concordance_verdict }}
+                </p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+                <div style="border: 1px solid var(--border, #e2e8f0); border-radius: 8px; padding: 14px;">
+                    <div style="font-size: 12px; color: var(--text-muted, #64748b); text-transform: uppercase;">1st House (Lagna Lord)</div>
+                    <div style="font-size: 18px; font-weight: 700; margin: 4px 0;">{{ n.astro_numerology.lagna.lord }} ({{ n.astro_numerology.lagna.sign }} Lagna)</div>
+                    <div style="font-size: 14px;">Cosmic Number: <b style="color: #4338ca; font-size: 16px;">{{ n.astro_numerology.lagna.number }}</b></div>
+                </div>
+
+                <div style="border: 1px solid var(--border, #e2e8f0); border-radius: 8px; padding: 14px;">
+                    <div style="font-size: 12px; color: var(--text-muted, #64748b); text-transform: uppercase;">Moon Sign (Chandra Lord)</div>
+                    <div style="font-size: 18px; font-weight: 700; margin: 4px 0;">{{ n.astro_numerology.chandra_rashi.lord }} ({{ n.astro_numerology.chandra_rashi.sign }})</div>
+                    <div style="font-size: 14px;">Cosmic Number: <b style="color: #4338ca; font-size: 16px;">{{ n.astro_numerology.chandra_rashi.number }}</b></div>
+                </div>
+
+                <div style="border: 1px solid var(--border, #e2e8f0); border-radius: 8px; padding: 14px;">
+                    <div style="font-size: 12px; color: var(--text-muted, #64748b); text-transform: uppercase;">Birth Star (Nakshatra Lord)</div>
+                    <div style="font-size: 18px; font-weight: 700; margin: 4px 0;">{{ n.astro_numerology.janma_nakshatra.lord }} ({{ n.astro_numerology.janma_nakshatra.name }})</div>
+                    <div style="font-size: 14px;">Cosmic Number: <b style="color: #4338ca; font-size: 16px;">{{ n.astro_numerology.janma_nakshatra.number }}</b></div>
+                </div>
+
+                <div style="border: 1px solid var(--border, #e2e8f0); border-radius: 8px; padding: 14px;">
+                    <div style="font-size: 12px; color: var(--text-muted, #64748b); text-transform: uppercase;">Atmakaraka (Soul Planet)</div>
+                    <div style="font-size: 18px; font-weight: 700; margin: 4px 0;">{{ n.astro_numerology.atmakaraka.planet }}</div>
+                    <div style="font-size: 14px;">Cosmic Number: <b style="color: #4338ca; font-size: 16px;">{{ n.astro_numerology.atmakaraka.number }}</b></div>
+                </div>
+
+                <div style="border: 1px solid var(--border, #e2e8f0); border-radius: 8px; padding: 14px;">
+                    <div style="font-size: 12px; color: var(--text-muted, #64748b); text-transform: uppercase;">Active Mahadasha Ruler</div>
+                    <div style="font-size: 18px; font-weight: 700; margin: 4px 0;">{{ n.astro_numerology.active_mahadasha_lord.planet }}</div>
+                    <div style="font-size: 14px;">Cosmic Number: <b style="color: #4338ca; font-size: 16px;">{{ n.astro_numerology.active_mahadasha_lord.number }}</b></div>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; padding: 16px; background: #eef2ff; border-radius: 8px;">
+                <h4 style="margin: 0 0 8px 0; color: #3730a3;">Astro-Numerological Remedies & Planetary Mantra</h4>
+                <div style="font-size: 14px; margin-bottom: 6px;"><b>Vedic Mantra:</b> <code>{{ n.astro_numerology.astro_remedy.primary_deity_mantra }}</code></div>
+                <div style="font-size: 14px; margin-bottom: 6px;"><b>Auspicious Gemstone:</b> {{ n.astro_numerology.astro_remedy.primary_gemstone }} · <b>Favorable Metal:</b> {{ n.astro_numerology.astro_remedy.favorable_metal }}</div>
+                <div style="font-size: 14px;"><b>Combined Astro-Lucky Numbers:</b> <b style="color: #15803d; font-size: 16px;">{{ n.astro_numerology.astro_lucky_numbers|join(', ') }}</b></div>
+            </div>
+        </div>
+    </section>
+    {% else %}
+    <section class="card">
+        <h2>Astro-Numerology Kundli Synthesis</h2>
+        <div class="body">
+            <p class="neutral">To view full Astro-Numerological Kundli synthesis (including Lagna Lord, Chandra Rashi Lord, Nakshatra Lord, and Atmakaraka numbers), please ensure you provide birth time and city coordinates in the form above.</p>
+        </div>
+    </section>
+    {% endif %}
+</div>
+
+<!-- TAB 3: LUCKY POWER NUMBERS -->
+<div id="tab-lucky" class="tab-pane" style="display: none;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <section class="card">
+            <h2>Personal Fortunate Portfolio</h2>
+            <div class="body">
+                <table class="kv">
+                    <tr><td><b>Core Lucky Roots</b></td><td><b style="font-size: 18px; color: #16a34a;">{{ n.lucky_numbers_generator.harmonized_lucky_roots|join(', ') }}</b></td></tr>
+                    <tr><td><b>Fortunate Dates of Month</b></td><td><b>{{ n.lucky_numbers_generator.lucky_calendar_dates|join(', ') }}</b></td></tr>
+                    <tr><td><b>Fortunate Days of Week</b></td><td><b>{{ n.lucky_numbers_generator.lucky_days_of_week|join(', ') }}</b></td></tr>
+                    <tr><td><b>Ruling Planet (Graha)</b></td><td><b>{{ n.lucky_numbers_generator.ruling_planet }}</b></td></tr>
+                    <tr><td><b>Lucky Colors</b></td><td>{{ n.lucky_numbers_generator.lucky_colors|join(', ') }}</td></tr>
+                    <tr><td><b>Auspicious Gemstone</b></td><td>{{ n.lucky_numbers_generator.lucky_gemstone }}</td></tr>
+                    <tr><td><b>Fortunate Metal</b></td><td>{{ n.lucky_numbers_generator.lucky_metal }}</td></tr>
+                    <tr><td><b>Auspicious Direction</b></td><td>{{ n.lucky_numbers_generator.auspicious_direction }}</td></tr>
+                    <tr><td><b>Vedic Beej Mantra</b></td><td><code>{{ n.lucky_numbers_generator.vedic_beej_mantra }}</code></td></tr>
+                </table>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Compound "Power Numbers" (Occult Vibrations)</h2>
+            <div class="body" style="max-height: 420px; overflow-y: auto;">
+                {% for c in n.lucky_numbers_generator.compound_power_numbers %}
+                <div style="padding: 10px 0; border-bottom: 1px solid var(--border, #f1f5f9);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 700; font-size: 15px; color: #1e40af;">Number {{ c.compound }} · {{ c.title }}</span>
+                        <span class="badge" style="background: #e0f2fe; color: #0369a1; font-weight: 600;">Reduces to {{ c.vibe }}</span>
+                    </div>
+                    <div style="font-size: 13px; color: var(--text-color, #334155); margin-top: 4px;">{{ c.description }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+</div>
+
+<!-- TAB 4: NUMBERS TO AVOID (SHATRU ANKA) -->
+<div id="tab-avoid" class="tab-pane" style="display: none;">
+    <section class="card" style="border-top: 4px solid #ef4444;">
+        <h2 style="color: #b91c1c;">⚠️ Shatru Anka: Inimical Numbers & Caution Dates</h2>
+        <div class="body">
+            <div style="background: #fef2f2; border: 1px solid #fee2e2; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                <p style="margin: 0; color: #991b1b; font-size: 14px; font-weight: 500;">
+                    {{ n.numbers_to_avoid.guidance }}
+                </p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+                <div style="background: var(--card-bg, #fff); border: 1px solid var(--border, #e2e8f0); border-radius: 8px; padding: 16px;">
+                    <div style="font-size: 13px; text-transform: uppercase; color: #dc2626; font-weight: 600;">Inimical Single Digits</div>
+                    <div style="font-size: 32px; font-weight: 800; color: #b91c1c; margin: 4px 0;">
+                        {{ n.numbers_to_avoid.inimical_numbers|join(', ') if n.numbers_to_avoid.inimical_numbers else 'None (Universal Adaptability)' }}
+                    </div>
+                    <div style="font-size: 13px; color: var(--text-muted, #64748b);">Digits representing friction with your Moolank and Bhagyank.</div>
+                </div>
+
+                <div style="background: var(--card-bg, #fff); border: 1px solid var(--border, #e2e8f0); border-radius: 8px; padding: 16px;">
+                    <div style="font-size: 13px; text-transform: uppercase; color: #dc2626; font-weight: 600;">Dates of Month to Avoid</div>
+                    <div style="font-size: 20px; font-weight: 700; color: #b91c1c; margin: 6px 0;">
+                        {{ n.numbers_to_avoid.dates_of_month_to_avoid|join(', ') if n.numbers_to_avoid.dates_of_month_to_avoid else 'None' }}
+                    </div>
+                    <div style="font-size: 13px; color: var(--text-muted, #64748b);">Calendar dates of any month that carry conflicting energy.</div>
+                </div>
+
+                <div style="background: var(--card-bg, #fff); border: 1px solid var(--border, #e2e8f0); border-radius: 8px; padding: 16px;">
+                    <div style="font-size: 13px; text-transform: uppercase; color: #dc2626; font-weight: 600;">Inimical Planetary Energies</div>
+                    <div style="font-size: 16px; font-weight: 700; color: #b91c1c; margin: 6px 0;">
+                        {{ n.numbers_to_avoid.inimical_planetary_rulers|join(', ') }}
+                    </div>
+                    <div style="font-size: 13px; color: var(--text-muted, #64748b);">Planets whose vibrations create internal or external tension.</div>
+                </div>
+
+                <div style="background: var(--card-bg, #fff); border: 1px solid var(--border, #e2e8f0); border-radius: 8px; padding: 16px;">
+                    <div style="font-size: 13px; text-transform: uppercase; color: #dc2626; font-weight: 600;">Colors to Avoid for Crucial Events</div>
+                    <div style="font-size: 16px; font-weight: 700; color: #b91c1c; margin: 6px 0;">
+                        {{ n.numbers_to_avoid.colors_to_avoid|join(', ') if n.numbers_to_avoid.colors_to_avoid else 'None' }}
+                    </div>
+                    <div style="font-size: 13px; color: var(--text-muted, #64748b);">Refrain from wearing these shades on interview or contract days.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- TAB 5: KARMIC DEBTS & 4 LIFE PINNACLES -->
+<div id="tab-karmic" class="tab-pane" style="display: none;">
+    <section class="card" style="margin-bottom: 24px;">
+        <h2>Karmic Debt Numbers (13, 14, 16, 19)</h2>
+        <div class="body">
+            {% if n.karmic_debts %}
+                {% for kd in n.karmic_debts %}
+                <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 16px; margin-bottom: 14px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-weight: 700; font-size: 16px; color: #b45309;">Karmic Debt {{ kd.debt_number }}: {{ kd.title }}</span>
+                        <span class="badge" style="background: #fef3c7; color: #92400e;">Found in {{ kd.location }}</span>
+                    </div>
+                    <div style="font-size: 14px; margin-bottom: 6px;"><b>Past Life Root:</b> {{ kd.past_life_cause }}</div>
+                    <div style="font-size: 14px; margin-bottom: 6px;"><b>Present Life Manifestation:</b> {{ kd.present_symptoms }}</div>
+                    <div style="font-size: 14px; color: #15803d;"><b>Soul Remedy & Transformation:</b> {{ kd.soul_remedy }}</div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div style="padding: 16px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; color: #166534; font-weight: 500;">
+                    ✓ No major Karmic Debt numbers (13, 14, 16, 19) detected in your core numbers. Your soul brings a relatively unencumbered slate into this incarnation.
+                </div>
+            {% endif %}
+
+            <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border, #e2e8f0);">
+                <b>Karmic Lessons (Missing Numbers 1-9 in Name):</b>
+                {% if n.karmic_lessons %}
+                    <span style="font-weight: 700; color: #ea580c; font-size: 16px; margin-left: 8px;">{{ n.karmic_lessons|join(', ') }}</span>
+                    <p class="neutral" style="font-size: 13px; margin: 4px 0 0 0;">These numbers are absent from your birth name and indicate specific spiritual qualities your soul must consciously build in this lifetime.</p>
+                {% else %}
+                    <span style="color: #16a34a; font-weight: 600; margin-left: 8px;">None — Your name contains all numbers 1 through 9.</span>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <div class="grid2">
+        <section class="card">
+            <h2>The 4 Life Pinnacles (Major Epochs)</h2>
+            <div class="body">
+                {% for p in n.life_epochs.pinnacles %}
+                <div style="padding: 10px 0; border-bottom: 1px solid var(--border, #f1f5f9);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 700; font-size: 14px;">{{ p.period }} ({{ p.age_span }})</span>
+                        <span class="badge" style="background: #eef2ff; color: #4338ca; font-size: 14px; font-weight: 700;">Number {{ p.number }}</span>
+                    </div>
+                    <div style="font-size: 13px; color: var(--text-color, #334155); margin-top: 4px;">{{ p.interpretation }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>The 4 Life Challenges (Karmic Hurdles)</h2>
+            <div class="body">
+                {% for c in n.life_epochs.challenges %}
+                <div style="padding: 10px 0; border-bottom: 1px solid var(--border, #f1f5f9);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 700; font-size: 14px;">{{ c.period }}</span>
+                        <span class="badge" style="background: #fef2f2; color: #b91c1c; font-size: 14px; font-weight: 700;">Challenge {{ c.number }}</span>
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-muted, #64748b);">{{ c.timing }}</div>
+                    <div style="font-size: 13px; color: var(--text-color, #334155); margin-top: 4px;">{{ c.interpretation }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+</div>
+
+<!-- TAB 6: LO SHU MAGIC SQUARE -->
+<div id="tab-loshu" class="tab-pane" style="display: none;">
+    <div class="grid2">
+        <section class="card">
+            <h2>Lo Shu 3x3 Magic Square</h2>
+            <div class="body" style="display: flex; flex-direction: column; align-items: center;">
+                <table class="t" style="max-width: 280px; width: 100%; text-align: center; border-collapse: separate; border-spacing: 6px;">
+                    {% for row in n.lo_shu_grid.layout %}
+                    <tr>
+                        {% for cell in row %}
+                        <td style="width: 80px; height: 80px; font-size: 22px; font-weight: 800; border-radius: 8px; border: 2px solid var(--border, #cbd5e1); background: {{ '#e0f2fe' if n.lo_shu_grid.counts[cell|string] > 0 else '#f8fafc' }}; color: {{ '#0369a1' if n.lo_shu_grid.counts[cell|string] > 0 else '#94a3b8' }};">
+                            {% if n.lo_shu_grid.counts[cell|string] > 0 %}
+                                {{ (cell|string) * n.lo_shu_grid.counts[cell|string] }}
+                            {% else %}
+                                <span style="font-size: 14px; opacity: 0.5;">({{ cell }})</span>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </table>
+                <div style="margin-top: 14px; font-size: 13px; color: var(--text-muted, #64748b); text-align: center;">
+                    <b>Row 1:</b> Mind Plane (4-9-2) · <b>Row 2:</b> Soul Plane (3-5-7) · <b>Row 3:</b> Physical Plane (8-1-6)
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>8 Planes & Arrows of Fortune</h2>
+            <div class="body">
+                {% if n.lo_shu_grid.arrows_present %}
+                <h4 style="margin: 0 0 8px 0; color: #15803d;">Active Arrows of Strength</h4>
+                {% for a in n.lo_shu_grid.arrows_present %}
+                <div style="margin-bottom: 10px; padding: 8px 12px; background: #f0fdf4; border-left: 3px solid #16a34a; border-radius: 4px;">
+                    <div style="font-weight: 700; font-size: 14px; color: #166534;">{{ a.arrow }}</div>
+                    <div style="font-size: 13px; color: #14532d;">{{ a.description }}</div>
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                {% if n.lo_shu_grid.arrows_missing %}
+                <h4 style="margin: 16px 0 8px 0; color: #c2410c;">Missing Arrows (Karmic Lessons)</h4>
+                {% for a in n.lo_shu_grid.arrows_missing %}
+                <div style="margin-bottom: 10px; padding: 8px 12px; background: #fff7ed; border-left: 3px solid #ea580c; border-radius: 4px;">
+                    <div style="font-weight: 700; font-size: 14px; color: #9a3412;">{{ a.arrow }}</div>
+                    <div style="font-size: 13px; color: #7c2d12;">{{ a.description }}</div>
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+        </section>
+    </div>
+</div>
+
+<script>
+function openTab(evt, tabId) {
+    var panes = document.getElementsByClassName("tab-pane");
+    for (var i = 0; i < panes.length; i++) {
+        panes[i].style.display = "none";
+    }
+    var tablinks = document.getElementsByClassName("tab-btn");
+    for (var i = 0; i < tablinks.length; i++) {
+        tablinks[i].classList.remove("active");
+        tablinks[i].style.background = "";
+        tablinks[i].style.color = "";
+    }
+    document.getElementById(tabId).style.display = "block";
+    evt.currentTarget.classList.add("active");
+}
+</script>
+{% endif %}
+{% endblock %}

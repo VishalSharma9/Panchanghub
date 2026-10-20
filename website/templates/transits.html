@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Planetary Transits {{ y }}</h1><p class="sub">Sidereal (Lahiri) sign changes, retrograde &amp; direct stations, moon phases</p>
+<div class="datebar">{% if y > 1 %}<a class="btn" href="/transits?year={{ y-1 }}">‹ {{ y-1 }}</a>{% endif %}{% if y < 3000 %}<a class="btn" href="/transits?year={{ y+1 }}">{{ y+1 }} ›</a>{% endif %}</div>
+<section class="card"><h2>Current planetary positions</h2><div class="body" style="overflow-x:auto"><table class="t"><tr><th>Planet</th><th>Sign</th><th>Degree</th><th>Nakshatra</th><th></th></tr>
+{% for p in now.planets %}<tr><td>{{ p.name }}</td><td>{{ p.sign }}</td><td>{{ p.dms }}</td><td>{{ p.nakshatra }} {{ p.pada }}</td><td>{{ 'R' if p.retrograde and p.name not in ['Rahu','Ketu'] }}</td></tr>{% endfor %}</table></div></section>
+<section class="card"><h2>Transit calendar</h2><div class="body"><table class="t"><tr><th>Date &amp; time</th><th>Planet</th><th>Event</th></tr>
+{% for e in t.events %}<tr><td>{{ e.time[:10] }} {{ e.time|hm }}</td><td><b>{{ e.planet }}</b></td><td>{% if e.event=='ingress' %}enters {{ e.rashi }} ({{ e.to_sign }}){{ ' – retrograde' if e.retrograde and e.planet!='Rahu' }}{% elif e.event=='retrograde_start' %}<span class="bad">turns retrograde</span> in {{ e.sign }}{% else %}<span class="good">turns direct</span> in {{ e.sign }}{% endif %}</td></tr>{% endfor %}</table></div></section>
+<section class="card"><h2>Moon phases</h2><div class="body"><table class="t"><tr><th>Phase</th><th>Moment</th></tr>{% for x in ph.phases %}<tr><td>{{ x.phase }}</td><td>{{ x.moment[:10] }} {{ x.moment|hm }}</td></tr>{% endfor %}</table></div></section>
+{% endblock %}

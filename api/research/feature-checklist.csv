@@ -1,0 +1,214 @@
+category,feature,status
+Panchang,Tithi,done
+Panchang,Vara,done
+Panchang,Nakshatra (pada),done
+Panchang,Yoga,done
+Panchang,Karana with start/end,done
+Panchang,sunrise/sunset/moonrise/moonset,done
+Panchang,Masa (Amanta/Purnimanta),done
+Panchang,Paksha,done
+Panchang,Samvatsara,done
+Panchang,Ayana,done
+Panchang,Ritu,done
+Panchang,Shaka/Vikram samvat,done
+Panchang,sun/moon sign,done
+Panchang,Rahu Kaal,done
+Panchang,Yamaganda,done
+Panchang,Gulika,done
+Panchang,Dur Muhurtam,done
+Panchang,Varjyam,done
+Panchang,Abhijit,done
+Panchang,Amrit Kalam,done
+Panchang,Brahma Muhurta,done
+Panchang,Vijaya,done
+Panchang,Choghadiya (day/night),done
+Panchang,Hora,done
+Panchang,Disha Shool,done
+Panchang,Chandrabalam,done
+Panchang,Tarabalam,done
+Panchang,monthly panchang & calendar,done
+Panchang,Tamil/Telugu/Bengali/Malayalam/Gujarati regional panchang,"done (per-region sankranti rules: Tamil sunset, Malayalam 3/5 day, Bengali/Assamese midnight-next-day, Odia civil date; Gujarati Kartika & Marathi Chaitra years; Surya-Siddhanta/Vakya-style Sun option)"
+Panchang,panchang chart,done
+Panchang,"tithi/nakshatra search (""next Ekadashi"")",done
+Panchang,"special yogas (Sarvartha Siddhi, Amrit Siddhi, Ravi, Ravi/Guru Pushya, Dwi/Tri-pushkar)",done
+Panchang,Lagna table,done
+Panchang,Gowri panchangam,done
+Panchang,Anandadi yoga,done
+Kundli / Birth chart,"Planet positions (sidereal, multiple ayanamsas)",done
+Kundli / Birth chart,Lagna,done
+Kundli / Birth chart,house cusps,done
+Kundli / Birth chart,nakshatra/pada/lord,done
+Kundli / Birth chart,avastha,done
+Kundli / Birth chart,combustion/retrograde,done
+Kundli / Birth chart,North/South/East Indian charts,done
+Kundli / Birth chart,Bhava chalit,done
+Kundli / Birth chart,Ashtakavarga (Bhinna/Sarva),done
+Kundli / Birth chart,Shadbala,"done (full BPHS six-fold: Sthana[5]+Dig+Kala[7]+Cheshta+Naisargika+Drik, Ishta/Kashta)"
+Kundli / Birth chart,Bhavabala,done (Bhavadhipati + Dig + Drishti)
+Kundli / Birth chart,friendship tables,done
+Kundli / Birth chart,ghata chakra,done (traditional table by janma rashi)
+Kundli / Birth chart,avakahada,done
+Kundli / Birth chart,basic/astro details,done
+Kundli / Birth chart,Sade Sati & Ketu/Rahu,done
+Kundli / Birth chart,gemstone suggestion,done
+Vargas,"D1–D60 (D2,D3,D4,D7,D9,D10,D12,D16,D20,D24,D27,D30,D40,D45,D60)",done
+Vargas,Moon/Sun chart,done
+Dashas,Vimshottari (Maha/Antar/Pratyantar/Sookshma/Prana),done
+Dashas,current dasha,done
+Dashas,Yogini,done
+Dashas,Char (Jaimini),"done (K.N. Rao method, 2 cycles + antardashas)"
+Dashas,Ashtottari,done
+Dashas,Kalachakra,"done (savya/apasavya pada tables, deha/jeeva)"
+Doshas,Manglik (with cancellation),done
+Doshas,Kaal Sarp,done
+Doshas,Pitra,done
+Doshas,Sade Sati,done
+Doshas,Nadi/Bhakoot,done
+Doshas,Guru Chandal,done
+Doshas,Grahan,done
+Doshas,Kemadruma,done
+Yogas,Raj,done
+Yogas,Dhana,done
+Yogas,Gaja Kesari,done
+Yogas,Pancha Mahapurusha,done
+Yogas,Neecha Bhanga,done
+Yogas,Vipreet,done
+Yogas,Budhaditya,done
+Yogas,etc. (100+ yoga detection),done (115 rules with classical citations; /api/yogas/catalog)
+Matching,Ashtakoot (36 guna),done
+Matching,Dashakoot (South),done
+Matching,Manglik match,done (/api/matching/manglik)
+Matching,Nakshatra-only match,done
+Matching,Rajju/Vedha,done
+Matching,batch matching (1 vs 500),done
+Matching,PDF report,"done (kundli, matching, varshaphal PDFs)"
+Predictions / Horoscopes,"Daily (sun & moon sign, prev/next)",done
+Predictions / Horoscopes,weekly,done
+Predictions / Horoscopes,monthly,done
+Predictions / Horoscopes,yearly,done
+Predictions / Horoscopes,nakshatra prediction,done
+Predictions / Horoscopes,life/career/love/health reports,done (rule-based + written interpretations)
+Predictions / Horoscopes,12-month prediction,done (yearly horoscope + varshaphal + PDF)
+Predictions / Horoscopes,personalised transit forecast,done (gochar + transit-to-natal)
+Numerology,Pythagorean/Chaldean,done
+Numerology,life path,done
+Numerology,destiny,done
+Numerology,soul urge,done
+Numerology,personality,done
+Numerology,name number,done
+Numerology,lucky numbers/colors,done
+Numerology,daily numerology,done
+Numerology,Lo Shu grid,done
+Numerology,compatibility,done
+Tarot,Single card,done
+Tarot,yes/no,done
+Tarot,3-card,done
+Tarot,Celtic Cross,done
+Tarot,love tarot,done
+Tarot,daily tarot,done
+Tarot,card meanings,done
+Lal Kitab,Horoscope,done
+Lal Kitab,planets,done
+Lal Kitab,debts (rin),done
+Lal Kitab,remedies,done
+Lal Kitab,houses,done
+KP system,KP planets,done
+KP system,cusps,done
+KP system,sub-lords,done
+KP system,significators (house/planet),done
+KP system,ruling planets,done
+KP system,KP chart,done
+KP system,horary (1–249),done (full KP horary chart /api/kp/horary/chart)
+Jaimini,Chara karakas,done
+Jaimini,Arudha padas,done
+Jaimini,Karakamsha,done
+Jaimini,Char dasha,done
+Jaimini,Upapada,done
+Varshaphal / Solar return,Varshaphal chart,done
+Varshaphal / Solar return,Muntha,done
+Varshaphal / Solar return,Mudda dasha,done
+Varshaphal / Solar return,Tajik yogas,"done (Ithasala, Ishrafa, Ikkabal, Induvara, Nakta, Yamaya, Manau, Kamboola, Radda, Khallasara)"
+Varshaphal / Solar return,Saham,done
+Varshaphal / Solar return,year lord,done (Varsheshwara from Pancha-adhikari by Shadbala + Tajik aspect)
+Varshaphal / Solar return,Western solar/lunar returns,done
+Transits,Gochar current,done
+Transits,Vedic gochar timeline,done
+Transits,planetary ingress/retrograde calendar,done
+Transits,Western transit chart,done (/api/western/transits)
+Transits,transit search/timeline/insights,done (/api/transits/search + transit-to-natal aspects)
+Transits,eclipses,done
+Transits,moon phases,done
+Western,"Natal (tropical, house systems)",done
+Western,aspects,done
+Western,wheel chart,done
+Western,interpretations,"done (planets in signs/houses, aspects)"
+Western,synastry,done
+Western,composite,done
+Western,Davison,done
+Western,secondary progressions,done
+Western,solar arc,done
+Western,returns,done
+Western,astrocartography/crossings,done
+Western,asteroids/Chiron/Lilith,done
+Western,declinations,done
+Western,compatibility score,done
+Western,moon calendar,done
+Chinese,Zodiac by year,done
+Chinese,BaZi four pillars,done
+Chinese,elements,done
+Chinese,compatibility,done
+Chinese,yearly forecast,done
+Chinese,Feng Shui/Kua number,done
+Muhurat,Marriage,done
+Muhurat,griha pravesh,done
+Muhurat,vehicle,done
+Muhurat,property,done
+Muhurat,mundan,done
+Muhurat,naamkaran,done
+Muhurat,annaprashan,done
+Muhurat,business start,done
+Muhurat,Choghadiya/Hora based,done
+Festivals,Festival by date/year/month,done
+Festivals,"vrat (Ekadashi, Purnima, Amavasya, Pradosh, Sankashti)",done
+Festivals,Jayantis,"done (Parashurama, Narasimha, Narada, Shani, Gayatri, Balarama, Gita, Datta, Kalabhairav, Hanuman, etc.)"
+Festivals,Sankranti,done
+Festivals,regional festivals,"done (Pongal, Onam, Vishu/Puthandu/Pohela Boishakh, Varalakshmi, Vishwakarma, Chhath, Kojagara)"
+Festivals,eclipses,done
+Remedies,Gemstones (life/lucky/benefic),done
+Remedies,Rudraksha,done
+Remedies,mantras,done
+Remedies,puja,done
+Remedies,Lal Kitab remedies,done
+Remedies,dosha remedies,done
+Output / Platform,"PDF reports (kundli, matching, yearly)",done
+Output / Platform,chart images/SVG (N/S/E Indian & Western wheel),done
+Output / Platform,multilingual (8–21 langs),done (8 Indian languages + English; API ?lang= & site switcher; names/labels only)
+Output / Platform,geo/city/timezone lookup,done
+Output / Platform,widgets/plugins,"done (iframe widget + JS embed.js snippet, localized)"
+Output / Platform,MCP/AI chat,done (MCP JSON-RPC server + rule-based assistant; no LLM bundled)
+Output / Platform,batch calls,done
+Output / Platform,SDKs,done (Python + JS SDKs; OpenAPI for others)
+Other domains (optional),Human Design,done
+Other domains (optional),Palmistry,done (reference + feature-based reading; no image analysis)
+Other domains (optional),Vastu,done
+Other domains (optional),I-Ching,done
+Other domains (optional),Kabbalah,done
+Other domains (optional),Biorhythm,done
+Other domains (optional),angel numbers,done
+Other domains (optional),dreams,done
+Other domains (optional),crystals,done
+Other domains (optional),Mayan,done
+Festivals,2026 festival dates vs Drik (New Delhi),done (85/85 match; accuracy/compare_festivals.py)
+Panchang,Godhuli Muhurta (Drik convention),"done (Muhurta Chintamani seasonal rule; 30/30 within 1 min of Drik)"
+Kundli / Birth chart,"Other conditional dashas (Shodashottari, Dwadashottari, Panchottari, Shatabdika, Chaturashiti, Dwisaptati, Shashtihayani, Shattrimsha)",done (with applicability checks)
+Predictions / Horoscopes,"Written interpretations (nakshatras, yogas, doshas, dashas)",done
+Muhurta,Panchaka with weekday type,done
+Muhurta,Panchaka-rahita muhurta table,done
+Muhurta,Bhadra residence (Swarga/Patala/Bhumi),done
+Muhurta,"Dagdha tithi, Krakacha, Samvartaka yogas",done
+Muhurta,Gand-mool nakshatra flag,done
+Muhurta,Tarabala detail with remedies & Chandrashtama,done
+Festivals,Festival rule reference (Nirnayasindhu/Dharmasindhu; Smarta vs Vaishnava),done
+Festivals,Regional solar new years (Tamil/Kerala/Bengal/Assam/Odisha),done
+Panchang,Full Vakya panchang (Vakya tables for Moon/tithi),"done (248 Chandravakyas reconstructed & verified vs Vararuci; Madhava khanda/dhruvas; Aryabhatiya Sun; tithi/nakshatra/yoga/karana/sankranti; siddhanta=vakya)"
+Festivals,Sankranti punya-kala per sign,done (Nirnayasindhu/Dharmasindhu rules; 33/33 match Drik within 1 min)

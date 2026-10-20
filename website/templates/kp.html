@@ -1,0 +1,126 @@
+{% extends "base.html" %}{% from "_macros.html" import birthform %}
+{% block content %}
+<h1>Krishnamurti Paddhati (KP System)</h1>
+<p class="sub">Placidus Cusps • 4-Level Lords (Sign/Star/Sub/Sub-Sub) • 4-Fold Significators • Ruling Planets • Horary 1–249</p>
+
+<section class="card">
+  <h2>Birth Details &amp; Horary Prashna Number</h2>
+  <div class="body">
+    <form method="get" action="/kp">
+      {{ birthform('', b, 'Native') }}
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:10px">
+        <label>KP Horary Number (1–249, Optional): 
+          <input type="number" name="horary" value="{{ horary_number or '' }}" min="1" max="249" placeholder="e.g. 108" style="padding:6px 10px;border-radius:6px;border:1px solid var(--line);width:120px;font-weight:700">
+        </label>
+        <button class="btn alt" type="submit">Calculate KP Chart</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+{% if kp_data %}
+<div class="quick-nav">
+  <a href="#ruling">🌟 Ruling Planets</a>
+  <a href="#cusps">📐 Placidus Cusps</a>
+  <a href="#planets">🪐 KP Planets</a>
+  <a href="#significators">🎯 4-Fold Significators</a>
+  {% if kp_data.horary %}<a href="#horary">🔮 Horary Details</a>{% endif %}
+</div>
+
+<!-- 1. Ruling Planets -->
+<section class="card" id="ruling">
+  <h2>Ruling Planets at Chart Generation</h2>
+  <div class="body">
+    <p class="neutral">The divine clock rulers governing the planetary vibrations of the query moment:</p>
+    <div class="suntimes" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
+      <div><span>Day Lord</span><b>{{ kp_data.ruling_planets.day_lord }}</b></div>
+      <div><span>Moon Sign Lord</span><b>{{ kp_data.ruling_planets.moon_sign_lord }}</b></div>
+      <div><span>Moon Star Lord</span><b>{{ kp_data.ruling_planets.moon_star_lord }}</b></div>
+      <div><span>Lagna Sign Lord</span><b>{{ kp_data.ruling_planets.lagna_sign_lord }}</b></div>
+      <div><span>Lagna Star Lord</span><b>{{ kp_data.ruling_planets.lagna_star_lord }}</b></div>
+      <div><span>Lagna Sub Lord</span><b style="color:var(--good)">{{ kp_data.ruling_planets.lagna_sub_lord }}</b></div>
+    </div>
+  </div>
+</section>
+
+{% if kp_data.horary %}
+<!-- Horary 1-249 Card -->
+<section class="card" id="horary">
+  <h2>Horary Number #{{ kp_data.horary.number }} Ascendant Allocation</h2>
+  <div class="body">
+    <div class="suntimes" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
+      <div><span>Horary Sign</span><b>{{ kp_data.horary.sign }}</b></div>
+      <div><span>Span Range</span><b>{{ kp_data.horary.ascendant_start }}° – {{ kp_data.horary.ascendant_end }}°</b></div>
+      <div><span>Star Lord</span><b>{{ kp_data.horary.star_lord }}</b></div>
+      <div><span>Sub Lord</span><b style="color:var(--good)">{{ kp_data.horary.sub_lord }}</b></div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- 2. KP Placidus Cusps -->
+<section class="card" id="cusps">
+  <h2>KP Placidus House Cusps (Sub-Lord Grid)</h2>
+  <div class="body" style="overflow-x:auto">
+    <table class="t">
+      <tr><th>Cusp #</th><th>Sign</th><th>Degree</th><th>Sign Lord</th><th>Star Lord</th><th>Sub Lord</th><th>Sub-Sub Lord</th></tr>
+      {% for c in kp_data.cusps %}
+      <tr>
+        <td><b>House {{ c.house }}</b></td>
+        <td>{{ c.sign }}</td>
+        <td>{{ "%.2f"|format(c.longitude % 30) }}°</td>
+        <td>{{ c.sign_lord }}</td>
+        <td>{{ c.star_lord }}</td>
+        <td style="color:var(--kumkum);font-weight:700">{{ c.sub_lord }}</td>
+        <td>{{ c.sub_sub_lord }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</section>
+
+<!-- 3. KP Planetary Positions -->
+<section class="card" id="planets">
+  <h2>KP Planetary Coordinates &amp; Sub-Lords</h2>
+  <div class="body" style="overflow-x:auto">
+    <table class="t">
+      <tr><th>Planet</th><th>Sign</th><th>Longitude</th><th>House Occ.</th><th>Sign Lord</th><th>Star Lord</th><th>Sub Lord</th><th>Sub-Sub Lord</th></tr>
+      {% for p in kp_data.planets %}
+      <tr>
+        <td><b>{{ p.name }}</b></td>
+        <td>{{ p.sign }}</td>
+        <td>{{ "%.2f"|format(p.longitude % 30) }}°</td>
+        <td>House {{ p.house }}</td>
+        <td>{{ p.sign_lord }}</td>
+        <td>{{ p.star_lord }}</td>
+        <td style="color:var(--kumkum);font-weight:700">{{ p.sub_lord }}</td>
+        <td>{{ p.sub_sub_lord }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</section>
+
+<!-- 4. Four-Fold Significators -->
+<section class="card" id="significators">
+  <h2>4-Fold House Significators (Grades A, B, C, D)</h2>
+  <div class="body" style="overflow-x:auto">
+    <p class="neutral"><b>Grade A:</b> In star of occupants • <b>Grade B:</b> Occupants • <b>Grade C:</b> In star of house lord • <b>Grade D:</b> House Lord</p>
+    <table class="t">
+      <tr><th>House</th><th>Grade A (Strongest)</th><th>Grade B</th><th>Grade C</th><th>Grade D (Lord)</th></tr>
+      {% for h in range(1, 13) %}
+      {% set hs = kp_data.house_significators[h] %}
+      <tr>
+        <td><b>House {{ h }}</b></td>
+        <td>{{ hs.in_star_of_occupants|join(', ') or '—' }}</td>
+        <td>{{ hs.occupants|join(', ') or '—' }}</td>
+        <td>{{ hs.in_star_of_owner|join(', ') or '—' }}</td>
+        <td><b>{{ hs.owner }}</b></td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</section>
+
+{% endif %}
+{% endblock %}

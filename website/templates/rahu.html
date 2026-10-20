@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Rahu Kaal, Yamaganda &amp; Gulika – {{ loc.city }}</h1><p class="sub">Next 7 days</p>
+<section class="card"><h2>Weekly table</h2><div class="body"><table class="t"><tr><th>Date</th><th>Rahu Kalam</th><th>Yamaganda</th><th>Gulika</th></tr>
+{% for dd, r in rows %}{% set ref = dd.isoformat() %}<tr><td>{{ dd.strftime('%a %d %b') }}</td><td class="bad">{{ span(r.rahu_kalam, ref) }}</td><td>{{ span(r.yamaganda, ref) }}</td><td>{{ span(r.gulikai_kalam, ref) }}</td></tr>{% endfor %}</table></div></section>
+{% endblock %}

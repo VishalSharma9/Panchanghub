@@ -1,0 +1,107 @@
+{% extends "base.html" %}{% from "_macros.html" import elems, datebar with context %}
+{% block content %}{% set ref = p.date %}{% set m = p.muhurta %}
+<div class="dayhead"><div class="daytitle">
+<h1>{{ d.strftime('%A') }}</h1>
+<p class="daydate">{{ d.strftime('%d %B %Y') }}{% if loc.source != 'default' %} · {{ loc.city }}{% endif %}</p>
+<p class="lunar">{{ p.paksha }} Paksha · {{ p.month.purnimanta }} · {{ p.vara.name }} · Vikram {{ p.samvat.vikram }} {{ p.samvat.vikram_samvatsara }}</p>
+</div></div>
+<div class="suntimes">
+<div><span>Sunrise</span><b>{{ p.sunrise|hm }}</b></div>
+<div><span>Sunset</span><b>{{ p.sunset|hm }}</b></div>
+<div><span>Moonrise</span><b>{{ p.moonrise|hm(ref) if p.moonrise else '—' }}</b></div>
+<div><span>Moonset</span><b>{{ p.moonset|hm(ref) if p.moonset else '—' }}</b></div>
+</div>
+<p class="range-note">12-hour local time. The panchang day runs sunrise to sunrise. Open any day from 1 CE through 3000 CE.</p>
+{% if live %}<p class="vedic" id="vedicClock" data-sr="{{ p.sunrise }}" data-nsr="{{ p.next_sunrise }}">Vedic time since sunrise</p>{% endif %}
+{{ datebar('/panchang', d, prev, next, locq) }}
+<div class="grid2">
+<section class="card"><h2>Sunrise &amp; Moonrise</h2><div class="body"><table class="kv">
+<tr><td>Sunrise</td><td>{{ p.sunrise|hm }}</td></tr><tr><td>Sunset</td><td>{{ p.sunset|hm }}</td></tr>
+<tr><td>Moonrise</td><td>{{ p.moonrise|hm(ref) if p.moonrise else 'No moonrise' }}</td></tr><tr><td>Moonset</td><td>{{ p.moonset|hm(ref) if p.moonset else 'No moonset' }}</td></tr>
+<tr><td>Dinamana</td><td>{{ '%d h %d m'|format(p.day_duration_hours|int, ((p.day_duration_hours*60)|round|int) % 60) }}</td></tr>
+<tr><td>Ratrimana</td><td>{{ '%d h %d m'|format(p.night_duration_hours|int, ((p.night_duration_hours*60)|round|int) % 60) }}</td></tr>
+<tr><td>Madhyahna</td><td>{{ p.madhyahna|hm }}</td></tr></table></div></section>
+<section class="card"><h2>Panchang</h2><div class="body"><table class="kv">
+<tr><td>Tithi</td><td>{{ elems(p.tithi, ref, 'paksha') }}</td></tr><tr><td>Nakshatra</td><td>{{ elems(p.nakshatra, ref, 'lord') }}</td></tr>
+<tr><td>Yoga</td><td>{{ elems(p.yoga, ref) }}</td></tr><tr><td>Karana</td><td>{{ elems(p.karana, ref) }}</td></tr>
+<tr><td>Weekday</td><td>{{ p.vara.name }}</td></tr><tr><td>Paksha</td><td>{{ p.paksha }}</td></tr></table></div></section>
+<section class="card"><h2>Lunar Month, Samvat</h2><div class="body"><table class="kv">
+<tr><td>Amanta month</td><td>{{ p.month.amanta }}</td></tr><tr><td>Purnimanta month</td><td>{{ p.month.purnimanta }}</td></tr>
+<tr><td>Vikram Samvat</td><td>{{ p.samvat.vikram }} {{ p.samvat.vikram_samvatsara }}</td></tr><tr><td>Shaka Samvat</td><td>{{ p.samvat.shaka }} {{ p.samvat.shaka_samvatsara }}</td></tr>
+<tr><td>Gujarati Samvat</td><td>{{ p.samvat.gujarati }}</td></tr><tr><td>Kaliyuga</td><td>{{ p.samvat.kaliyuga }}</td></tr>
+<tr><td>Tamil</td><td>{{ reg.tamil.month }} {{ reg.tamil.day }}</td></tr><tr><td>Malayalam</td><td>{{ reg.malayalam.month }} {{ reg.malayalam.day }}, Kollam {{ reg.malayalam.kollam_era }}</td></tr>
+<tr><td>Bengali</td><td>{{ reg.bengali.month }} {{ reg.bengali.day }}, {{ reg.bengali.bangabda }}</td></tr></table></div></section>
+<section class="card"><h2>Rashi, Nakshatra, Ritu &amp; Ayana</h2><div class="body"><table class="kv">
+<tr><td>Moonsign</td><td>{{ elems(p.moon_sign, ref) }}</td></tr><tr><td>Sunsign</td><td>{{ p.sun_sign.rashi }}</td></tr>
+<tr><td>Nakshatra pada</td><td>{{ elems(p.nakshatra_pada, ref) }}</td></tr><tr><td>Surya nakshatra</td><td>{{ elems(p.surya_nakshatra, ref) }}</td></tr>
+<tr><td>Drik Ritu / Vedic Ritu</td><td>{{ p.ritu.drik }} / {{ p.ritu.vedic }}</td></tr><tr><td>Drik / Vedic Ayana</td><td>{{ p.ayana.drik }} / {{ p.ayana.vedic }}</td></tr>
+<tr><td>Lahiri Ayanamsha</td><td>{{ p.ayanamsa_lahiri }}</td></tr>
+<tr><td>Pravishte / Gate</td><td>{{ p.pravishte.gate }} <span class="neutral">since {{ p.pravishte.sankranti_date }}</span></td></tr>
+<tr><td>Dinamana (ghati)</td><td>{{ p.vedic_time.dinamana.text }}</td></tr>
+<tr><td>Ratrimana (ghati)</td><td>{{ p.vedic_time.ratrimana.text }}</td></tr>
+{% if p.vedic_time.since_sunrise %}<tr><td>Now, since sunrise</td><td>{{ p.vedic_time.since_sunrise.text }}</td></tr>{% endif %}
+</table></div></section>
+<section class="card"><h2>Auspicious Timings</h2><div class="body"><table class="kv">
+<tr><td>Brahma Muhurta</td><td>{{ span(m.brahma_muhurta, ref) }}</td></tr><tr><td>Pratah Sandhya</td><td>{{ span(m.pratah_sandhya, ref) }}</td></tr>
+<tr><td>Abhijit</td><td>{{ span(m.abhijit, ref) if m.abhijit else 'None' }}</td></tr><tr><td>Vijaya Muhurta</td><td>{{ span(m.vijaya_muhurta, ref) }}</td></tr>
+<tr><td>Godhuli Muhurta</td><td>{{ span(m.godhuli_muhurta, ref) }}</td></tr><tr><td>Sayahna Sandhya</td><td>{{ span(m.sayahna_sandhya, ref) }}</td></tr>
+<tr><td>Nishita Muhurta</td><td>{{ span(m.nishita_muhurta, ref) }}</td></tr>
+<tr><td>Amrit Kalam</td><td>{% for a in m.amrit_kalam %}<div>{{ span(a, ref) }}</div>{% else %}None{% endfor %}</td></tr>
+{% for y in m.special_yogas %}<tr><td>{{ y.yoga }}</td><td>{{ span(y, ref) }}</td></tr>{% endfor %}</table></div></section>
+<section class="card"><h2>Inauspicious Timings</h2><div class="body"><table class="kv">
+<tr><td>Rahu Kalam</td><td>{{ span(m.rahu_kalam, ref) }}</td></tr><tr><td>Yamaganda</td><td>{{ span(m.yamaganda, ref) }}</td></tr>
+<tr><td>Gulikai Kalam</td><td>{{ span(m.gulikai_kalam, ref) }}</td></tr>
+<tr><td>Dur Muhurtam</td><td>{% for x in m.dur_muhurtam %}<div>{{ span(x, ref) }}</div>{% endfor %}</td></tr>
+<tr><td>Varjyam</td><td>{% for a in m.varjyam %}<div>{{ span(a, ref) }}</div>{% else %}None{% endfor %}</td></tr>
+<tr><td>Aadal Yoga</td><td>{% for a in p.aadal %}<div class="bad">{{ span(a, ref) }}</div>{% else %}None{% endfor %}</td></tr>
+<tr><td>Bhadra</td><td>{% for a in m.bhadra %}<div>{{ span(a, ref) }}</div>{% else %}None{% endfor %}</td></tr>
+<tr><td>Ganda Moola</td><td>{% for a in m.ganda_moola %}<div>{{ span(a, ref) }}</div>{% else %}None{% endfor %}</td></tr>
+<tr><td>Panchaka</td><td>{% for a in m.panchaka %}<div>{{ span(a, ref) }}</div>{% else %}None{% endfor %}</td></tr></table></div></section>
+<section class="card"><h2>Anandadi Yoga, Disha Shool</h2><div class="body"><table class="kv">
+<tr><td>Anandadi Yoga</td><td>{% for a in m.anandadi_yoga %}<div class="{{ 'good' if a.auspicious else 'bad' }}">{{ a.name }} upto {{ a.until|hm(ref) }}</div>{% endfor %}</td></tr>
+<tr><td>Tamil Yoga</td><td>{% for a in p.tamil_yoga %}<div class="{{ 'good' if a.auspicious else 'bad' }}">{{ a.name }} upto {{ a.until|hm(ref) }}</div>{% endfor %}</td></tr>
+<tr><td>Disha Shool</td><td class="bad">Do not set out toward {{ p.disha_shool }}</td></tr>
+<tr><td>Open directions</td><td>{% for dir in ['East','South','West','North'] if dir != p.disha_shool %}<span class="pill">{{ dir }}</span>{% endfor %}</td></tr>
+<tr><td>Homahuti</td><td>{{ p.homahuti }}</td></tr>
+<tr><td>Agnivasa</td><td>{% for a in p.agnivasa_periods %}<div>{{ a.element }} ({{ a.gloss }}) upto {{ a.until|hm(ref) }}</div>{% endfor %}</td></tr>
+<tr><td>Chandra vasa</td><td>{% for a in p.chandra_vasa_periods %}<div>{{ a.direction }} upto {{ a.until|hm(ref) }}</div>{% endfor %}</td></tr>
+<tr><td>Shivavasa</td><td>{% for a in p.shivavasa %}<div class="{{ 'good' if a.quality=='Favourable' else 'bad' }}">{{ a.place }} upto {{ a.until|hm(ref) }}</div>{% endfor %}</td></tr>
+</table></div></section>
+<section class="card"><h2>Chandrabalam &amp; Tarabalam</h2><div class="body">
+<p><b>Good Chandrabalam</b> {% for c in p.chandrabalam %}while Moon is in {{ c.moon_rashi }} (till {{ c.until|hm(ref) }}): {% for r in c.good_for %}<span class="pill">{{ r }}</span>{% endfor %}
+<span class="bad">Ashtama for {{ c.ashtama_rashi }}</span>{% endfor %}</p>
+{% for t in p.tarabalam %}<p><b>Good Tarabalam</b> while {{ t.nakshatra }} (till {{ t.until|hm(ref) }}): {% for n in t.good_for %}<span class="pill">{{ n }}</span>{% endfor %}</p>{% endfor %}
+{% if p.personal.chandrabalam %}<p>Your Chandrabalam: house {{ p.personal.chandrabalam.house_from_janma_rashi }} — <span class="{{ 'good' if p.personal.chandrabalam.favourable else 'bad' }}">{{ 'favourable' if p.personal.chandrabalam.favourable else 'not favourable' }}</span></p>{% endif %}
+{% if p.personal.tarabalam %}<p>Your Tarabalam: {{ p.personal.tarabalam.tara }} — <span class="{{ 'good' if p.personal.tarabalam.favourable else 'bad' }}">{{ 'favourable' if p.personal.tarabalam.favourable else 'not favourable' }}</span></p>{% endif %}
+</div></section>
+<section class="card"><h2>Pancha Pakshi</h2><div class="body">
+<form class="datebar" method="get" action="/panchang">
+<input type="hidden" name="date" value="{{ d.isoformat() }}">
+<input type="hidden" name="city" value="{{ loc.city }}"><input type="hidden" name="lat" value="{{ loc.lat }}"><input type="hidden" name="lon" value="{{ loc.lon }}"><input type="hidden" name="tz" value="{{ loc.tz }}">
+<label>Janma rashi <select name="janma_rashi" onchange="this.form.submit()"><option value="">—</option>{% for i in range(12) %}<option value="{{ i+1 }}" {{ 'selected' if janma_rashi==i+1 }}>{{ RASHIS[i] }}</option>{% endfor %}</select></label>
+<label>Janma nakshatra <select name="janma_nakshatra" onchange="this.form.submit()"><option value="">—</option>{% for i in range(27) %}<option value="{{ i+1 }}" {{ 'selected' if janma_nakshatra==i+1 }}>{{ NAKSHATRAS[i] }}</option>{% endfor %}</select></label>
+</form>
+<p>Day ruling bird <b>{{ p.pancha_pakshi.day_ruling_bird }}</b> · Night ruling bird <b>{{ p.pancha_pakshi.night_ruling_bird }}</b></p>
+{% if p.pancha_pakshi.birth_bird %}<p>Your bird this paksha: <b>{{ p.pancha_pakshi.birth_bird.bird }}</b>. Friends: {{ p.pancha_pakshi.birth_bird.friends|join(', ') }}. Enemies: {{ p.pancha_pakshi.birth_bird.enemies|join(', ') }}.</p>{% endif %}
+<p class="sub">{{ p.pancha_pakshi.note }}</p>
+<table class="t"><tr><th>Day yama</th><th>Time</th><th>Ruling</th>{% if p.pancha_pakshi.birth_bird %}<th>Your bird</th>{% endif %}</tr>
+{% for y in p.pancha_pakshi.day %}<tr><td>{{ y.yama }}</td><td>{{ span(y, ref) }}</td><td>{{ y.ruling_bird }}</td>{% if p.pancha_pakshi.birth_bird %}<td class="{{ 'good' if y.birds[p.pancha_pakshi.birth_bird.bird].quality=='Favourable' else 'bad' if y.birds[p.pancha_pakshi.birth_bird.bird].quality=='Avoid' else 'neutral' }}">{{ y.birds[p.pancha_pakshi.birth_bird.bird].activity }}</td>{% endif %}</tr>{% endfor %}
+</table>
+</div></section>
+<section class="card"><h2>Do Ghati Muhurta</h2><div class="body">
+<p class="sub">Day and night each split into 15 muhurtas of two ghatis. The 8th day muhurta is Abhijit, the 11th is Vijaya.</p>
+<table class="t"><tr><th></th><th>Muhurta</th><th>Kala</th><th>Time</th></tr>
+{% for y in m.do_ghati.day %}<tr><td>{{ y.n }}</td><td class="{{ 'good' if y.auspicious else '' }}">{{ y.name }}</td><td>{{ y.kala }}</td><td>{{ span(y, ref) }}</td></tr>{% endfor %}
+{% for y in m.do_ghati.night %}<tr><td>{{ y.n }}</td><td>{{ y.name }}</td><td>Night</td><td>{{ span(y, ref) }}</td></tr>{% endfor %}
+</table>
+</div></section>
+<section class="card"><h2>Samvat Mantri Mandala</h2><div class="body">
+{% if p.mantri_mandala %}
+<p class="sub">Year opens {{ p.mantri_mandala.new_year }} · {{ p.mantri_mandala.source }}</p>
+<table class="t"><tr><th>Post</th><th>Planet</th><th>On</th></tr>
+{% for post in p.mantri_mandala.posts %}<tr><td>{{ post.role }}</td><td>{{ post.planet or '—' }}</td><td>{{ post.date or '—' }}</td></tr>{% endfor %}
+</table>
+{% else %}<p>Could not fix this year's Chaitra Shukla Pratipada.</p>{% endif %}
+</div></section>
+</div>
+{% endblock %}

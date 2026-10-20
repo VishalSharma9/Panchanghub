@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% macro draw(h) %}<div class="hex">{% for b in h.lines|reverse %}{{ '▬▬▬▬▬' if b=='1' else '▬▬ ▬▬' }}<br>{% endfor %}</div>{% endmacro %}
+{% block content %}
+<h1>I-Ching Oracle</h1>
+<section class="card"><h2>Ask a question</h2><div class="body"><form class="f" method="get" action="/iching"><label style="flex:1">Question<input name="question" value="{{ q.get('question','') }}" placeholder="What should I focus on this month?"></label><input type="hidden" name="cast" value="1"><button class="btn alt">Cast coins</button></form></div></section>
+{% if c %}<div class="grid2"><section class="card"><h2>{{ c.primary.number }}. {{ c.primary.name }}</h2><div class="body">{{ draw(c.primary) }}<p>{{ c.primary.judgement }}.</p>
+<p class="neutral">{{ c.primary.upper.image }} over {{ c.primary.lower.image }} · coins {{ c.coin_values|join(' ') }} · changing lines: {{ c.changing_lines|join(', ') or 'none' }}</p></div></section>
+{% if c.relating %}<section class="card"><h2>Becoming: {{ c.relating.number }}. {{ c.relating.name }}</h2><div class="body">{{ draw(c.relating) }}<p>{{ c.relating.judgement }}.</p></div></section>{% endif %}</div>{% endif %}
+<section class="card"><h2>The 64 hexagrams</h2><div class="body"><table class="t"><tr><th>#</th><th>Name</th><th>Guidance</th></tr>{% for h in all %}<tr><td>{{ h.number }}</td><td>{{ h.name }}</td><td>{{ h.judgement }}</td></tr>{% endfor %}</table></div></section>
+{% endblock %}

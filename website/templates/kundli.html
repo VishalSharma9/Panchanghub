@@ -1,0 +1,811 @@
+{% extends "base.html" %}{% from "_macros.html" import birthform %}
+{% block content %}
+<h1>Janma Kundli</h1>
+<p class="sub">Vedic birth chart • sidereal Lahiri • Whole-sign &amp; Placidus houses • Classical Astrological Suite</p>
+
+<section class="card">
+  <h2>Birth details</h2>
+  <div class="body">
+    <form method="get" action="/kundli">
+      {{ birthform('', b, 'Native') }}
+      <p>
+        <label>Chart style 
+          <select name="style">
+            {% for s in ['north','south','east'] %}
+              <option value="{{ s }}" {{ 'selected' if style==s }}>{{ s|title }} Indian</option>
+            {% endfor %}
+          </select>
+        </label>
+        <button class="btn alt" type="submit">Generate Kundli</button>
+      </p>
+    </form>
+  </div>
+</section>
+
+{% if k %}
+
+<!-- Classical Vedic Workstation Bar & Tabs -->
+<div class="worksheet-bar">
+  <div class="ws-header">
+    <span class="ws-title">📜 Vedic Astrology Worksheets &amp; Portfolios</span>
+    <span class="ws-subtitle">Inspired by the Classical Astrological Suite (Brihat Parashara Hora Shastra, Jaimini Sutras, Tajika Neelakanthi)</span>
+  </div>
+  <div class="ws-nav" id="wsNav">
+    <button class="ws-tab active" data-target="ws-all">👁️ All Worksheets</button>
+    <button class="ws-tab" data-target="ws-birth">🌟 1. Birth Chart I &amp; II</button>
+    <button class="ws-tab" data-target="ws-vargas">💠 2. Shodashavarga Grid</button>
+    <button class="ws-tab" data-target="ws-sudarshan">☸️ 3. Sudarshan Chakra</button>
+    <button class="ws-tab" data-target="ws-special">👑 4. Special Lagnas &amp; Arudhas</button>
+    <button class="ws-tab" data-target="ws-ashtaka">📊 5. Ashtakavarga Suite</button>
+    <button class="ws-tab" data-target="ws-shadbala">⚖️ 6. Shadbala &amp; Balas</button>
+    <button class="ws-tab" data-target="ws-dashas">⏳ 7. Dasha Systems</button>
+    <button class="ws-tab" data-target="ws-varshaphala">☀️ 8. Varshaphala Annual</button>
+    <button class="ws-tab" data-target="ws-kp">📐 9. KP System (Krishnamurti)</button>
+    <button class="ws-tab" data-target="ws-readings">📜 10. Classical Slokas &amp; Yogas</button>
+    <button class="ws-tab" data-target="ws-soul-remedies">🙏 11. Soul Desires, Ishta Devata &amp; Mantras</button>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- WORKSHEET 1: Birth Chart I & II            -->
+<!-- ========================================== -->
+<div class="ws-section" id="ws-birth">
+  <section class="card">
+    <h2>Worksheet 1: Birth Chart (D1, Chandra, D9) – Lagna {{ k.lagna.rashi }} {{ k.lagna.dms }}</h2>
+    <div class="body">
+      <div class="charts">
+        <figure>{{ charts.D1|safe }}<figcaption>Lagna (D1) – Birth Ascendant</figcaption></figure>
+        <figure>{{ charts.Moon|safe }}<figcaption>Chandra Kundli – Lunar Chart</figcaption></figure>
+        <figure>{{ charts.D9|safe }}<figcaption>Navamsha (D9) – Soul &amp; Dharma</figcaption></figure>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:14px">
+        <button class="btn alt" id="pdfBtn" style="display:inline-flex;align-items:center;gap:6px">
+          <span id="pdfIcon">⬇</span> <span id="pdfText">Download Full PDF Life Report</span>
+        </button>
+        <span class="neutral">Moon: <b>{{ k.moon.rashi }}</b>, {{ k.moon.nakshatra }} (Pada {{ k.moon.pada }}) · Ayanamsha: <b>{{ k.ayanamsa }}</b></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Planetary Positions, Dignities &amp; Avasthas</h2>
+    <div class="body" style="overflow-x:auto">
+      <table class="t">
+        <tr><th>Planet</th><th>Sign</th><th>Degree</th><th>Nakshatra</th><th>Pada</th><th>Nak. Lord</th><th>House</th><th>Dignity</th><th>Avastha</th><th>Status</th></tr>
+        <tr><td><b>Lagna (Asc)</b></td><td>{{ k.lagna.rashi }}</td><td>{{ k.lagna.dms }}</td><td>{{ k.lagna.nakshatra }}</td><td>{{ k.lagna.pada }}</td><td></td><td>1</td><td><span class="pill pill-vargottama">Lagna</span></td><td></td><td></td></tr>
+        {% for p in k.planets %}
+        <tr>
+          <td><b>{{ p.name }}</b></td>
+          <td>{{ p.rashi }}</td>
+          <td>{{ p.dms }}</td>
+          <td>{{ p.nakshatra }}</td>
+          <td>{{ p.pada }}</td>
+          <td>{{ p.nakshatra_lord }}</td>
+          <td>{{ p.house }}</td>
+          <td>
+            {% if 'Exalt' in p.dignity %}<span class="pill pill-exalted">{{ p.dignity }}</span>
+            {% elif 'Own' in p.dignity %}<span class="pill pill-own">{{ p.dignity }}</span>
+            {% elif 'Debil' in p.dignity %}<span class="pill pill-debilitated">{{ p.dignity }}</span>
+            {% else %}<span class="pill">{{ p.dignity }}</span>{% endif %}
+          </td>
+          <td>{{ p.avastha }}</td>
+          <td>
+            {% if p.retrograde and p.name not in ['Rahu','Ketu'] %}<span class="pill pill-retro">Retro ℞</span>{% endif %}
+            {% if p.combust %}<span class="pill pill-combust">Combust 🔥</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </section>
+</div>
+
+<!-- ========================================== -->
+<!-- WORKSHEET 2: Shodashavarga Grid            -->
+<!-- ========================================== -->
+<div class="ws-section" id="ws-vargas">
+  <section class="card">
+    <h2>Worksheet 2: Divisional Charts (Shodashavargas Portfolio)</h2>
+    <div class="body">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+        <p class="neutral" style="margin:0">Detailed harmonic divisional charts derived from the classical mathematical specifications of Brihat Parashara Hora Shastra:</p>
+        <a href="/vargas?{{ qs }}" class="btn" style="font-size:12.5px;padding:6px 12px">Open Full 31 Varga Menu Dialog →</a>
+      </div>
+      <div class="charts">
+        {% for vk, svg in charts.items() if vk not in ['D1','D9','Moon'] %}
+          <figure>{{ svg|safe }}<figcaption>{{ vk }} – {{ k.vargas[vk].name }}</figcaption></figure>
+        {% endfor %}
+      </div>
+      {% if holistic_reading and holistic_reading.navamsha_synthesis %}
+      {% set nav = holistic_reading.navamsha_synthesis %}
+      <div class="varga-inspector-box">
+        <h3 style="margin:0 0 8px 0;color:var(--kumkum-d);font-size:14.5px">D9 Navamsha Core Spiritual Synthesis (Saravali Ch. 51)</h3>
+        <p style="margin:0 0 6px 0;font-size:13.5px">
+          <b>Navamsha Lagna:</b> {{ nav.d9_lagna_sign }} ({{ nav.d9_lagna_rashi }}), Pada {{ nav.navamsha_pada }} · 
+          <b>Governing Deity:</b> <span class="pill good">{{ nav.deity }}</span> · <b>Lagna Lord:</b> {{ nav.d9_lagna_lord }}
+          {% if nav.is_vargottama %}<span class="pill good">Vargottama</span>{% endif %}
+          {% if nav.is_pushkara %}<span class="pill good">Pushkara Navamsha</span>{% endif %}
+        </p>
+        {% if nav.saravali_sloka %}
+        <div class="sloka-verse">"{{ nav.saravali_sloka }}"</div>
+        {% endif %}
+        <p style="margin:6px 0 0 0;font-size:13.5px;line-height:1.55">{{ nav.synthesis }}</p>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+</div>
+
+<!-- ========================================== -->
+<!-- WORKSHEET 3: Sudarshan Chakra              -->
+<!-- ========================================== -->
+<div class="ws-section" id="ws-sudarshan">
+  <section class="card">
+    <h2>Worksheet 3: Sudarshan Chakra (Triple Concentric Wheel)</h2>
+    <div class="body">
+      <p class="neutral">The sacred Sudarshan Chakra synchronizes three key life references in concentric rings: <b>Inner Ring:</b> Janma Lagna (Physical Body) • <b>Middle Ring:</b> Chandra Lagna (Mind &amp; Emotions) • <b>Outer Ring:</b> Surya Lagna (Soul &amp; Authority).</p>
+      {% if sudarshan_data and sudarshan_data.svg %}
+      <div class="chakra-container">
+        {{ sudarshan_data.svg|safe }}
+      </div>
+      <div class="chakra-table" style="overflow-x:auto">
+        <h3>12 Houses Sector-by-Sector Synthesis Across All 3 Wheels</h3>
+        <table class="t">
+          <tr><th>House Sector</th><th>Lagna Ring (Sign &amp; Planets)</th><th>Chandra Ring (Sign &amp; Planets)</th><th>Surya Ring (Sign &amp; Planets)</th><th>Combined Influence</th></tr>
+          {% for sec in sudarshan_data.sectors %}
+          <tr>
+            <td><b>House {{ sec.house }}</b></td>
+            <td><b>{{ sec.lagna_sign }}</b>: {{ sec.lagna_planets|join(', ') or '—' }}</td>
+            <td><b>{{ sec.moon_sign }}</b>: {{ sec.moon_planets|join(', ') or '—' }}</td>
+            <td><b>{{ sec.sun_sign }}</b>: {{ sec.sun_planets|join(', ') or '—' }}</td>
+            <td style="font-size:12.5px;color:var(--muted)">
+              {% if sec.lagna_planets and sec.moon_planets and sec.sun_planets %}
+                <span style="color:var(--good);font-weight:700">★ Triple Alignment: Intense karmic focal point in all three dimensions!</span>
+              {% elif sec.lagna_planets or sec.moon_planets or sec.sun_planets %}
+                Active planetary resonance present.
+              {% else %}
+                Passive sector; influenced by sign lords.
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+</div>
+
+<!-- ========================================== -->
+<!-- WORKSHEET 4: Special Lagnas & Arudha Padas -->
+<!-- ========================================== -->
+<div class="ws-section" id="ws-special">
+  <section class="card">
+    <h2>Worksheet 4: Special Lagnas &amp; Alternate Reference Frames (BPHS Ch. 5)</h2>
+    <div class="body" style="overflow-x:auto">
+      {% if special_lagnas %}
+      <table class="t">
+        <tr><th>Special Lagna</th><th>Code</th><th>Sign</th><th>Degree</th><th>House from Lagna</th><th>Astrological Signification</th></tr>
+        <tr><td><b>Hora Lagna</b></td><td>HL</td><td>{{ special_lagnas.hora_lagna.sign }}</td><td>{{ special_lagnas.hora_lagna.dms }}</td><td>House {{ special_lagnas.hora_lagna.house_from_lagna }}</td><td style="font-size:12.5px;color:var(--muted)">Primary seat of liquid wealth, assets, and financial sustenance.</td></tr>
+        <tr><td><b>Ghati Lagna</b></td><td>GL</td><td>{{ special_lagnas.ghati_lagna.sign }}</td><td>{{ special_lagnas.ghati_lagna.dms }}</td><td>House {{ special_lagnas.ghati_lagna.house_from_lagna }}</td><td style="font-size:12.5px;color:var(--muted)">Seat of power, executive authority, government recognition, and high status.</td></tr>
+        <tr><td><b>Bhava Lagna</b></td><td>BL</td><td>{{ special_lagnas.bhava_lagna.sign }}</td><td>{{ special_lagnas.bhava_lagna.dms }}</td><td>House {{ special_lagnas.bhava_lagna.house_from_lagna }}</td><td style="font-size:12.5px;color:var(--muted)">Physical vitality, constitution, and longevity marker.</td></tr>
+        <tr><td><b>Sree Lagna</b></td><td>SL</td><td>{{ special_lagnas.sree_lagna.sign }}</td><td>{{ special_lagnas.sree_lagna.dms }}</td><td>House {{ special_lagnas.sree_lagna.house_from_lagna }}</td><td style="font-size:12.5px;color:var(--muted)">Seat of Goddess Lakshmi; ease of fortune, affluence, and prosperity.</td></tr>
+        <tr><td><b>Pranapada Lagna</b></td><td>PP</td><td>{{ special_lagnas.pranapada_lagna.sign }}</td><td>{{ special_lagnas.pranapada_lagna.dms }}</td><td>House {{ special_lagnas.pranapada_lagna.house_from_lagna }}</td><td style="font-size:12.5px;color:var(--muted)">Life-breath ascendant; classical reference point for verifying birth time.</td></tr>
+        <tr><td><b>Paka Lagna</b></td><td>PL</td><td>{{ special_lagnas.paka_lagna.sign }}</td><td>—</td><td>House {{ special_lagnas.paka_lagna.house_from_lagna }}</td><td style="font-size:12.5px;color:var(--muted)">{{ special_lagnas.paka_lagna.description }}</td></tr>
+        <tr><td><b>Indu Lagna</b></td><td>IL</td><td><b style="color:var(--kumkum)">{{ special_lagnas.indu_lagna.sign }}</b></td><td>—</td><td>House {{ special_lagnas.indu_lagna.house_from_lagna }}</td><td style="font-size:12.5px;color:var(--good);font-weight:600">{{ special_lagnas.indu_lagna.interpretation }}</td></tr>
+      </table>
+
+      <h3 style="margin-top:18px">All 12 Jaimini Arudha Padas (A1 to A12)</h3>
+      <table class="t">
+        <tr><th>Arudha Pada</th><th>Code</th><th>Sign</th><th>Rashi</th><th>House from Lagna</th><th>Planets in Pada</th><th>Signification</th></tr>
+        {% for code, pada in special_lagnas.arudha_padas.items() %}
+        <tr>
+          <td><b>{{ pada.label }}</b></td>
+          <td>{{ pada.code }}</td>
+          <td>{{ pada.sign }}</td>
+          <td>{{ pada.rashi }}</td>
+          <td>House {{ pada.house_from_lagna }}</td>
+          <td>{{ pada.planets|join(', ') or '—' }}</td>
+          <td style="font-size:12.5px;color:var(--muted)">{{ pada.signification }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+      {% endif %}
+    </div>
+  </section>
+</div>
+
+<!-- ========================================== -->
+<!-- WORKSHEET 5: Ashtakavarga Suite & Reductions -->
+<!-- ========================================== -->
+<div class="ws-section" id="ws-ashtaka">
+  <section class="card">
+    <h2>Worksheet 5: Ashtakavarga Suite, Reductions &amp; Shodhya Pindas (BPHS Ch. 67-70)</h2>
+    <div class="body" style="overflow-x:auto">
+      {% if av_suite %}
+      <h3>1. Raw Bhinnashtakavarga (BAV) &amp; Samudaya (SAV)</h3>
+      <table class="t">
+        <tr><th>Planet</th>{% for s in av_suite.signs %}<th>{{ s[:3] }}</th>{% endfor %}<th>Total</th></tr>
+        {% for pl, pts in av_suite.bhinnashtakavarga.items() %}
+        <tr><td><b>{{ pl }}</b></td>{% for x in pts %}<td>{{ x }}</td>{% endfor %}<td>{{ pts|sum }}</td></tr>
+        {% endfor %}
+        <tr style="background:var(--haldi-l)"><td><b>SAV Total</b></td>{% for x in av_suite.sarvashtakavarga %}<td><b>{{ x }}</b></td>{% endfor %}<td><b style="color:var(--kumkum)">{{ av_suite.sav_total }} / 337</b></td></tr>
+      </table>
+
+      <h3 style="margin-top:18px">2. Trikona Shodhana (Triplicity Reductions)</h3>
+      <p class="neutral">Subtractions applied across trinal groups (Fire, Earth, Air, Water) per BPHS Ch. 67:</p>
+      <table class="t">
+        <tr><th>Planet</th>{% for s in av_suite.signs %}<th>{{ s[:3] }}</th>{% endfor %}<th>Reduced Sum</th></tr>
+        {% for pl, pts in av_suite.trikona_shodhana.items() %}
+        <tr><td><b>{{ pl }}</b></td>{% for x in pts %}<td>{{ x }}</td>{% endfor %}<td>{{ pts|sum }}</td></tr>
+        {% endfor %}
+      </table>
+
+      <h3 style="margin-top:18px">3. Ekadhipatya Shodhana (Dual-Lordship Reductions)</h3>
+      <p class="neutral">Final Shodhita Ashtakavarga points after dual-lordship reductions per BPHS Ch. 68:</p>
+      <table class="t">
+        <tr><th>Planet</th>{% for s in av_suite.signs %}<th>{{ s[:3] }}</th>{% endfor %}<th>Shodhita Sum</th></tr>
+        {% for pl, pts in av_suite.shodhita_ashtakavarga.items() %}
+        <tr><td><b>{{ pl }}</b></td>{% for x in pts %}<td>{{ x }}</td>{% endfor %}<td><b>{{ pts|sum }}</b></td></tr>
+        {% endfor %}
+        <tr style="background:var(--haldi-l)"><td><b>Shodhita SAV</b></td>{% for x in av_suite.shodhita_sav %}<td><b>{{ x }}</b></td>{% endfor %}<td><b style="color:var(--kumkum)">{{ av_suite.shodhita_sav_total }}</b></td></tr>
+      </table>
+
+      <h3 style="margin-top:18px">4. Shodhya Pindas (Rashi Pinda, Graha Pinda &amp; Yoga Pinda)</h3>
+      <p class="neutral">Composite strength mandalas used for longevity, prosperity, and transits (BPHS Ch. 69-70):</p>
+      <div class="pinda-grid">
+        {% for pl, pinda in av_suite.shodhya_pindas.items() %}
+        <div class="pinda-card">
+          <span class="title">{{ pl }}</span>
+          <span class="val">{{ pinda.yoga_pinda }}</span>
+          <span class="sub">Rashi: {{ pinda.rashi_pinda }} • Graha: {{ pinda.graha_pinda }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </section>
+</div>
+
+<!-- ========================================== -->
+<!-- WORKSHEET 6: Shadbala & Bhava Balas        -->
+<!-- ========================================== -->
+<div class="ws-section" id="ws-shadbala">
+  <section class="card">
+    <h2>Worksheet 6: Shadbala (Six-Fold Strength, BPHS Ch. 27-28)</h2>
+    <div class="body" style="overflow-x:auto">
+      <table class="t">
+        <tr><th>Planet</th><th>Sthana</th><th>Dig</th><th>Kala</th><th>Cheshta</th><th>Naisargika</th><th>Drik</th><th>Total (Rupas)</th><th>Required</th><th>Ratio</th><th>Rank</th></tr>
+        {% for pl, v in k.shadbala.planets.items() %}
+        <tr>
+          <td><b>{{ pl }}</b></td><td>{{ v.sthana }}</td><td>{{ v.dig }}</td><td>{{ v.kala }}</td><td>{{ v.cheshta }}</td><td>{{ v.naisargika }}</td><td>{{ v.drik }}</td>
+          <td><b>{{ v.total_rupas }}</b></td><td>{{ v.required_rupas }}</td><td class="{{ 'good' if v.strong else 'bad' }}">{{ v.ratio }}</td><td>{{ v.rank }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+      <p class="neutral">Strongest: <b>{{ k.shadbala.strongest }}</b> · Weakest: <b>{{ k.shadbala.weakest }}</b> · Lords — year {{ k.shadbala.lords.abda }}, month {{ k.shadbala.lords.masa }}, day {{ k.shadbala.lords.vara }}, hora {{ k.shadbala.lords.hora }}</p>
+      
+      <h3 style="margin-top:16px">Bhavabala (Twelve House Strengths in Rupas)</h3>
+      <table class="t">
+        <tr>{% for h in k.bhavabala.houses %}<th>H{{ h.house }}</th>{% endfor %}</tr>
+        <tr>{% for h in k.bhavabala.houses %}<td><b>{{ h.total_rupas }}</b></td>{% endfor %}</tr>
+      </table>
+    </div>
+  </section>
+</div>
+
+<!-- ========================================== -->
+<!-- WORKSHEET 7: Dasha Systems                 -->
+<!-- ========================================== -->
+<div class="ws-section" id="ws-dashas">
+  <div class="grid2">
+    <section class="card">
+      <h2>Vimshottari Dasha (120-Year Cycle)</h2>
+      <div class="body">
+        <p class="neutral">Balance at birth: {{ k.vimshottari_dasha.balance_at_birth.lord }} {{ k.vimshottari_dasha.balance_at_birth.years_remaining }} yrs</p>
+        {% for md in k.vimshottari_dasha.mahadasha %}
+        <details>
+          <summary><b>{{ md.lord }} Mahadasha</b> · {{ md.start }} → {{ md.end }}</summary>
+          <table class="t" style="margin-top:6px">
+            <tr><th>Antardasha</th><th>Start</th><th>End</th></tr>
+            {% for ad in md.antardasha %}
+            <tr><td>{{ md.lord[:2] }}-{{ ad.lord }}</td><td>{{ ad.start }}</td><td>{{ ad.end }}</td></tr>
+            {% endfor %}
+          </table>
+        </details>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Yogini Dasha (36-Year Cycle)</h2>
+      <div class="body">
+        <table class="t">
+          <tr><th>Yogini</th><th>Lord</th><th>Start</th><th>End</th></tr>
+          {% for y in k.yogini_dasha.periods[:16] %}
+          <tr><td><b>{{ y.yogini }}</b></td><td>{{ y.lord }}</td><td>{{ y.start }}</td><td>{{ y.end }}</td></tr>
+          {% endfor %}
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>Chara Dasha (Jaimini Rashi Dasha)</h2>
+      <div class="body">
+        <table class="t">
+          <tr><th>Sign</th><th>Years</th><th>Start</th><th>End</th></tr>
+          {% for d in k.dashas_other.chara.periods[:12] %}
+          <tr><td><b>{{ d.sign }}</b></td><td>{{ d.years }}</td><td>{{ d.start }}</td><td>{{ d.end }}</td></tr>
+          {% endfor %}
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Kalachakra Dasha (Wheel of Time)</h2>
+      <div class="body">
+        <p class="neutral">{{ k.dashas_other.kalachakra.group }} · Deha: <b>{{ k.dashas_other.kalachakra.deha }}</b> / Jeeva: <b>{{ k.dashas_other.kalachakra.jeeva }}</b></p>
+        <table class="t">
+          <tr><th>Sign</th><th>Years</th><th>Start</th><th>End</th></tr>
+          {% for d in k.dashas_other.kalachakra.periods %}
+          <tr><td><b>{{ d.sign }}</b></td><td>{{ d.years }}</td><td>{{ d.start }}</td><td>{{ d.end }}</td></tr>
+          {% endfor %}
+        </table>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- WORKSHEET 8: Varshaphala Annual Summary    -->
+<!-- ========================================== -->
+<div class="ws-section" id="ws-varshaphala">
+  <section class="card">
+    <h2>Worksheet 8: Tajika Varshaphala Annual Solar Return</h2>
+    <div class="body">
+      {% if varshaphala_data %}
+      <div class="suntimes" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));">
+        <div><span>Return Year</span><b>{{ varshaphala_data.year }} (Age {{ varshaphala_data.age }})</b></div>
+        <div><span>Year Lord (Varshesha)</span><b style="color:var(--good)">{{ varshaphala_data.year_lord }}</b></div>
+        <div><span>Muntha</span><b>{{ varshaphala_data.muntha.sign }} (H{{ varshaphala_data.muntha.house }})</b></div>
+        <div><span>Solar Return Moment</span><b>{{ varshaphala_data.solar_return_moment[:16].replace('T',' ') }}</b></div>
+      </div>
+      <p style="margin:12px 0 16px;color:var(--muted)">{{ varshaphala_data.year_lord_note }}</p>
+
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <a href="/varshaphala?{{ qs }}" class="btn alt">Open Full Varshaphala Annual Chart &amp; 24 Sahams →</a>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+</div>
+
+<!-- ========================================== -->
+<!-- WORKSHEET 9: KP System (Krishnamurti)       -->
+<!-- ========================================== -->
+<div class="ws-section" id="ws-kp">
+  <section class="card">
+    <h2>Worksheet 9: Krishnamurti Paddhati (KP System Overview)</h2>
+    <div class="body">
+      {% if kp_data %}
+      <h3>Ruling Planets</h3>
+      <div class="suntimes" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
+        <div><span>Day Lord</span><b>{{ kp_data.ruling_planets.day_lord }}</b></div>
+        <div><span>Moon Sign Lord</span><b>{{ kp_data.ruling_planets.moon_sign_lord }}</b></div>
+        <div><span>Moon Star Lord</span><b>{{ kp_data.ruling_planets.moon_star_lord }}</b></div>
+        <div><span>Lagna Sign Lord</span><b>{{ kp_data.ruling_planets.lagna_sign_lord }}</b></div>
+        <div><span>Lagna Star Lord</span><b>{{ kp_data.ruling_planets.lagna_star_lord }}</b></div>
+        <div><span>Lagna Sub Lord</span><b style="color:var(--good)">{{ kp_data.ruling_planets.lagna_sub_lord }}</b></div>
+      </div>
+
+      <h3 style="margin-top:16px">KP Placidus Cusps (Sign/Star/Sub Lords)</h3>
+      <div style="overflow-x:auto">
+        <table class="t">
+          <tr><th>Cusp #</th><th>Sign</th><th>Degree</th><th>Sign Lord</th><th>Star Lord</th><th>Sub Lord</th><th>Sub-Sub Lord</th></tr>
+          {% for c in kp_data.cusps[:6] %}
+          <tr>
+            <td><b>House {{ c.house }}</b></td><td>{{ c.sign }}</td><td>{{ "%.2f"|format(c.longitude % 30) }}°</td>
+            <td>{{ c.sign_lord }}</td><td>{{ c.star_lord }}</td><td style="color:var(--kumkum);font-weight:700">{{ c.sub_lord }}</td><td>{{ c.sub_sub_lord }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+      <div style="margin-top:12px">
+        <a href="/kp?{{ qs }}" class="btn alt">Open Full KP Astrology Dashboard &amp; Horary 1–249 →</a>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+</div>
+
+<!-- ========================================== -->
+<!-- WORKSHEET 10: Classical Slokas & Yogas      -->
+<!-- ========================================== -->
+<div class="ws-section" id="ws-readings">
+  <div class="grid2">
+    <section class="card">
+      <h2>Classical Yogas Detected</h2>
+      <div class="body">
+        {% for y in k.yogas %}
+          <p><b>{{ y.name }}</b> – {{ y.description }}</p>
+        {% else %}
+          <p>No major classical yogas detected.</p>
+        {% endfor %}
+        <p><a href="/yogas?{{ qs }}" class="cta" style="font-weight:700;color:var(--kumkum)">Explore All 60+ Classical Yogas Scanner →</a></p>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Sade Sati Timeline</h2>
+      <div class="body" style="overflow-x:auto">
+        <table class="t">
+          <tr><th>Phase</th><th>Saturn in</th><th>From</th><th>To</th></tr>
+          {% for s in k.doshas.sade_sati[:12] %}
+          <tr><td>{{ s.phase }}</td><td>{{ s.saturn_sign }}</td><td>{{ s.start }}</td><td>{{ s.end }}</td></tr>
+          {% endfor %}
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>Classical Life Reading (BPHS &amp; Saravali)</h2>
+    <div class="body reading">
+      <p><b>Ascendant:</b> {{ k.reading.ascendant.text }} {{ k.reading.ascendant.nakshatra }}</p>
+      <p><b>Moon Nakshatra:</b> {{ k.reading.moon.text }}</p>
+      {% if k.reading.current_dasha %}<p><b>Current Period:</b> {{ k.reading.current_dasha }}</p>{% endif %}
+      {% for r in k.reading.planets %}
+        <details>
+          <summary><b>{{ r.planet }}</b> in {{ r.sign }}, House {{ r.house }}</summary>
+          <p>{{ r.in_sign }}</p>
+          <p>{{ r.in_house }}</p>
+          <p>{{ r.nakshatra }}</p>
+        </details>
+      {% endfor %}
+      {% for y in k.reading.yogas %}<p><b>{{ y.name }}:</b> {{ y.text }}</p>{% endfor %}
+      {% for d in k.reading.doshas %}<p><b>{{ d.name }}:</b> {{ d.text }}</p>{% endfor %}
+      <p class="neutral">{{ k.reading.disclaimer }}</p>
+    </div>
+  </section>
+
+  {% if holistic_reading %}
+  <div class="grid2">
+    <section class="card">
+      <h2>Ascendant Constitutional Foundation (Lagna)</h2>
+      <div class="body">
+        {% set asc = holistic_reading.ascendant_profile %}
+        <p><b>Sign &amp; Ruler:</b> {{ asc.sign }} ({{ asc.rashi }}) · Ruled by <b>{{ asc.ruler }}</b> ({{ asc.element }})</p>
+        <p style="line-height:1.55"><b>Temperament:</b> {{ asc.portrait }}</p>
+        <div style="background:#fff8f0;padding:10px 12px;border-radius:6px;border:1px solid #ebd5b3;margin-top:8px">
+          <p style="margin:0 0 4px 0;font-size:13px;color:var(--good);font-weight:700">Constitutional Strengths:</p>
+          <p style="margin:0;font-size:13px">{{ asc.strengths }}</p>
+        </div>
+        <div style="background:#fdf5f5;padding:10px 12px;border-radius:6px;border:1px solid #f3d4d4;margin-top:6px">
+          <p style="margin:0 0 4px 0;font-size:13px;color:var(--bad);font-weight:700">Self-Mastery Growth Areas:</p>
+          <p style="margin:0;font-size:13px">{{ asc.growth_areas }}</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>22nd Drekkana (Kharesh) &amp; Subtle Diagnostics</h2>
+      <div class="body">
+        {% set d22 = holistic_reading.kharesh_diagnostic %}
+        <p><b>22nd Drekkana:</b> Decanate #{{ d22.decanate_number }} in {{ d22.sign }} ({{ d22.degree_range }})</p>
+        <p><b>Governing Lord:</b> <b>{{ d22.drekkana_lord }}</b></p>
+        {% if d22.classical_text %}
+        <div class="sloka-verse">"{{ d22.classical_text }}"</div>
+        {% endif %}
+        <p style="font-size:13px;color:var(--muted);margin-top:6px;line-height:1.5">{{ d22.guidance }}</p>
+      </div>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>144 House Lord Placements with Classical BPHS Slokas (Chapter 26)</h2>
+    <div class="body">
+      <p class="neutral">Authentic Sanskrit verses and translations from Maharishi Parashara's <i>Brihat Parashara Hora Shastra</i> (Chapter 26) for each house lord's placement:</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;margin-top:10px">
+        {% for hl in holistic_reading.house_lords %}
+        <div class="house-lord-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-weight:700;color:var(--kumkum-d);font-size:14px">Lord of House {{ hl.house }} in House {{ hl.placed_in_house }}</span>
+            <span class="pill good">{{ hl.ruler }} in {{ hl.placed_in_sign }}</span>
+          </div>
+          {% if hl.bphs_sloka and hl.bphs_sloka.verse %}
+          <div class="sloka-verse">{{ hl.bphs_sloka.verse }}</div>
+          {% endif %}
+          <p class="sloka-trans">{{ hl.interpretation }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Twelve Houses Shad Phala (Auspicious Potential &amp; Growth Lessons)</h2>
+    <div class="body" style="overflow-x:auto">
+      <table class="t">
+        <tr><th>House &amp; Domain</th><th>Planetary Occupants</th><th>Favorable Manifestation</th><th>Growth Considerations</th></tr>
+        {% for sp in holistic_reading.shad_phala %}
+        <tr>
+          <td><b>{{ sp.title }}</b></td>
+          <td>{{ sp.occupants|join(', ') or '—' }}</td>
+          <td style="font-size:13px;color:var(--good)">{{ sp.favorable_potential }}</td>
+          <td style="font-size:13px;color:var(--muted)">{{ sp.growth_considerations }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </section>
+  {% endif %}
+
+  <div class="grid2">
+    <section class="card">
+      <h2>Remedies &amp; Gemstones (Traditional)</h2>
+      <div class="body">
+        <table class="kv">
+          {% for kk in ['life_stone','benefic_stone','lucky_stone'] %}
+          <tr><td>{{ kk.replace('_',' ')|title }}</td><td>{{ k.remedies[kk].gemstone }} ({{ k.remedies[kk].planet }}) · {{ k.remedies[kk].rudraksha }} Rudraksha</td></tr>
+          {% endfor %}
+        </table>
+        <p class="neutral">{{ k.remedies.disclaimer }}</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Puja &amp; Dosha Pacification</h2>
+      <div class="body">
+        {% for pl, t in k.remedy_plan.puja_for_weak_planets.items() %}
+          <p><b>{{ pl }}</b>: {{ t }}</p>
+        {% endfor %}
+        {% for d, lst in k.remedy_plan.dosha_remedies.items() %}
+          <p><b>{{ d.replace('_',' ')|title }}</b>: {{ lst|join('; ') }}</p>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ======================================================== -->
+<!-- WORKSHEET 11: Soul Desires, Ishta Devata & Japa Mantras   -->
+<!-- ======================================================== -->
+<div class="ws-section" id="ws-soul-remedies">
+  {% if soul_guidance %}
+  <!-- Atmakaraka & Soul's Evolutionary Lesson Card -->
+  <div class="grid2">
+    <section class="card" style="border-top:4px solid var(--kumkum)">
+      <h2>👑 Atmakaraka &amp; Karakamsha (Soul's Blueprint)</h2>
+      <div class="body">
+        <div style="background:#fffaf3;border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+            <span style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase">Atmakaraka (King of the Chart)</span>
+            <span class="pill good" style="font-size:14px;font-weight:800">{{ soul_guidance.atmakaraka.planet }} at {{ soul_guidance.atmakaraka.degree_in_sign }}</span>
+          </div>
+          <p style="margin:8px 0 4px 0;font-size:14px"><b>Placement:</b> {{ soul_guidance.atmakaraka.sign }} ({{ soul_guidance.atmakaraka.rashi }})</p>
+          <p style="margin:4px 0 0 0;font-size:13.5px;line-height:1.55;color:var(--ink)">
+            <b>Soul's Core Karmic Lesson:</b> {{ soul_guidance.atmakaraka.soul_lesson }}
+          </p>
+        </div>
+
+        <div style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px 14px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase">Karakamsha Lagna (KL in D9)</span>
+            <span class="pill" style="background:#fce4ec;color:#880e4f;font-weight:700">{{ soul_guidance.karakamsha.sign }} (Ruled by {{ soul_guidance.karakamsha.lord }})</span>
+          </div>
+          <p style="margin:8px 0 0 0;font-size:13.5px;color:var(--muted);line-height:1.5">
+            {{ soul_guidance.karakamsha.description }}
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Divine Guides: Ishta, Dharma & Palana Devatas -->
+    <section class="card" style="border-top:4px solid var(--good)">
+      <h2>🙏 Sacred Deities &amp; Invocations (Jaimini Upadesha Sutras)</h2>
+      <div class="body">
+        <!-- Ishta Devata -->
+        <div style="background:#f1f8e9;border:1px solid #c5e1a5;border-radius:8px;padding:12px;margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <b style="color:var(--good);font-size:14.5px">🌟 Ishta Devata (Moksha &amp; Divine Grace)</b>
+            <span class="pill good">{{ soul_guidance.ishta_devata.governing_lord }}</span>
+          </div>
+          <p style="margin:4px 0;font-size:14px;color:var(--ink)"><b>Presiding Archetype:</b> <span style="font-weight:700;color:var(--good)">{{ soul_guidance.ishta_devata.deity_archetype }}</span></p>
+          <p style="margin:2px 0 4px 0;font-size:13px;font-family:serif;font-weight:700;color:var(--kumkum-d)">Mantra: {{ soul_guidance.ishta_devata.primary_mantra }}</p>
+          <p style="margin:0;font-size:12px;color:var(--muted)">{{ soul_guidance.ishta_devata.significance }}</p>
+        </div>
+
+        <!-- Dharma Devata -->
+        <div style="background:#fffaf3;border:1px solid var(--line);border-radius:8px;padding:10px;margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <b style="color:var(--kumkum-d);font-size:13.5px">⚖️ Dharma Devata (Righteous Conduct &amp; Purpose)</b>
+            <span class="pill">{{ soul_guidance.dharma_devata.governing_lord }}</span>
+          </div>
+          <p style="margin:4px 0 2px 0;font-size:13px"><b>Archetype:</b> {{ soul_guidance.dharma_devata.deity_archetype }}</p>
+          <p style="margin:0;font-size:12px;color:var(--muted)">{{ soul_guidance.dharma_devata.significance }}</p>
+        </div>
+
+        <!-- Palana Devata -->
+        <div style="background:#fffaf3;border:1px solid var(--line);border-radius:8px;padding:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <b style="color:#0277bd;font-size:13.5px">🛡️ Palana Devata (Worldly Sustenance &amp; Protection)</b>
+            <span class="pill">{{ soul_guidance.palana_devata.governing_lord }}</span>
+          </div>
+          <p style="margin:4px 0 2px 0;font-size:13px"><b>Archetype:</b> {{ soul_guidance.palana_devata.deity_archetype }}</p>
+          <p style="margin:0;font-size:12px;color:var(--muted)">{{ soul_guidance.palana_devata.significance }}</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Purushartha Life Goals Progress Matrix -->
+  <section class="card">
+    <h2>🎯 Purushartha Life Goals Alignment Matrix (Dharma, Artha, Kama, Moksha)</h2>
+    <div class="body">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:14px">
+        <div style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px;text-align:center">
+          <span style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase">Dharma (Duty &amp; Ethics)</span>
+          <div style="font-size:24px;font-weight:800;color:var(--kumkum);margin:4px 0">{{ soul_guidance.purushartha_matrix.distribution_percentages.Dharma }}%</div>
+          <span style="font-size:12px;color:var(--muted)">Houses 1, 5, 9 ({{ soul_guidance.purushartha_matrix.planets_in_domains.Dharma|join(', ') or 'None' }})</span>
+        </div>
+        <div style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px;text-align:center">
+          <span style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase">Artha (Wealth &amp; Security)</span>
+          <div style="font-size:24px;font-weight:800;color:var(--good);margin:4px 0">{{ soul_guidance.purushartha_matrix.distribution_percentages.Artha }}%</div>
+          <span style="font-size:12px;color:var(--muted)">Houses 2, 6, 10 ({{ soul_guidance.purushartha_matrix.planets_in_domains.Artha|join(', ') or 'None' }})</span>
+        </div>
+        <div style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px;text-align:center">
+          <span style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase">Kama (Desire &amp; Networks)</span>
+          <div style="font-size:24px;font-weight:800;color:#c58312;margin:4px 0">{{ soul_guidance.purushartha_matrix.distribution_percentages.Kama }}%</div>
+          <span style="font-size:12px;color:var(--muted)">Houses 3, 7, 11 ({{ soul_guidance.purushartha_matrix.planets_in_domains.Kama|join(', ') or 'None' }})</span>
+        </div>
+        <div style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px;text-align:center">
+          <span style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase">Moksha (Liberation &amp; Peace)</span>
+          <div style="font-size:24px;font-weight:800;color:#5e35b1;margin:4px 0">{{ soul_guidance.purushartha_matrix.distribution_percentages.Moksha }}%</div>
+          <span style="font-size:12px;color:var(--muted)">Houses 4, 8, 12 ({{ soul_guidance.purushartha_matrix.planets_in_domains.Moksha|join(', ') or 'None' }})</span>
+        </div>
+      </div>
+      <div style="background:#fffaf3;border:1px solid var(--line);border-radius:8px;padding:12px 16px">
+        <p style="margin:0 0 4px 0;font-size:14px"><b>Primary Soul Orientation:</b> <span class="pill good">{{ soul_guidance.purushartha_matrix.primary_focus }}</span></p>
+        <p style="margin:0;font-size:13.5px;line-height:1.6;color:var(--ink)">{{ soul_guidance.purushartha_matrix.strategic_guidance }}</p>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- Classical 9 Grahas Mantras, Rituals & Remedial Catalogue -->
+  {% if remedies_corpus %}
+  <section class="card">
+    <h2>📿 Authentic Classical Japa Mantras &amp; Graha Shanti Shastras</h2>
+    <div class="body">
+      <p style="font-size:13.5px;color:var(--muted);margin-bottom:14px;line-height:1.55">
+        From <i>Brihat Parashara Hora Shastra</i> (Chapters 84–90) and <i>Garuda Purana</i>. The mantras below are prioritized according to planetary afflictions (debilitation, combustion, and dusthana placement) detected in your chart.
+      </p>
+
+      <div style="display:grid;gap:14px">
+        {% for rem in remedies_corpus.graha_remedies_catalogue %}
+        <div style="background:#fff;border:1px solid var(--line);border-left:4px solid {{ 'var(--bad, #c62828)' if rem.priority=='High' else ('var(--haldi, #c58312)' if rem.priority=='Medium' else 'var(--good, #2e7d32)') }};border-radius:8px;padding:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+            <span style="font-size:16px;font-weight:700;color:var(--kumkum-d)">{{ rem.sanskrit }}</span>
+            <div>
+              <span class="pill {{ 'bad' if rem.priority=='High' else ('neutral' if rem.priority=='Medium' else 'good') }}">Priority: {{ rem.priority }}</span>
+              <span class="pill">{{ rem.rosary_mala }}</span>
+            </div>
+          </div>
+
+          {% if rem.affliction_reasons %}
+          <div style="margin-bottom:8px">
+            {% for r in rem.affliction_reasons %}
+            <span class="pill bad" style="font-size:11.5px;margin-right:4px">⚠️ {{ r }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-bottom:10px">
+            <div style="background:#fafafa;padding:10px;border-radius:6px;border:1px solid #eee">
+              <span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;display:block">Tantric Beej Mantra</span>
+              <p style="font-family:serif;font-size:15px;font-weight:700;color:var(--kumkum);margin:4px 0">{{ rem.beej_mantra }}</p>
+              <span style="font-size:12px;color:var(--muted);font-style:italic">{{ rem.beej_transliteration }}</span>
+            </div>
+
+            <div style="background:#fafafa;padding:10px;border-radius:6px;border:1px solid #eee">
+              <span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;display:block">Vedic Gayatri Mantra</span>
+              <p style="font-family:serif;font-size:14px;font-weight:700;color:var(--good);margin:4px 0">{{ rem.gayatri_mantra }}</p>
+            </div>
+          </div>
+
+          <div style="background:#fffaf3;border:1px solid #fae1b8;border-radius:6px;padding:10px;margin-bottom:10px">
+            <span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;display:block">Puranic Sloka</span>
+            <p style="font-family:serif;font-size:14px;color:var(--ink);margin:4px 0 2px 0">{{ rem.puranic_mantra }}</p>
+            <p style="font-size:12px;color:var(--muted);margin:0;font-style:italic">"{{ rem.puranic_meaning }}"</p>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;font-size:12.5px;color:var(--ink)">
+            <div><b>Prescribed Count:</b> {{ "{:,}".format(rem.prescribed_japa_count) }} (Kaliyuga: {{ "{:,}".format(rem.kaliyuga_recommended_count) }})</div>
+            <div><b>Best Muhurta:</b> {{ rem.best_muhurta }}</div>
+            <div><b>Charitable Dana:</b> {{ rem.charitable_dana }}</div>
+            <div><b>Conduct Remedy:</b> {{ rem.conduct_remedy }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div style="background:#f4f6f8;border-radius:6px;padding:12px;margin-top:14px;font-size:13px;color:var(--muted);line-height:1.6">
+        <b>Maharishi Parashara's Ethical Precept:</b> {{ remedies_corpus.general_ethical_guidance }}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+</div>
+
+<script>
+// Interactive Worksheet Switcher
+const wsTabs = document.querySelectorAll('.ws-tab');
+const wsSections = document.querySelectorAll('.ws-section');
+
+wsTabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    wsTabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const target = tab.getAttribute('data-target');
+    if (target === 'ws-all') {
+      wsSections.forEach(s => s.style.display = 'block');
+    } else {
+      wsSections.forEach(s => {
+        s.style.display = (s.id === target) ? 'block' : 'none';
+      });
+      const el = document.getElementById(target);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+
+// PDF Generation Handler
+document.getElementById('pdfBtn').onclick = async e => {
+  e.preventDefault();
+  const btn = document.getElementById('pdfBtn');
+  const txt = document.getElementById('pdfText');
+  const ico = document.getElementById('pdfIcon');
+  const q = new URLSearchParams(location.search);
+  const body = {
+    name: q.get('name') || 'Native',
+    date: q.get('date'),
+    time: q.get('time') && q.get('time').length > 5 ? q.get('time') : (q.get('time') ? q.get('time') + ':00' : '12:00:00'),
+    latitude: +q.get('lat'),
+    longitude: +q.get('lon'),
+    timezone: q.get('tz') || 'UTC'
+  };
+  btn.classList.add('btn-loading');
+  ico.textContent = '⏳';
+  txt.textContent = 'Generating High-Res PDF...';
+  try {
+    const r = await fetch('/api/kundli/pdf', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    });
+    if (!r.ok) throw new Error('PDF Generation failed');
+    const b = await r.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(b);
+    a.download = `${body.name}_Vedic_Life_Report.pdf`;
+    a.click();
+    ico.textContent = '✓';
+    txt.textContent = 'Downloaded!';
+    setTimeout(() => {
+      ico.textContent = '⬇';
+      txt.textContent = 'Download Full PDF Life Report';
+      btn.classList.remove('btn-loading');
+    }, 2500);
+  } catch (err) {
+    alert('PDF report generation failed: ' + err.message);
+    ico.textContent = '⬇';
+    txt.textContent = 'Download Full PDF Life Report';
+    btn.classList.remove('btn-loading');
+  }
+};
+</script>
+
+{% endif %}
+{% endblock %}

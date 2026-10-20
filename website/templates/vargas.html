@@ -1,0 +1,463 @@
+{% extends "base.html" %}{% from "_macros.html" import birthform %}
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:10px">
+  <div>
+    <h1 style="margin:0 0 4px 0">31 Divisional Charts – Parashara, Tajika, Nadi &amp; Iyer</h1>
+    <p class="sub" style="margin:0">Complete 31 harmonic vargas with Ascendants, dignities, degrees, 60 Shastiamsa deities, 150 Nadiamshas, and 24 Tajika Sahams</p>
+  </div>
+  <div>
+    <button type="button" class="btn" onclick="openVargaMenu()" style="display:inline-flex;align-items:center;gap:8px;padding:8px 16px;background:var(--kumkum,#b33927);color:#fff;border-radius:6px;font-weight:600">
+      <span>📑</span> <span>Open Varga Menu</span>
+    </button>
+  </div>
+</div>
+
+<section class="card">
+  <h2>Birth details &amp; preferences</h2>
+  <div class="body">
+    <form method="get" action="/vargas" id="vargaForm">
+      {{ birthform('', b, 'Native') }}
+      <p style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:10px">
+        <label>Chart style
+          <select name="style">
+            {% for s in ['north','south','east'] %}
+            <option value="{{ s }}" {{ 'selected' if style==s }}>{{ s|title }} Indian</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Ayanamsha
+          <select name="ayanamsa">
+            {% for code, lbl in [('lahiri','Lahiri / Chitrapaksha'),('lahiri_swiss','Lahiri (Swiss)'),('raman','B.V. Raman'),('kp','Krishnamurti (KP)'),('kp_new','KP New (VP291)'),('yukteshwar','Sri Yukteshwar'),('bhasin','J.N. Bhasin'),('true_chitra','True Chitra'),('fagan_bradley','Fagan-Bradley'),('suryasiddhanta','Surya Siddhanta'),('sayana','Sayana (Tropical)')] %}
+            <option value="{{ code }}" {{ 'selected' if ayanamsa==code }}>{{ lbl }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Varga Chart
+          <select name="varga" id="vargaSelect">
+            <option value="all" {{ 'selected' if v_filter=='all' or not v_filter }}>All 31 Vargas</option>
+            <optgroup label="Parashara Shodashavargas (16)">
+              {% for vk in ['D1','D2','D3','D4','D7','D9','D10','D12','D16','D20','D24','D27','D30','D40','D45','D60'] %}
+              <option value="{{ vk }}" {{ 'selected' if v_filter==vk }}>{{ vk }}</option>
+              {% endfor %}
+            </optgroup>
+            <optgroup label="Tajika &amp; Nadi Vargas (5)">
+              {% for vk in ['D5','D6','D8','D11','D150'] %}
+              <option value="{{ vk }}" {{ 'selected' if v_filter==vk }}>{{ vk }}</option>
+              {% endfor %}
+            </optgroup>
+            <optgroup label="Seshadhri Iyer System (10)">
+              {% for vk in ['D2_IYER','D2_IYER3','D3_IYER','D4_IYER','D10_IYER','D12_IYER','D30_IYER','D5_IYER','D16_IYER','D11_IYER'] %}
+              <option value="{{ vk }}" {{ 'selected' if v_filter==vk }}>{{ vk }}</option>
+              {% endfor %}
+            </optgroup>
+          </select>
+        </label>
+        <button class="btn alt" type="submit" style="margin-top:16px">Compute 31 Vargas</button>
+      </p>
+    </form>
+  </div>
+</section>
+
+<!-- Interactive Varga Menu Modal (Identical 2-Column Dialog) -->
+<div id="vargaMenuModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#fffbe8;border:2px solid #6b5835;box-shadow:0 8px 30px rgba(0,0,0,0.3);border-radius:6px;width:95%;max-width:680px;font-family:system-ui,sans-serif;overflow:hidden">
+    <div style="background:#f2ebcf;padding:8px 14px;border-bottom:1px solid #d4c89f;display:flex;justify-content:space-between;align-items:center">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:16px">🔯</span>
+        <b style="color:#3d301b;font-size:15px">Varga Menu</b>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button type="button" onclick="closeVargaMenu()" style="background:#eee;border:1px solid #bbb;border-radius:3px;padding:2px 8px;cursor:pointer;font-weight:bold">✕</button>
+      </div>
+    </div>
+    
+    <div style="padding:14px;display:flex;gap:14px;flex-wrap:wrap">
+      <!-- Column 1: Parashara Vargas -->
+      <div style="flex:1;min-width:270px">
+        <div style="font-weight:700;color:#5a3f12;margin-bottom:6px;font-size:13.5px">Parashara Vargas</div>
+        <div style="background:#fff;border:1px solid #999;box-shadow:inset 1px 1px 2px rgba(0,0,0,0.1);height:380px;overflow-y:auto;padding:2px">
+          {% for vk, lbl in [
+            ('D1', 'Janma (all areas of life)'),
+            ('D2', 'Hora (wealth)'),
+            ('D3', 'Dreshkana (happiness siblings)'),
+            ('D4', 'Chaturthamsha (destiny)'),
+            ('D7', 'Saptamsha (children)'),
+            ('D9', 'Navamsha (spouse)'),
+            ('D10', 'Dashamsha (great successes)'),
+            ('D12', 'Dwadashamsha (parents)'),
+            ('D16', 'Shodashamsha (conveyances)'),
+            ('D20', 'Vimshamsha (spiritual progress)'),
+            ('D24', 'Chaturvimshamsha (knowledge)'),
+            ('D27', 'Saptavimshamsha (strength)'),
+            ('D30', 'Trimshamsha (misfortunes)'),
+            ('D40', 'Khavedamsha (Ausp.Inausp.effects)'),
+            ('D45', 'Akshavedamsha (All areas)'),
+            ('D60', 'Shashtiamsha (All areas)')
+          ] %}
+          <div onclick="selectVarga('{{ vk }}')" class="varga-menu-row" style="padding:5px 8px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f3f3f3">
+            <span>{{ lbl }}</span>
+            <span style="color:#777;font-size:11px;background:#eee;padding:1px 5px;border-radius:3px">{{ vk }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Column 2: Tajika Vargas and Nadi Vargas -->
+      <div style="flex:1;min-width:270px">
+        <div style="font-weight:700;color:#5a3f12;margin-bottom:6px;font-size:13.5px">Tajika Vargas and Nadi Vargas</div>
+        <div style="background:#fff;border:1px solid #999;box-shadow:inset 1px 1px 2px rgba(0,0,0,0.1);height:380px;overflow-y:auto;padding:2px">
+          {% for vk, lbl in [
+            ('D5', 'Panchamsha 1/5 -'),
+            ('D6', 'Shashtamsha 1/6 Disease'),
+            ('D8', 'Ashtamsha 1/8 Accidents'),
+            ('D11', 'Ekadashamsha 1/11 Cure'),
+            ('D150', 'Nadiamsha 1/150 -'),
+            ('D2_IYER', 'Hora Iyer (wealth)'),
+            ('D2_IYER3', 'Hora III (7,1,2) (wealth)'),
+            ('D3_IYER', 'Dreshkana Iyer (happiness siblings)'),
+            ('D4_IYER', 'Chaturthamsha Iyer (destiny)'),
+            ('D10_IYER', 'Dashamsha Iyer (great successes)'),
+            ('D12_IYER', 'Dwadashamsha Iyer (parents)'),
+            ('D30_IYER', 'Trimshamsha Iyer (misfortunes)'),
+            ('D5_IYER', 'Panchamsha 1/5 Iyer -'),
+            ('D16_IYER', 'Shodashamsha Iyer (conveyances)'),
+            ('D11_IYER', 'Ekadashamsha 1/11 Iyer Cure')
+          ] %}
+          <div onclick="selectVarga('{{ vk }}')" class="varga-menu-row" style="padding:5px 8px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f3f3f3">
+            <span>{{ lbl }}</span>
+            <span style="color:#777;font-size:11px;background:#eee;padding:1px 5px;border-radius:3px">{{ vk.replace('_', ' ') }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    
+    <div style="padding:10px 14px;background:#f2ebcf;border-top:1px solid #d4c89f;display:flex;justify-content:flex-end;gap:10px">
+      <button type="button" onclick="closeVargaMenu()" style="padding:6px 18px;border:1px solid #777;background:#e1e1e1;border-radius:3px;cursor:pointer">Cancel</button>
+      <button type="button" onclick="selectAllVargas()" style="padding:6px 18px;border:1px solid #5a3f12;background:var(--kumkum, #b33927);color:#fff;border-radius:3px;cursor:pointer;font-weight:600">View All 31 Charts</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.varga-menu-row:hover {
+  background: #316ac5 !important;
+  color: #fff !important;
+}
+.varga-menu-row:hover span {
+  color: #fff !important;
+  background: transparent !important;
+}
+</style>
+
+<script>
+function openVargaMenu() {
+  document.getElementById('vargaMenuModal').style.display = 'flex';
+}
+function closeVargaMenu() {
+  document.getElementById('vargaMenuModal').style.display = 'none';
+}
+function selectVarga(code) {
+  closeVargaMenu();
+  const sel = document.getElementById('vargaSelect');
+  sel.value = code;
+  document.getElementById('vargaForm').submit();
+}
+function selectAllVargas() {
+  closeVargaMenu();
+  const sel = document.getElementById('vargaSelect');
+  sel.value = 'all';
+  document.getElementById('vargaForm').submit();
+}
+</script>
+
+{% if vdata %}
+<section class="card">
+  <h2>Vargottama &amp; Multi-Varga Auspicious Strengths</h2>
+  <div class="body">
+    <div class="grid2">
+      <div>
+        <h3>Vargottama Classifications</h3>
+        {% if vdata.vargottama %}
+        <table class="t">
+          <tr><th>Body</th><th>Sign</th><th>Classification</th></tr>
+          {% for item in vdata.vargottama %}
+          <tr>
+            <td><b>{{ item.planet }}</b></td>
+            <td>{{ item.sign }} ({{ item.rashi or '' }})</td>
+            <td><span class="pill good">{{ item.type }}</span></td>
+          </tr>
+          {% endfor %}
+        </table>
+        {% else %}
+        <p class="neutral">No planets occupy identical signs in D1 and D9 in this chart.</p>
+        {% endif %}
+      </div>
+      <div>
+        <h3>Multi-Varga Auspicious Dignity Grades</h3>
+        <table class="t">
+          <tr><th>Planet</th><th>Dignified Vargas</th><th>Classical Grade</th></tr>
+          {% for pl, st in vdata.varga_strengths.items() %}
+          <tr>
+            <td><b>{{ pl }}</b></td>
+            <td>{{ st.dignified_varga_count }} / 16</td>
+            <td><span class="pill {{ 'good' if st.dignified_varga_count >= 4 else '' }}">{{ st.grade }}</span></td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% if asc_nadi or asc_drekkana %}
+<section class="card">
+  <h2>Deva Keralam Nadiamsha &amp; Medical Drekkana Body Map</h2>
+  <div class="body">
+    <div class="grid2">
+      {% if asc_nadi %}
+      <div style="border:1px solid var(--line);border-radius:6px;padding:12px;background:#fffaf3">
+        <h4 style="margin:0 0 6px 0;color:var(--kumkum-d)">Chandra Kala Nadi (Deva Keralam) Nadiamsha</h4>
+        <p style="margin:0 0 6px 0;font-size:14px">
+          <b>Ascendant Nadiamsha:</b> #{{ asc_nadi.nadiamsha_number }} · <b>Deity:</b> <span class="pill good">{{ asc_nadi.deity }}</span>
+        </p>
+        <p style="margin:0 0 6px 0;font-size:13px;color:var(--muted)"><b>Micro-Degree Span (12' arc):</b> {{ asc_nadi.degree_span }} in {{ asc_nadi.sign }}</p>
+        <p style="margin:0;font-size:13.5px;line-height:1.5">{{ asc_nadi.significance }}</p>
+      </div>
+      {% endif %}
+
+      {% if asc_drekkana %}
+      <div style="border:1px solid var(--line);border-radius:6px;padding:12px;background:#fffaf3">
+        <h4 style="margin:0 0 6px 0;color:var(--kumkum)">Medical Astrology Drekkana Anatomical Rulership</h4>
+        <p style="margin:0 0 6px 0;font-size:14px">
+          <b>Governed Body Part:</b> <span class="pill bad" style="font-weight:700">{{ asc_drekkana.governed_body_part }}</span>
+        </p>
+        <p style="margin:0 0 6px 0;font-size:13px;color:var(--muted)"><b>Ascendant Decanate:</b> Decanate {{ asc_drekkana.decanate_number }} of {{ asc_drekkana.sign }} (Decanate #{{ asc_drekkana.decanate_index }})</p>
+        <p style="margin:0;font-size:13.5px;line-height:1.5">{{ asc_drekkana.guidance }}</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if sahams %}
+<section class="card">
+  <h2>Tajika Sahams (24 Classical Sensitive Arabic Points)</h2>
+  <div class="body">
+    <div style="overflow-x:auto">
+      <table class="t">
+        <tr>
+          <th>Saham</th>
+          <th>Sign</th>
+          <th>Degree (DMS)</th>
+          <th>Governing Lord</th>
+          <th>Auspicious Significance</th>
+        </tr>
+        {% for s in sahams %}
+        <tr>
+          <td><b>{{ s.name }}</b></td>
+          <td>{{ s.sign }} ({{ s.rashi }})</td>
+          <td>{{ s.dms }}</td>
+          <td>{{ s.lord }}</td>
+          <td>{{ s.meaning }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:16px 0">
+  <span style="font-weight:600;font-size:14px">Quick Filter:</span>
+  <a href="/vargas?{{ locq }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=all" class="pill {{ 'good' if v_filter=='all' or not v_filter else '' }}">All 31 Vargas</a>
+  <a href="/vargas?{{ locq }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D1" class="pill {{ 'good' if v_filter=='D1' else '' }}">D1 Rashi</a>
+  <a href="/vargas?{{ locq }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D9" class="pill {{ 'good' if v_filter=='D9' else '' }}">D9 Navamsha</a>
+  <a href="/vargas?{{ locq }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D10" class="pill {{ 'good' if v_filter=='D10' else '' }}">D10 Dashamsha</a>
+  <a href="/vargas?{{ locq }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D3" class="pill {{ 'good' if v_filter=='D3' else '' }}">D3 Drekkana</a>
+  <a href="/vargas?{{ locq }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D5" class="pill {{ 'good' if v_filter=='D5' else '' }}">D5 Panchamsha</a>
+  <a href="/vargas?{{ locq }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D6" class="pill {{ 'good' if v_filter=='D6' else '' }}">D6 Shashtamsha</a>
+  <a href="/vargas?{{ locq }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D8" class="pill {{ 'good' if v_filter=='D8' else '' }}">D8 Ashtamsha</a>
+  <a href="/vargas?{{ locq }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D11" class="pill {{ 'good' if v_filter=='D11' else '' }}">D11 Ekadashamsha</a>
+  <a href="/vargas?{{ locq }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D150" class="pill {{ 'good' if v_filter=='D150' else '' }}">D150 Nadiamsha</a>
+  <a href="/vargas?{{ locq }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D2_IYER" class="pill {{ 'good' if v_filter=='D2_IYER' else '' }}">Hora Iyer</a>
+</div>
+
+{% for vk, vinfo in vdata.vargas.items() %}
+{% if v_filter == 'all' or not v_filter or v_filter == vk %}
+<section class="card" id="{{ vk }}">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+    <h2 style="margin:0">{{ vk }} – {{ vinfo.name }} ({{ vinfo.sanskrit }})</h2>
+    <span class="pill good">{{ vinfo.system }}</span>
+  </div>
+  <p class="sub" style="margin:4px 0 12px 0">{{ vinfo.domain }}</p>
+  <div class="body">
+    <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start">
+      <div style="flex:0 0 auto">
+        <figure style="margin:0;text-align:center">
+          {{ charts[vk]|safe }}
+          <figcaption style="margin-top:6px;font-weight:600;color:var(--kumkum-d)">
+            {{ vk }} · Asc: {{ vinfo.ascendant.sign_name }} ({{ vinfo.ascendant.rashi }}) {{ vinfo.ascendant.dms }}
+          </figcaption>
+        </figure>
+      </div>
+      <div style="flex:1;min-width:280px;overflow-x:auto">
+        <table class="t">
+          <tr>
+            <th>Body</th>
+            <th>Sign</th>
+            <th>Degree in Varga</th>
+            <th>House</th>
+            <th>Dignity</th>
+            <th>Lord / Deity</th>
+          </tr>
+          <tr>
+            <td><b>Ascendant</b></td>
+            <td>{{ vinfo.ascendant.sign_name }} ({{ vinfo.ascendant.rashi }})</td>
+            <td>{{ vinfo.ascendant.dms }}</td>
+            <td>1</td>
+            <td>—</td>
+            <td>
+              {{ vinfo.ascendant.sign_lord }}
+              {% if vinfo.ascendant.nadi_deity %} · <span class="pill good">{{ vinfo.ascendant.nadi_deity }} (Nadi #{{ vinfo.ascendant.nadi_number }})</span>{% endif %}
+            </td>
+          </tr>
+          {% for p in vinfo.planets %}
+          <tr>
+            <td><b>{{ p.name }}</b></td>
+            <td>{{ p.sign_name }} ({{ p.rashi }})</td>
+            <td>{{ p.dms }}</td>
+            <td>{{ p.house }}</td>
+            <td>
+              <span class="{{ 'good' if p.dignity in ['Exalted','Own Sign','Moolatrikona'] else ('bad' if p.dignity == 'Debilitated' else 'neutral') }}">
+                {{ p.dignity }}
+              </span>
+            </td>
+            <td>
+              {{ p.sign_lord }}
+              {% if p.deity %} · <span class="pill">{{ p.deity }}</span>{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+    </div>
+
+    {% if vinfo.classical_interpretation %}
+    {% set ci = vinfo.classical_interpretation %}
+    <div style="margin-top:20px;padding:16px;background:var(--card-sub-bg, #fdfbf7);border:1px solid var(--line, #e2d9cc);border-left:4px solid var(--kumkum, #b33927);border-radius:6px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+        <h3 style="margin:0;font-size:15px;color:var(--kumkum-d, #8f291b);display:flex;align-items:center;gap:6px">
+          <span>Classical Scriptural Interpretation &amp; Sloka</span>
+        </h3>
+        {% if ci.source %}
+        <span class="pill" style="font-size:12px">{{ ci.source }}</span>
+        {% endif %}
+      </div>
+
+      {% if vk == 'D9' %}
+        <p style="margin:0 0 10px 0;font-size:14px;line-height:1.5">
+          <b>D9 Navamsha Lagna:</b> {{ ci.d9_lagna_sign }} ({{ ci.d9_lagna_rashi }}), Pada {{ ci.navamsha_pada }} · <b>Ruling Deity:</b> {{ ci.deity }} · <b>Sign Lord:</b> {{ ci.d9_lagna_lord }}
+          {% if ci.is_vargottama %}<span class="pill good" style="margin-left:6px">Vargottama</span>{% endif %}
+          {% if ci.is_pushkara %}<span class="pill good" style="margin-left:6px">Pushkara Navamsha</span>{% endif %}
+        </p>
+        {% if ci.saravali_sloka %}
+        <div style="background:#fff;padding:12px 14px;border-radius:6px;border:1px solid var(--line);margin-bottom:10px">
+          <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--kumkum);font-weight:700">Saravali (Chapter 51) Scriptural Shloka &amp; Portents:</span>
+          <p style="margin:4px 0 0 0;font-style:italic;line-height:1.6;font-size:13.5px">"{{ ci.saravali_sloka }}"</p>
+        </div>
+        {% endif %}
+        {% if ci.karakamsha_reading %}
+        <div style="background:#fff;padding:12px 14px;border-radius:6px;border:1px solid var(--line);margin-bottom:10px">
+          <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--kumkum-d);font-weight:700">Karakamsha (Soul Indicator in D9) – BPHS Ch. 35:</span>
+          <p style="margin:4px 0 0 0;font-style:italic;line-height:1.6;font-size:13.5px">"{{ ci.karakamsha_reading }}"</p>
+        </div>
+        {% endif %}
+        <p style="margin:8px 0 0 0;line-height:1.6;font-size:14px">{{ ci.synthesis }}</p>
+
+      {% elif vk == 'D3' %}
+        <p style="margin:0 0 10px 0;font-size:14px;line-height:1.5">
+          <b>D3 Lagna:</b> {{ ci.d3_lagna }} · <b>Lord:</b> {{ ci.d3_lord }}
+        </p>
+        {% if ci.classical_sloka %}
+        <div style="background:#fff;padding:12px 14px;border-radius:6px;border:1px solid var(--line);margin-bottom:10px">
+          <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--kumkum);font-weight:700">Brihat Parashara Hora Shastra (Ch. 8):</span>
+          <p style="margin:4px 0 0 0;font-style:italic;line-height:1.6;font-size:13.5px">{{ ci.classical_sloka }}</p>
+        </div>
+        {% endif %}
+        {% if ci.get("22nd_drekkana") %}
+        {% set d22 = ci["22nd_drekkana"] %}
+        <div style="background:#fff;padding:12px 14px;border-radius:6px;border:1px solid var(--line);margin-top:10px">
+          <h4 style="margin:0 0 4px 0;color:var(--kumkum);font-size:14px">22nd Drekkana (Kharesh / 8th House Decanate) Diagnostic</h4>
+          <p style="margin:0 0 6px 0;font-size:13.5px">
+            <b>Decanate:</b> #{{ d22.decanate_number }} ({{ d22.degree_range }}) · <b>Ruler:</b> {{ d22.drekkana_lord }}
+          </p>
+          {% if d22.classical_text %}
+          <p style="margin:0 0 6px 0;font-style:italic;line-height:1.6;font-size:13px;color:var(--ink)">"{{ d22.classical_text }}"</p>
+          {% endif %}
+          <p style="margin:0;font-size:13px;color:var(--muted)">{{ d22.guidance }}</p>
+        </div>
+        {% endif %}
+
+      {% elif vk == 'D10' %}
+        <p style="margin:0 0 10px 0;font-size:14px;line-height:1.5">
+          <b>D10 Dashamsha Lagna:</b> {{ ci.d10_lagna }} · <b>Lord:</b> {{ ci.d10_lagna_lord }}
+        </p>
+        {% if ci.classical_sloka %}
+        <div style="background:#fff;padding:12px 14px;border-radius:6px;border:1px solid var(--line);margin-bottom:10px">
+          <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--kumkum);font-weight:700">Brihat Parashara Hora Shastra (Ch. 8, Sloka 6):</span>
+          <p style="margin:4px 0 0 0;font-style:italic;line-height:1.6;font-size:13.5px">{{ ci.classical_sloka }}</p>
+        </div>
+        {% endif %}
+        <p style="margin:6px 0;line-height:1.6;font-size:14px"><b>Career &amp; Status Sphere (Mahat Phala):</b> {{ ci.career_sphere }}</p>
+        {% if ci.tenth_house_occupants %}
+        <p style="margin:4px 0;font-size:13px"><b>Occupants of 10th House:</b> <span class="pill good">{{ ci.tenth_house_occupants|join(', ') }}</span></p>
+        {% endif %}
+
+      {% else %}
+        {% if ci.classical_sloka %}
+        <div style="background:#fff;padding:12px 14px;border-radius:6px;border:1px solid var(--line);margin-bottom:8px">
+          <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--kumkum);font-weight:700">Classical Shastra Authority:</span>
+          <p style="margin:4px 0 0 0;font-style:italic;line-height:1.6;font-size:13.5px">{{ ci.classical_sloka }}</p>
+        </div>
+        {% endif %}
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
+{% endfor %}
+
+<section class="card">
+  <h2>Classical 31 Varga Portfolios &amp; Systems</h2>
+  <div class="body">
+    <table class="kv">
+      <tr><td>D1 Janma</td><td>Physical vitality, general health, constitutional strength, and overall life path.</td></tr>
+      <tr><td>D2 Hora</td><td>Wealth accumulation, treasury, liquid assets, speech tone, and financial resources.</td></tr>
+      <tr><td>D3 Dreshkana</td><td>Siblings, personal courage, stamina, initiative, and fine motor skills.</td></tr>
+      <tr><td>D4 Chaturthamsha</td><td>Fixed assets, real estate, property, vehicles, ancestral lands, and domestic peace.</td></tr>
+      <tr><td>D5 Panchamsha (1/5)</td><td>Intellectual brilliance, spiritual sadhana, power of mantras, and fame.</td></tr>
+      <tr><td>D6 Shashtamsha (1/6)</td><td>Health vulnerability, diseases, litigations, debts, and competitive obstacles.</td></tr>
+      <tr><td>D7 Saptamsha</td><td>Progeny, creative legacy, fertility, grandchildren, and ancestral succession.</td></tr>
+      <tr><td>D8 Ashtamsha (1/8)</td><td>Accidents, sudden transformations, longevity, and chronic hazards.</td></tr>
+      <tr><td>D9 Navamsha</td><td>Spouse, marital compatibility, inner soul evolution, and post-marriage dharma.</td></tr>
+      <tr><td>D10 Dashamsha</td><td>Career eminence, professional authority, public rank, and leadership achievements.</td></tr>
+      <tr><td>D11 Ekadashamsha (1/11)</td><td>Cure from diseases, defeat of enemies, and extraordinary financial gains (Labha).</td></tr>
+      <tr><td>D12 Dwadashamsha</td><td>Parents, ancestral lineage, genetic inheritance, and past-life merits.</td></tr>
+      <tr><td>D16 Shodashamsha</td><td>Vehicles, conveyances, comforts, luxuries, and sensory contentment.</td></tr>
+      <tr><td>D20 Vimshamsha</td><td>Spiritual devotion, mantra siddhi, esoteric practices, and divine grace.</td></tr>
+      <tr><td>D24 Chaturvimshamsha</td><td>Higher education, scholarship, intellectual discrimination, and scientific acumen.</td></tr>
+      <tr><td>D27 Saptavimshamsha</td><td>Subconscious endurance, physical stamina, resistance to disease, and general strengths.</td></tr>
+      <tr><td>D30 Trimshamsha</td><td>Misfortunes, hidden moral tests, karmic afflictions, and health vulnerabilities.</td></tr>
+      <tr><td>D40 Khavedamsha</td><td>Maternal lineage, auspicious habits, moral purity, and divine blessings.</td></tr>
+      <tr><td>D45 Akshavedamsha</td><td>Character integrity, ethical rectitude, and universal auspiciousness.</td></tr>
+      <tr><td>D60 Shashtiamsha</td><td>Past-life karmic blueprints, subtle destiny, and ultimate arbiter of all predictions.</td></tr>
+      <tr><td>D150 Nadiamsha</td><td>Chandra Kala Nadi (Deva Keralam) micro-karmic destiny of 12 arcminutes.</td></tr>
+      <tr><td>Seshadhri Iyer Vargas</td><td>Continuous cyclic harmonic projections across all 12 signs for wealth, siblings, destiny, and success.</td></tr>
+    </table>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

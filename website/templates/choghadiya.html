@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% from "_macros.html" import datebar with context %}
+{% block content %}{% set ref = d.isoformat() %}
+<h1>Choghadiya – {{ loc.city }}</h1><p class="sub">{{ d.strftime('%A, %d %B %Y') }} · Sunrise {{ c.sunrise|hm }} · Sunset {{ c.sunset|hm }}</p>
+{{ datebar('/choghadiya', d, prev, next, locq) }}
+<div class="grid2">{% for label, rows in [('Day Choghadiya', c.day), ('Night Choghadiya', c.night)] %}
+<section class="card"><h2>{{ label }}</h2><div class="body"><table class="t"><tr><th>Choghadiya</th><th>Nature</th><th>Time</th></tr>
+{% for x in rows %}<tr><td>{{ x.name }}</td><td class="{{ 'good' if x.quality in ['Good','Gain'] else 'bad' if x.quality in ['Bad','Loss','Evil'] else 'neutral' }}">{{ x.quality }}</td><td>{{ span(x, ref) }}</td></tr>{% endfor %}</table></div></section>{% endfor %}</div>
+{% endblock %}

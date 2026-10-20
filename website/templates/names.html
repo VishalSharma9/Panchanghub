@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Naming syllable</h1>
+<p class="sub">Namakarana uses the Moon’s nakshatra pada at birth. Each pada has one starting sound. The name itself is chosen in the family; this page only fixes the sound.</p>
+<form class="f" method="get" action="/names">
+<label>Birth date<input type="date" name="date" value="{{ b.date if b else '' }}" min="0001-01-01" max="3000-12-31"></label>
+<label>Birth time<input type="time" name="time" value="{{ b.time[:5] if b else '10:30' }}"></label>
+<label>Place<input data-place="" name="city" value="{{ b.city if b and b.city else loc.city }}" autocomplete="off"></label>
+<input type="hidden" name="lat" value="{{ b.latitude if b else loc.lat }}">
+<input type="hidden" name="lon" value="{{ b.longitude if b else loc.lon }}">
+<input type="hidden" name="tz" value="{{ b.timezone if b else loc.tz }}">
+<button class="btn alt" type="submit">From this birth</button>
+</form>
+<p class="sub">Or pick the star if you already know it.</p>
+<form class="f" method="get" action="/names">
+<label>Nakshatra<select name="nak">{% for i in range(27) %}<option value="{{ i+1 }}" {{ 'selected' if nak==i+1 }}>{{ NAKSHATRAS[i] }}</option>{% endfor %}</select></label>
+<label>Pada<select name="pada">{% for i in range(1,5) %}<option value="{{ i }}" {{ 'selected' if pada==i }}>{{ i }}</option>{% endfor %}</select></label>
+<button class="btn" type="submit">Show syllable</button>
+</form>
+{% if syl %}
+<section class="card"><h2>{{ syl.nakshatra }} · pada {{ syl.pada }}</h2><div class="body">
+<p class="syllable">{{ syl.devanagari }} <span>{{ syl.roman }}</span></p>
+<p>The given name begins with this sound.{% if syl.rashi %} Moon was in {{ syl.rashi }} at {{ '%.2f'|format(syl.moon_longitude) }}° sidereal.{% endif %}</p>
+<table class="t"><tr><th>Pada</th><th>Sound</th></tr>
+{% for s in syl.all %}<tr><td>{{ s.pada }}</td><td>{{ s.devanagari }} · {{ s.roman }}</td></tr>{% endfor %}
+</table>
+</div></section>
+{% endif %}
+{% endblock %}

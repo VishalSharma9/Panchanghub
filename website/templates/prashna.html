@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="worksheet-bar">
+  <div class="ws-header">
+    <span class="ws-title">Vedic Prashna Kundali (Classical Horary Divination)</span>
+    <span class="ws-subtitle">Immediate astrological guidance derived from the sacred moment of inquiry (Prashna Tantra &amp; Daivajna Vallabha)</span>
+  </div>
+</div>
+
+<section class="card">
+  <h2>Ask a Prashna (Horary Inquiry)</h2>
+  <div class="body">
+    <form method="get" action="/prashna" class="f-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;align-items:end">
+      <div>
+        <label for="category"><b>Query Domain:</b></label>
+        <select name="category" id="category" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--line);background:#fff">
+          <option value="career" {{ 'selected' if category=='career' }}>Career, Promotion &amp; Business (10th House)</option>
+          <option value="marriage" {{ 'selected' if category=='marriage' }}>Marriage, Love &amp; Partnerships (7th House)</option>
+          <option value="finance" {{ 'selected' if category=='finance' }}>Wealth, Money &amp; Investments (2nd/11th House)</option>
+          <option value="health" {{ 'selected' if category=='health' }}>Health &amp; Disease Recovery (1st/6th House)</option>
+          <option value="children" {{ 'selected' if category=='children' }}>Children, Exams &amp; Progeny (5th House)</option>
+          <option value="property" {{ 'selected' if category=='property' }}>Real Estate, Vehicles &amp; Home (4th House)</option>
+          <option value="travel" {{ 'selected' if category=='travel' }}>Travel, Foreign Settlement &amp; Visa (9th/12th House)</option>
+          <option value="litigation" {{ 'selected' if category=='litigation' }}>Legal Disputes, Court Cases &amp; Rivals (6th House)</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="question_text"><b>Specific Question (Optional):</b></label>
+        <input type="text" name="q_text" id="question_text" placeholder="e.g. Will I get the promotion this month?" value="{{ q_text or '' }}" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--line)">
+      </div>
+
+      <div>
+        <label for="pdate"><b>Date:</b></label>
+        <input type="date" name="date" id="pdate" value="{{ q_date }}" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--line)">
+      </div>
+
+      <div>
+        <label for="ptime"><b>Time:</b></label>
+        <input type="time" name="time" id="ptime" step="1" value="{{ q_time }}" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--line)">
+      </div>
+
+      <div>
+        <label for="chart_style"><b>Chart Style:</b></label>
+        <select name="style" id="chart_style" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--line);background:#fff">
+          <option value="north" {{ 'selected' if style=='north' }}>North Indian (Diamond)</option>
+          <option value="south" {{ 'selected' if style=='south' }}>South Indian (Square)</option>
+          <option value="east" {{ 'selected' if style=='east' }}>East Indian</option>
+        </select>
+      </div>
+
+      <input type="hidden" name="lat" value="{{ loc.lat }}">
+      <input type="hidden" name="lon" value="{{ loc.lon }}">
+      <input type="hidden" name="tz" value="{{ loc.tz }}">
+
+      <div>
+        <button type="submit" class="btn" style="width:100%;padding:9px 14px;font-weight:700">Cast Prashna Chart →</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+{% if pdata %}
+<!-- Definitive Prashna Verdict Banner -->
+<section class="card" style="border-top:4px solid {{ 'var(--good, #2e7d32)' if pdata.verdict_badge=='favorable' else ('var(--haldi, #c58312)' if pdata.verdict_badge=='mixed' else 'var(--bad, #c62828)') }}">
+  <div class="body">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:12px">
+      <div>
+        <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted)">Inquiry: {{ pdata.query_title }}</span>
+        <h2 style="margin:4px 0;font-size:22px;color:{{ 'var(--good, #2e7d32)' if pdata.verdict_badge=='favorable' else ('var(--haldi, #c58312)' if pdata.verdict_badge=='mixed' else 'var(--bad, #c62828)') }}">
+          {{ pdata.verdict }}
+        </h2>
+        {% if q_text %}<p style="margin:2px 0 0 0;font-style:italic;color:var(--ink)">"{{ q_text }}"</p>{% endif %}
+      </div>
+      <div style="text-align:right">
+        <span style="font-size:12px;color:var(--muted);display:block">Confidence Index</span>
+        <span style="font-size:26px;font-weight:800;color:var(--kumkum-d)">{{ pdata.confidence_score }}%</span>
+      </div>
+    </div>
+
+    <div style="background:#fffaf3;border:1px solid var(--line);border-radius:8px;padding:12px 16px;margin-bottom:14px">
+      <p style="margin:0 0 6px 0;font-size:14px;line-height:1.55"><b>Cosmic Synthesis:</b> {{ pdata.summary }}</p>
+      <p style="margin:0;font-size:13.5px;color:var(--kumkum-d)"><b>Estimated Timeframe of Fulfillment:</b> <span class="pill good">{{ pdata.timeframe }}</span></p>
+    </div>
+
+    <!-- Planetary Testimonies -->
+    <h3 style="margin:14px 0 8px 0;font-size:15px;color:var(--kumkum)">Classical Planetary Testimonies (Daivajna Vallabha)</h3>
+    <ul style="margin:0;padding-left:20px;font-size:13.5px;line-height:1.6">
+      {% for t in pdata.testimonies %}
+      <li>{{ t }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+
+<!-- Chart & Planetary Coordinates Grid -->
+<div class="grid2">
+  <section class="card">
+    <h2>Prashna Kundali (Moment Chart)</h2>
+    <div class="body" style="text-align:center">
+      <figure style="margin:0">
+        {{ chart_svg|safe }}
+        <figcaption style="margin-top:8px;font-size:13px;color:var(--muted)">
+          Lagna: {{ pdata.prashna_lagna.sign }} ({{ pdata.prashna_lagna.rashi }}) {{ pdata.prashna_lagna.dms }} · Ruled by <b>{{ pdata.prashna_lagna.lord }}</b>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Key Significators &amp; Tajika Yogas</h2>
+    <div class="body">
+      <table class="t">
+        <tr><th>Role</th><th>Planet</th><th>Sign</th><th>House</th><th>Signification</th></tr>
+        <tr>
+          <td><b>Lagnesha (Querent)</b></td>
+          <td><b style="color:var(--kumkum)">{{ pdata.prashna_lagna.lord }}</b></td>
+          <td>{{ pdata.prashna_lagna.sign }}</td>
+          <td>1</td>
+          <td style="font-size:12px;color:var(--muted)">Person asking the question</td>
+        </tr>
+        <tr>
+          <td><b>Karyesha (Matter)</b></td>
+          <td><b style="color:var(--good)">{{ pdata.karya_bhava.lord }}</b></td>
+          <td>{{ pdata.karya_bhava.sign }}</td>
+          <td>House {{ pdata.karya_bhava.house }}</td>
+          <td style="font-size:12px;color:var(--muted)">{{ pdata.query_signification }}</td>
+        </tr>
+        <tr>
+          <td><b>Moon (Mind/Prana)</b></td>
+          <td><b>Moon</b></td>
+          <td>{{ pdata.moon_status.sign }}</td>
+          <td>House {{ pdata.moon_status.house }}</td>
+          <td style="font-size:12px;color:var(--muted)">Flow of events &amp; emotional state</td>
+        </tr>
+      </table>
+
+      <h3 style="margin-top:16px;font-size:14.5px;color:var(--kumkum)">Tajika Aspectual Yoga Status</h3>
+      <div style="background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 14px;margin-top:6px;font-size:13px;line-height:1.6">
+        <p style="margin:0 0 4px 0">
+          <b>Ithasala (Muthashila) Yoga:</b> 
+          {% if pdata.tajika_yogas.ithasala %}
+            <span class="pill good">Present (Applying Aspect: {{ pdata.tajika_yogas.aspect_orb }}°)</span>
+          {% else %}
+            <span class="pill neutral">Absent</span>
+          {% endif %}
+        </p>
+        <p style="margin:0 0 4px 0">
+          <b>Ishrafa (Separating) Aspect:</b> 
+          {% if pdata.tajika_yogas.ishrafa %}
+            <span class="pill bad">Present (Separating)</span>
+          {% else %}
+            <span class="pill neutral">None</span>
+          {% endif %}
+        </p>
+        <p style="margin:0 0 4px 0">
+          <b>Nakta Yoga (Third-party assistance):</b> 
+          {% if pdata.tajika_yogas.nakta %}
+            <span class="pill good">Active via {{ pdata.tajika_yogas.nakta_planet }}</span>
+          {% else %}
+            <span class="pill neutral">None</span>
+          {% endif %}
+        </p>
+        <p style="margin:0">
+          <b>Kamboola Yoga (Moon Confirmation):</b> 
+          {% if pdata.tajika_yogas.kamboola %}
+            <span class="pill good">Active (High Certainty)</span>
+          {% else %}
+            <span class="pill neutral">None</span>
+          {% endif %}
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- All Planetary Coordinates in Prashna -->
+<section class="card">
+  <h2>Prashna Planetary Placements</h2>
+  <div class="body" style="overflow-x:auto">
+    <table class="t">
+      <tr><th>Planet</th><th>Sign</th><th>Rashi</th><th>Degree</th><th>House from Prashna Lagna</th><th>Status in Query</th></tr>
+      {% for pl in pdata.planets %}
+      <tr>
+        <td><b>{{ pl.name }}</b></td>
+        <td>{{ pl.sign }}</td>
+        <td>{{ pl.rashi }}</td>
+        <td>{{ pl.dms }}</td>
+        <td>House {{ pl.house }}</td>
+        <td>
+          {% if pl.is_lagnesha %}<span class="pill" style="background:#fce4ec;color:#880e4f">Querent (Lagnesha)</span>{% endif %}
+          {% if pl.is_karyesha %}<span class="pill good">Object of Desire (Karyesha)</span>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}
