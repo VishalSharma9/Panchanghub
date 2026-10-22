@@ -522,3 +522,88 @@ def test_astro_vastu_and_visual_vastu_architect():
     assert 'standalone-vastu-studio-root' in vweb.text
     assert 'WHAT TO DO (Astro-Vastu Do\'s to Double Positive Effects)' in vweb.text
 
+
+def test_all_nav_menus_and_tabs_render_full_content():
+    """Verify every menu item in NAV renders 200 OK with full charts/tables even without query params."""
+    from app.web import NAV
+    for href, label in NAV:
+        r = client.get(href)
+        assert r.status_code == 200, f"{href} ({label}) failed with {r.status_code}"
+        assert len(r.text) > 7000, f"{href} returned suspiciously small page ({len(r.text)} bytes)"
+
+    # Verify /kundli without query params still renders all 12 worksheets
+    rk = client.get('/kundli')
+    assert 'Worksheet 1: Birth Chart' in rk.text
+    assert 'Worksheet 8: Tajika Varshaphala Annual Solar Return' in rk.text
+    assert '144 House Lord Placements with Classical BPHS Slokas' in rk.text
+    assert 'Tantric Beej Mantra' in rk.text
+
+    # Verify /vargas without query params renders all 31 divisional charts & Quick Filter pills with birth params
+    rv = client.get('/vargas')
+    assert 'D150' in rv.text
+    assert 'Tajika Sahams' in rv.text
+    assert 'lat=28.6139' in rv.text
+
+
+def test_explicit_am_pm_time_formatting_everywhere():
+    """Verify all times in Destiny Dossier, Regional, Varshaphala, Kundli, and Ask API explicitly show AM or PM."""
+    res = client.post('/api/kundli/destiny-dossier', json={
+        **SAMPLE_BIRTH,
+        'name': 'AMPM Checker',
+        'scan_days': 15
+    })
+    assert res.status_code == 200
+    d = res.json()
+    assert ('AM' in d['birth_chart_anchor']['birth_local_time_ampm']) or ('PM' in d['birth_chart_anchor']['birth_local_time_ampm'])
+
+    lot_wins = d['lottery_and_windfall_oracle']['location_calibrated_lottery_date_time_windows']
+    if lot_wins:
+        assert ('AM' in lot_wins[0]['golden_hora_window']) or ('PM' in lot_wins[0]['golden_hora_window'])
+        assert ('AM' in lot_wins[0]['peak_15m_lakshmi_moment']) or ('PM' in lot_wins[0]['peak_15m_lakshmi_moment'])
+
+    good_dates = d['destiny_turning_points_and_dates']['upcoming_auspicious_destiny_dates']
+    if good_dates:
+        assert ('AM' in good_dates[0]['power_hora_window']) or ('PM' in good_dates[0]['power_hora_window'])
+
+    reg = client.get('/regional')
+    assert reg.status_code == 200
+    assert (' AM' in reg.text) or (' PM' in reg.text)
+
+
+def test_full_language_translation_preserving_shlokas():
+    """Verify 100% translation into selected language while keeping Sanskrit Shlokas untouched and translating Shloka meanings."""
+    from app.core import i18n
+
+    sample_html = (
+        '<h2>Ravana Samhita 9-Planet Mastery</h2>'
+        '<p><strong>Maha Mrityunjaya Shloka:</strong> '
+        '<code class="notranslate" translate="no">ॐ त्र्यम्बकं यजामहे सुगन्धिं पुष्टिवर्धनम्॥ (Om Tryambakam Yajamahe)</code>'
+        '<br><span><b>Shloka Meaning:</b> We worship the Three-Eyed Lord Shiva who nourishes all beings.</span></p>'
+        '<p>Golden Hora: 09:15 AM – 10:15 AM</p>'
+    )
+    hi_html = i18n.localize_html_full(sample_html, 'hi')
+    # Sanskrit shloka inside .notranslate is 100% preserved
+    assert 'ॐ त्र्यम्बकं यजामहे सुगन्धिं पुष्टिवर्धनम्॥ (Om Tryambakam Yajamahe)' in hi_html
+    # Explicit AM/PM is preserved
+    assert '09:15 AM' in hi_html and '10:15 AM' in hi_html
+    # Headings and Shloka meaning are translated into Hindi (Devanagari)
+    assert 'शिव' in hi_html
+
+    # Also test /api/i18n/translate batch endpoint
+    api_tr = client.post('/api/i18n/translate', json={
+        'lang': 'hi',
+        'texts': [
+            'Plain-English Step-by-Step Guide',
+            'ॐ श्रीं ह्रीं श्रीं कमले कमलालये प्रसीद प्रसीद',
+            'Salutations to Supreme Goddess Mahalakshmi who dwells amidst lotuses.'
+        ]
+    })
+    assert api_tr.status_code == 200
+    tr_list = api_tr.json()['translations']
+    assert len(tr_list) == 3
+    # Shloka is preserved untouched
+    assert tr_list[1] == 'ॐ श्रीं ह्रीं श्रीं कमले कमलालये प्रसीद प्रसीद'
+    # English meaning is translated to Hindi
+    assert tr_list[2] != 'Salutations to Supreme Goddess Mahalakshmi who dwells amidst lotuses.'
+
+

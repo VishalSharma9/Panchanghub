@@ -456,6 +456,29 @@ def _badhaka_house(lagna_idx: int) -> int:
     mod = lagna_idx % 3
     return 11 if mod == 0 else (9 if mod == 1 else 7)
 
+
+def _fmt_ampm(val: Any) -> str:
+    """Format an ISO string or datetime into explicit 12-hour AM/PM time (e.g., '02:35 PM')."""
+    if not val:
+        return "—"
+    if isinstance(val, datetime):
+        return val.strftime("%I:%M %p")
+    s = str(val).strip()
+    try:
+        dt = datetime.fromisoformat(s)
+        return dt.strftime("%I:%M %p")
+    except Exception:
+        pass
+    hm_part = s[11:16] if len(s) >= 16 and ("T" in s or " " in s) else s[:5]
+    try:
+        parts = hm_part.split(":")
+        h, m = int(parts[0]), int(parts[1])
+        ap = "AM" if h < 12 else "PM"
+        h12 = h % 12 or 12
+        return f"{h12:02d}:{m:02d} {ap}"
+    except Exception:
+        return s
+
 def classify_functional_planets(lagna_idx: int) -> Dict[str, Any]:
     """Classify all 9 Grahas into Yogakaraka, Functional Benefics, Neutrals,
     Functional Malefics, Primary Marakas, and Badhakadhipati per BPHS Ch. 34."""
@@ -698,6 +721,7 @@ def analyze_medical_and_longevity(
             "eighth_house_lord_ayush": h8_lord,
             "badhakadhipati_obstruction_lord": roles["badhaka_lord"],
             "maha_mrityunjaya_shloka": "ॐ त्र्यम्बकं यजामहे सुगन्धिं पुष्टिवर्धनम्। उर्वारुकमिव बन्धनान्मृत्योर्मुक्षीय माऽमृतात्॥ (Om Tryambakam Yajamahe Sugandhim Pushtivardhanam, Urvarukamiva Bandhanan Mrityor Mukshiya Maamritat)",
+            "maha_mrityunjaya_shloka_meaning": "We worship the Three-Eyed Lord Shiva who is fragrant and nourishes all beings; may He liberate us from the bondage of disease and premature mortality for the sake of immortality, just as a ripe cucumber is effortlessly released from its vine.",
         },
         "mrityu_bhaga_degree_diagnostics": mrityu_bhaga_alerts,
         "disease_and_organ_vulnerabilities": vulnerabilities,
@@ -806,9 +830,9 @@ def analyze_accidents_and_safety(
                 "date": d.isoformat(),
                 "weekday": P.WEEKDAYS[wd],
                 "risk_level": "HIGH CAUTION" if (is_chandrashtama and is_bad_tara) else "MODERATE CAUTION",
-                "peak_danger_hora": f"{danger_hora['start'][11:16]} – {danger_hora['end'][11:16]} ({danger_hora['lord']} Hora)",
-                "local_rahu_kaal": f"{ephem.fmt(rahu_a, tz_cur)[11:16]} – {ephem.fmt(rahu_b, tz_cur)[11:16]}",
-                "local_yamaganda": f"{ephem.fmt(yama_a, tz_cur)[11:16]} – {ephem.fmt(yama_b, tz_cur)[11:16]}",
+                "peak_danger_hora": f"{_fmt_ampm(danger_hora['start'])} – {_fmt_ampm(danger_hora['end'])} ({danger_hora['lord']} Hora)",
+                "local_rahu_kaal": f"{_fmt_ampm(ephem.fmt(rahu_a, tz_cur))} – {_fmt_ampm(ephem.fmt(rahu_b, tz_cur))}",
+                "local_yamaganda": f"{_fmt_ampm(ephem.fmt(yama_a, tz_cur))} – {_fmt_ampm(ephem.fmt(yama_b, tz_cur))}",
                 "direction_to_avoid_disha_shool": P.DISHA_SHOOL[wd],
                 "triggers": "; ".join(reasons),
                 "hazard_type": "Vehicular / sharp objects / impulsive conflict" if danger_hora["lord"] == "Mars" else "Fatigue / mechanical glitch / slip or fall",
@@ -823,7 +847,7 @@ def analyze_accidents_and_safety(
                 "weekday": P.WEEKDAYS[wd],
                 "tara_blessing": f"{tara_name} Tara ({NAKSHATRAS[t_nak]})",
                 "chandrabalam": f"House {house_from_moon} from Natal Moon ({SIGNS[t_moon_sign]})",
-                "golden_safe_hora": f"{good_hora['start'][11:16]} – {good_hora['end'][11:16]} ({good_hora['lord']} Hora)",
+                "golden_safe_hora": f"{_fmt_ampm(good_hora['start'])} – {_fmt_ampm(good_hora['end'])} ({good_hora['lord']} Hora)",
                 "favorable_for": "Long-distance travel, vehicle purchase, medical procedures, and adventure",
             })
 
@@ -843,6 +867,7 @@ def analyze_accidents_and_safety(
         "upcoming_danger_and_caution_windows": caution_windows[:10],
         "upcoming_safe_and_protected_windows": safe_travel_windows[:8],
         "raksha_kavacha_shloka": "उग्रं वीरं महाविष्णुं ज्वलन्तं सर्वतोमुखम्। नृसिंहं भीषणं भद्रं मृत्युमृत्युं नमाम्यहम्॥ (Ugram Veeram Maha-Vishnum Jvalantam Sarvatomukham, Nrisimham Bheeshanam Bhadram Mrityur-Mrityum Namamyaham)",
+        "raksha_kavacha_shloka_meaning": "I bow to Lord Narasimha, the heroic, all-pervading Great Vishnu who blazes in every direction — fierce to evil, auspicious protector of devotees, and the conqueror of death and accidents.",
     }
 
 
@@ -946,8 +971,8 @@ def analyze_destiny_turning_points(
                 "weekday": P.WEEKDAYS[wd],
                 "tara": f"{tara_name} ({NAKSHATRAS[t_nak]})",
                 "moon_transit": f"{SIGNS[t_moon_sign]} (House {house_from_lagna} from Lagna, House {house_from_moon} from Moon)",
-                "power_hora_window": f"{best_hora['start'][11:16]} – {best_hora['end'][11:16]} ({best_hora['lord']} Hora)",
-                "abhijit_victory_window": "Not applicable on Wednesday" if wd == 3 else f"{ephem.fmt(abhijit_s, tz_cur)[11:16]} – {ephem.fmt(abhijit_e, tz_cur)[11:16]}",
+                "power_hora_window": f"{_fmt_ampm(best_hora['start'])} – {_fmt_ampm(best_hora['end'])} ({best_hora['lord']} Hora)",
+                "abhijit_victory_window": "Not applicable on Wednesday" if wd == 3 else f"{_fmt_ampm(ephem.fmt(abhijit_s, tz_cur))} – {_fmt_ampm(ephem.fmt(abhijit_e, tz_cur))}",
                 "best_for": "Signing life-changing contracts, career launches, investments, marriage proposals, and spiritual initiation",
             })
 
@@ -959,8 +984,8 @@ def analyze_destiny_turning_points(
                 "weekday": P.WEEKDAYS[wd],
                 "tara": f"{tara_name} ({NAKSHATRAS[t_nak]})",
                 "moon_transit": f"{SIGNS[t_moon_sign]} (House {house_from_moon} from Natal Moon)",
-                "avoid_hora_window": f"{bad_hora['start'][11:16]} – {bad_hora['end'][11:16]} ({bad_hora['lord']} Hora)",
-                "local_rahu_kaal": f"{ephem.fmt(rahu_a, tz_cur)[11:16]} – {ephem.fmt(rahu_b, tz_cur)[11:16]}",
+                "avoid_hora_window": f"{_fmt_ampm(bad_hora['start'])} – {_fmt_ampm(bad_hora['end'])} ({bad_hora['lord']} Hora)",
+                "local_rahu_kaal": f"{_fmt_ampm(ephem.fmt(rahu_a, tz_cur))} – {_fmt_ampm(ephem.fmt(rahu_b, tz_cur))}",
                 "what_to_avoid": "Avoid launching new ventures, lending money, high-stakes litigation, or emotional confrontation",
                 "instant_neutralizer": f"Light a ghee/sesame lamp before stepping out and chant {GRAHA_REMEDIES[roles['lagna_lord']]['beej_transliteration']} 27 times.",
             })
@@ -1140,8 +1165,8 @@ def analyze_lottery_and_windfall(
             "weekday": P.WEEKDAYS[wd],
             "wealth_tara": f"{tara_name} ({NAKSHATRAS[t_nak]} Pada {t_pada})",
             "moon_wealth_sector": f"{SIGNS[t_moon_sign]} ({'Indu Lagna' if t_moon_sign == indu_lagna_idx else 'Dhana/Labha Trigger'})",
-            "golden_hora_window": f"{golden_hora['start'][11:16]} – {golden_hora['end'][11:16]} ({golden_hora['lord']} Hora)",
-            "peak_15m_lakshmi_moment": f"{h_dt_start.strftime('%H:%M')} – {lakshmi_sub_end.strftime('%H:%M')} Local Time",
+            "golden_hora_window": f"{_fmt_ampm(golden_hora['start'])} – {_fmt_ampm(golden_hora['end'])} ({golden_hora['lord']} Hora)",
+            "peak_15m_lakshmi_moment": f"{_fmt_ampm(h_dt_start)} – {_fmt_ampm(lakshmi_sub_end)} Local Time",
             "harmonic_lucky_numbers": raw_picks,
             "power_root_digit": hora_num,
             "direction_to_face": RAVANA_GRAHA_MASTERY[golden_hora["lord"]]["favorable_direction"],
@@ -1168,6 +1193,7 @@ def analyze_lottery_and_windfall(
         "core_personal_lucky_digits": sorted({moolank, bhagyank, indu_num, l5_num, l11_num}),
         "location_calibrated_lottery_date_time_windows": lucky_windfall_windows,
         "lakshmi_akarshana_shloka": "ॐ श्रीं ह्रीं श्रीं कमले कमलालये प्रसीद प्रसीद श्रीं ह्रीं श्रीं ॐ महालक्ष्म्यै नमः॥ (Om Shreem Hreem Shreem Kamale Kamalalaye Praseeda Praseeda Shreem Hreem Shreem Om Mahalakshmyai Namah)",
+        "lakshmi_akarshana_shloka_meaning": "Salutations to Supreme Goddess Mahalakshmi, who dwells amidst divine lotuses — O Gracious Mother of Fortune and Abundance, be pleased and shower Your auspicious wealth-giving grace upon us.",
     }
 
 
@@ -1430,6 +1456,7 @@ def analyze_progeny_and_lineage(
         "individual_children_predictions": children_profiles,
         "grandchildren_and_lineage_future": grandchildren_analysis,
         "santana_gopala_shloka": "ॐ श्रीं ह्रीं क्लीं ग्लौं देवकीसुत गोविन्द वासुदेव जगत्पते। देहि मे तनयं कृष्ण त्वामहं शरणं गतः॥ (Om Shreem Hreem Kleem Glaum Devakisuta Govinda Vasudeva Jagatpate, Dehi Me Tanayam Krishna Tvamaham Sharanam Gatah)",
+        "santana_gopala_shloka_meaning": "O Son of Devaki, Govinda, Vasudeva, Lord of the Universe — O Krishna, I take refuge in You; bless our family lineage with healthy, noble, and radiant children.",
     }
 
 
@@ -1647,6 +1674,8 @@ def analyze_ravana_planetary_mastery(
             "beej_mantra": r_info["beej_mantra"],
             "beej_transliteration": r_info["beej_transliteration"],
             "puranic_shloka": r_info["puranic_mantra"],
+            "puranic_transliteration": r_info["puranic_transliteration"],
+            "puranic_meaning": r_info["puranic_meaning"],
             "ravana_samhita_mastery_secret": m_info["ravana_tantra_secret"],
             "charitable_dana_to_command": r_info["charitable_dana"],
         })
@@ -1789,6 +1818,7 @@ def compute_master_destiny_dossier(
         "reference_date": ref_d.isoformat(),
         "birth_chart_anchor": {
             "birth_utc": birth_dt_utc.isoformat(),
+            "birth_local_time_ampm": local_birth_dt.strftime("%I:%M %p"),
             "birth_latitude": birth_lat,
             "birth_longitude": birth_lon,
             "natal_lagna": f"{SIGNS[int(asc_lon // 30) % 12]} ({round(asc_lon % 30, 2)}°)",

@@ -18,6 +18,7 @@ Thumbs.db
 # Large binary database (>100MB blocked by GitHub git push limit)
 # Note: Full places.sqlite (1.06GB) is included in the release asset Panchanghub-Full-Package.zip
 api/data/places.sqlite
+api/app/data/*.sqlite
 
 # Release zip archives
 *.zip

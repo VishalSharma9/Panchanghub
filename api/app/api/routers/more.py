@@ -181,14 +181,22 @@ def ask(req: Ask):
         ev = [e for e in C.year_festivals(today.year, req.latitude, req.longitude, req.timezone)["events"] + C.year_festivals(today.year + 1, req.latitude, req.longitude, req.timezone)["events"]
               if e["type"] == kind and e["date"] >= today.isoformat()][:3]
         return {"intent": f"next_{kind}", "answer": f"Next {kind.title()}: " + "; ".join(f"{e['name']} on {e['date']}" for e in ev), "data": ev}
+    def _ampm(iso_s: str | None) -> str:
+        if not iso_s:
+            return ""
+        try:
+            return datetime.fromisoformat(iso_s).strftime("%I:%M %p")
+        except Exception:
+            return iso_s[11:16] if len(iso_s) >= 16 else iso_s
+
     if "rahu" in q:
-        p = pan(); r = p["muhurta"]["rahu_kalam"]; return {"intent": "rahu_kaal", "answer": f"Rahu Kaal today: {r['start'][11:16]}–{r['end'][11:16]}", "data": r}
+        p = pan(); r = p["muhurta"]["rahu_kalam"]; return {"intent": "rahu_kaal", "answer": f"Rahu Kaal today: {_ampm(r['start'])} – {_ampm(r['end'])}", "data": r}
     if "tithi" in q:
-        t = pan()["tithi"][0]; return {"intent": "tithi", "answer": f"Today's tithi: {t['paksha']} {t['name']} until {t.get('end', '')}", "data": t}
+        t = pan()["tithi"][0]; return {"intent": "tithi", "answer": f"Today's tithi: {t['paksha']} {t['name']} until {_ampm(t.get('end'))}", "data": t}
     if "nakshatra" in q:
-        n = pan()["nakshatra"][0]; return {"intent": "nakshatra", "answer": f"Today's nakshatra: {n['name']} until {n.get('end', '')}", "data": n}
+        n = pan()["nakshatra"][0]; return {"intent": "nakshatra", "answer": f"Today's nakshatra: {n['name']} until {_ampm(n.get('end'))}", "data": n}
     if "sunrise" in q or "sunset" in q:
-        p = pan(); return {"intent": "sun", "answer": f"Sunrise {p['sunrise'][11:16]}, sunset {p['sunset'][11:16]}"}
+        p = pan(); return {"intent": "sun", "answer": f"Sunrise {_ampm(p['sunrise'])}, sunset {_ampm(p['sunset'])}"}
     if "festival" in q or "diwali" in q or "holi" in q:
         ev = [e for e in C.year_festivals(today.year, req.latitude, req.longitude, req.timezone)["events"] if e["type"] == "festival" and e["date"] >= today.isoformat()]
         for nm in ("diwali", "holi", "navratri", "dussehra", "janmashtami", "shivaratri"):

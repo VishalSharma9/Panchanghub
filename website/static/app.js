@@ -230,7 +230,7 @@
     const now=new Date();
     try{
       const tz=zone();
-      el.textContent=new Intl.DateTimeFormat('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false,timeZone:tz}).format(now);
+      el.textContent=new Intl.DateTimeFormat('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true,timeZone:tz}).format(now);
       if(dateEl) dateEl.textContent=new Intl.DateTimeFormat('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric',timeZone:tz}).format(now);
     }catch(e){ el.textContent=''; }
   }
@@ -248,4 +248,75 @@
     el.textContent='Vedic time since sunrise · '+g+' ghati '+p+' pala '+v+' vipala';
   }
   tick(); setInterval(tick,1000);
+})();
+
+// Client-side dynamic DOM translator for interactive JS components (e.g., Vastu Architect Studio)
+(function(){
+  const lang = document.documentElement.lang || 'en';
+  if (!lang || lang === 'en') return;
+  const cache = new Map();
+  let pendingTimer = null;
+
+  function shouldSkip(node) {
+    if (!node || !node.parentElement) return true;
+    const p = node.parentElement;
+    if (p.closest('.notranslate, [translate="no"], script, style, svg, #langSel')) return true;
+    const s = (node.nodeValue || '').trim();
+    if (!s || !/[A-Za-z]{2,}/.test(s)) return true;
+    if (/ॐ|॥|नमः|विद्महे|धीमहि|यजामहे/.test(s)) return true;
+    return false;
+  }
+
+  async function translateDOMSubtree(root) {
+    const walker = document.createTreeWalker(root || document.body, NodeFilter.SHOW_TEXT, null);
+    const nodes = [];
+    const toFetch = [];
+    const seen = new Set();
+    let n;
+    while ((n = walker.nextNode())) {
+      if (shouldSkip(n)) continue;
+      const raw = n.nodeValue.trim();
+      nodes.push({ node: n, raw });
+      if (!cache.has(raw) && !seen.has(raw)) {
+        seen.add(raw);
+        toFetch.push(raw);
+      }
+    }
+    if (toFetch.length > 0) {
+      for (let i = 0; i < toFetch.length; i += 80) {
+        const slice = toFetch.slice(i, i + 80);
+        try {
+          const r = await fetch('/api/i18n/translate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ lang, texts: slice })
+          });
+          if (r.ok) {
+            const j = await r.json();
+            (j.translations || []).forEach((tr, idx) => {
+              if (tr) cache.set(slice[idx], tr);
+            });
+          }
+        } catch (e) {}
+      }
+    }
+    nodes.forEach(({ node, raw }) => {
+      const tr = cache.get(raw);
+      if (tr && tr !== raw && node.nodeValue) {
+        node.nodeValue = node.nodeValue.replace(raw, tr);
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(() => translateDOMSubtree(document.body), 150));
+  } else {
+    setTimeout(() => translateDOMSubtree(document.body), 150);
+  }
+
+  const obs = new MutationObserver(() => {
+    if (pendingTimer) clearTimeout(pendingTimer);
+    pendingTimer = setTimeout(() => translateDOMSubtree(document.body), 250);
+  });
+  obs.observe(document.body, { childList: true, subtree: true });
 })();

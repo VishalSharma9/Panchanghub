@@ -251,3 +251,17 @@ def acg(req: BirthData): return W.astrocartography(birth_utc(req))
 def wextras(req: BirthData):
     jd = ephem.jd_from_utc(birth_utc(req))
     return {"points": W.extra_points(jd), "declinations": W.declinations(jd)}
+
+
+class I18nBatchReq(BaseModel):
+    lang: str = Field(..., min_length=2, max_length=8)
+    texts: list[str] = Field(default_factory=list, max_length=500)
+
+
+@router.post("/i18n/translate", tags=["Other"], summary="Batch translate UI/report text into selected Indian language (preserving Sanskrit Shlokas & AM/PM)")
+def i18n_translate_batch(req: I18nBatchReq):
+    from ...core import i18n
+    if req.lang not in i18n.LANGS or req.lang == "en":
+        return {"lang": req.lang, "translations": req.texts}
+    return {"lang": req.lang, "translations": i18n.translate_texts_batch(req.texts, req.lang)}
+

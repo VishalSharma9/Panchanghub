@@ -62,10 +62,10 @@
         <button class="btn alt" id="pdfBtn" style="display:inline-flex;align-items:center;gap:6px">
           <span id="pdfIcon">⬇</span> <span id="pdfText">Download Full PDF Life Report</span>
         </button>
-        <a class="btn" href="/destiny?name={{ b.name }}&date={{ b.date }}&time={{ b.time }}&lat={{ b.lat }}&lon={{ b.lon }}&tz={{ b.tz }}&city={{ b.city }}&cur_lat={{ b.lat }}&cur_lon={{ b.lon }}&cur_tz={{ b.tz }}&cur_city={{ b.city }}" style="display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:#111;font-weight:bold;text-decoration:none;">
+        <a class="btn" href="/destiny?name={{ b.name }}&date={{ b.date }}&time={{ b.time }}&lat={{ b.latitude }}&lon={{ b.longitude }}&tz={{ b.timezone }}&city={{ b.city }}&cur_lat={{ b.latitude }}&cur_lon={{ b.longitude }}&cur_tz={{ b.timezone }}&cur_city={{ b.city }}" style="display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:#111;font-weight:bold;text-decoration:none;">
           🔱 Open Master Destiny, Ravana Control, Lottery, Progeny &amp; Past/Future Life Dossier
         </a>
-        <a class="btn" href="/numerology?name={{ b.name }}&date={{ b.date }}&time={{ b.time }}&lat={{ b.lat }}&lon={{ b.lon }}&tz={{ b.tz }}&city={{ b.city }}" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;">
+        <a class="btn" href="/numerology?name={{ b.name }}&date={{ b.date }}&time={{ b.time }}&lat={{ b.latitude }}&lon={{ b.longitude }}&tz={{ b.timezone }}&city={{ b.city }}" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;">
           🔢 Astro-Numerology &amp; Lucky Numbers
         </a>
         <span class="neutral">Moon: <b>{{ k.moon.rashi }}</b>, {{ k.moon.nakshatra }} (Pada {{ k.moon.pada }}) · Ayanamsha: <b>{{ k.ayanamsa }}</b></span>
@@ -376,7 +376,7 @@
         <div><span>Return Year</span><b>{{ varshaphala_data.year }} (Age {{ varshaphala_data.age }})</b></div>
         <div><span>Year Lord (Varshesha)</span><b style="color:var(--good)">{{ varshaphala_data.year_lord }}</b></div>
         <div><span>Muntha</span><b>{{ varshaphala_data.muntha.sign }} (H{{ varshaphala_data.muntha.house }})</b></div>
-        <div><span>Solar Return Moment</span><b>{{ varshaphala_data.solar_return_moment[:16].replace('T',' ') }}</b></div>
+        <div><span>Solar Return Moment</span><b>{{ varshaphala_data.solar_return_moment|dt_ampm }}</b></div>
       </div>
       <p style="margin:12px 0 16px;color:var(--muted)">{{ varshaphala_data.year_lord_note }}</p>
 
@@ -711,19 +711,19 @@
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-bottom:10px">
             <div style="background:#fafafa;padding:10px;border-radius:6px;border:1px solid #eee">
               <span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;display:block">Tantric Beej Mantra</span>
-              <p style="font-family:serif;font-size:15px;font-weight:700;color:var(--kumkum);margin:4px 0">{{ rem.beej_mantra }}</p>
-              <span style="font-size:12px;color:var(--muted);font-style:italic">{{ rem.beej_transliteration }}</span>
+              <p class="notranslate" translate="no" style="font-family:serif;font-size:15px;font-weight:700;color:var(--kumkum);margin:4px 0">{{ rem.beej_mantra }}</p>
+              <span class="notranslate" translate="no" style="font-size:12px;color:var(--muted);font-style:italic">{{ rem.beej_transliteration }}</span>
             </div>
 
             <div style="background:#fafafa;padding:10px;border-radius:6px;border:1px solid #eee">
               <span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;display:block">Vedic Gayatri Mantra</span>
-              <p style="font-family:serif;font-size:14px;font-weight:700;color:var(--good);margin:4px 0">{{ rem.gayatri_mantra }}</p>
+              <p class="notranslate" translate="no" style="font-family:serif;font-size:14px;font-weight:700;color:var(--good);margin:4px 0">{{ rem.gayatri_mantra }}</p>
             </div>
           </div>
 
           <div style="background:#fffaf3;border:1px solid #fae1b8;border-radius:6px;padding:10px;margin-bottom:10px">
             <span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;display:block">Puranic Sloka</span>
-            <p style="font-family:serif;font-size:14px;color:var(--ink);margin:4px 0 2px 0">{{ rem.puranic_mantra }}</p>
+            <p class="notranslate" translate="no" style="font-family:serif;font-size:14px;color:var(--ink);margin:4px 0 2px 0">{{ rem.puranic_mantra }}</p>
             <p style="font-size:12px;color:var(--muted);margin:0;font-style:italic">"{{ rem.puranic_meaning }}"</p>
           </div>
 
@@ -774,13 +774,16 @@ document.getElementById('pdfBtn').onclick = async e => {
   const txt = document.getElementById('pdfText');
   const ico = document.getElementById('pdfIcon');
   const q = new URLSearchParams(location.search);
+  const f = document.querySelector('form[action="/kundli"]');
+  const gVal = (k, defVal) => q.get(k) || (f && f.elements[k] ? f.elements[k].value : defVal);
+  const rawTime = gVal('time', '10:30:00');
   const body = {
-    name: q.get('name') || 'Native',
-    date: q.get('date'),
-    time: q.get('time') && q.get('time').length > 5 ? q.get('time') : (q.get('time') ? q.get('time') + ':00' : '12:00:00'),
-    latitude: +q.get('lat'),
-    longitude: +q.get('lon'),
-    timezone: q.get('tz') || 'UTC'
+    name: gVal('name', 'Native') || 'Native',
+    date: gVal('date', '1990-05-15'),
+    time: rawTime.length > 5 ? rawTime : rawTime + ':00',
+    latitude: +(gVal('lat', 28.6139)),
+    longitude: +(gVal('lon', 77.2090)),
+    timezone: gVal('tz', 'Asia/Kolkata') || 'Asia/Kolkata'
   };
   btn.classList.add('btn-loading');
   ico.textContent = '⏳';

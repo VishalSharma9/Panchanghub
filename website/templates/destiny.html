@@ -79,7 +79,7 @@
         <div>
             <strong>&#x1F517; Cross-Linked Chart Modules for {{ dossier.name }}:</strong>
             <span class="neutral" style="font-size:13px;">
-                Natal Lagna: <b>{{ dossier.birth_chart_anchor.natal_lagna }}</b> |
+                Birth Time: <b>{{ dossier.birth_chart_anchor.birth_local_time_ampm }}</b> | Natal Lagna: <b>{{ dossier.birth_chart_anchor.natal_lagna }}</b> |
                 Natal Moon: <b>{{ dossier.birth_chart_anchor.natal_moon }}</b> |
                 Relocated Lagna ({{ dossier.current_location_anchor.city }}): <b>{{ dossier.current_location_anchor.relocated_birth_lagna_at_current_city }}</b> |
                 Moolank/Bhagyank: <b>{{ dossier.cross_linked_numerology.moolank }} / {{ dossier.cross_linked_numerology.bhagyank }}</b>
@@ -149,6 +149,7 @@
     <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-reincarnation', this)" style="background:#475569; color:#fff;">&#x1F549; 8. Past/Future Life &amp; Purpose</button>
     <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-vastu', this)" style="background:#0f766e; color:#fff;">&#x1F3E1; 9. Astro-Vastu &amp; Visual House/Lot Architect</button>
     <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-glossary', this)" style="background:#1e40af; color:#fff;">&#x1F4D6; 10. Plain-English Term Dictionary</button>
+    <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('all', this)" style="background:#334155; color:#fff;">&#x1F4DC; Show All 10 Sections</button>
 </div>
 
 <!-- ==================== TAB 1: RAVANA SAMHITA 9-PLANET MASTERY ==================== -->
@@ -193,7 +194,7 @@
                             <td><b>{{ g.planet }}</b><br>{{ g.primary_gem }}</td>
                             <td>{{ g.substitute_gem }}</td>
                             <td>{{ g.carat_weight }}<br>{{ g.metal }} ({{ g.finger }})</td>
-                            <td>{{ g.wearing_day_hora }}<br><code>{{ g.prana_pratishtha_shloka }}</code></td>
+                            <td>{{ g.wearing_day_hora }}<br><code class="notranslate" translate="no">{{ g.prana_pratishtha_shloka }}</code></td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -245,7 +246,7 @@
                             <td><strong>{{ p.planet }}</strong><br><small>{{ p.natal_placement }}</small></td>
                             <td><span class="badge">{{ p.functional_role }}</span></td>
                             <td><b>{{ p.deity_to_worship }}</b><br><small>{{ p.when_and_how_long_to_worship }}</small></td>
-                            <td><code>{{ p.beej_mantra }}</code><br><small>{{ p.beej_transliteration }}</small><br><small class="neutral">{{ p.puranic_shloka }}</small></td>
+                            <td><code class="notranslate" translate="no">{{ p.beej_mantra }}</code><br><small class="notranslate" translate="no">{{ p.beej_transliteration }}</small><br><small class="neutral notranslate" translate="no">{{ p.puranic_shloka }}</small>{% if p.puranic_meaning %}<div style="margin-top:4px;font-size:12px;color:#1e293b;"><b>Meaning:</b> {{ p.puranic_meaning }}</div>{% endif %}</td>
                             <td>{{ p.ravana_samhita_mastery_secret }}<br><small><b>Dana:</b> {{ p.charitable_dana_to_command }}</small></td>
                         </tr>
                         {% endfor %}
@@ -265,7 +266,7 @@
         <div class="card">
             <h2>🎰 Lottery, Speculation & Sudden Windfall Oracle (Calibrated to {{ cur_city }})</h2>
             {{ render_simple_guide(simp.lottery_and_windfall_in_simple_words) }}
-            <p class="neutral"><strong>Lakshmi Akarshana Shloka:</strong> <code>{{ lot.lakshmi_akarshana_shloka }}</code></p>
+            <p class="neutral"><strong>Lakshmi Akarshana Shloka:</strong> <code class="notranslate" translate="no">{{ lot.lakshmi_akarshana_shloka }}</code>{% if lot.lakshmi_akarshana_shloka_meaning %}<br><span style="font-size:13px;color:var(--ink);"><b>Shloka Meaning:</b> {{ lot.lakshmi_akarshana_shloka_meaning }}</span>{% endif %}</p>
 
             <div class="grid-3" style="margin-top:16px;">
                 <div class="stat">
@@ -463,7 +464,7 @@
         <div class="card">
             <h2>🚨 Accident Proneness, D-8 Ashtamsha & Location-Calibrated Safety Windows</h2>
             {{ render_simple_guide(simp.accidents_and_safety_in_simple_words) }}
-            <p class="neutral"><strong>Narasimha Raksha Kavacha Shloka:</strong> <code>{{ acc.raksha_kavacha_shloka }}</code></p>
+            <p class="neutral"><strong>Narasimha Raksha Kavacha Shloka:</strong> <code class="notranslate" translate="no">{{ acc.raksha_kavacha_shloka }}</code>{% if acc.raksha_kavacha_shloka_meaning %}<br><span style="font-size:13px;color:var(--ink);"><b>Shloka Meaning:</b> {{ acc.raksha_kavacha_shloka_meaning }}</span>{% endif %}</p>
 
             <div class="grid-4" style="margin-top:12px;">
                 <div class="stat">
@@ -611,7 +612,7 @@
                             <td><span class="badge">{{ d.governing_planet }}</span></td>
                             <td>{{ d.vulnerable_organs }}</td>
                             <td>{{ d.potential_conditions }}</td>
-                            <td>{{ d.ayurvedic_remedy }}<br><small class="neutral"><code>{{ d.shloka_remedy }}</code></small></td>
+                            <td>{{ d.ayurvedic_remedy }}<br><small class="neutral"><code class="notranslate" translate="no">{{ d.shloka_remedy }}</code></small></td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -628,7 +629,7 @@
             {% endif %}
 
             <h3 style="margin-top:18px;">🕯️ Critical Maraka & Health-Vigilance Dasha Windows</h3>
-            <p><strong>Maha Mrityunjaya Shloka:</strong> <code>{{ med.longevity_ayurdaya.maha_mrityunjaya_shloka }}</code></p>
+            <p><strong>Maha Mrityunjaya Shloka:</strong> <code class="notranslate" translate="no">{{ med.longevity_ayurdaya.maha_mrityunjaya_shloka }}</code>{% if med.longevity_ayurdaya.maha_mrityunjaya_shloka_meaning %}<br><span style="font-size:13px;color:var(--ink);"><b>Shloka Meaning:</b> {{ med.longevity_ayurdaya.maha_mrityunjaya_shloka_meaning }}</span>{% endif %}</p>
             <div class="table-wrap">
                 <table>
                     <thead>
@@ -746,7 +747,7 @@
                     <strong>Beeja Sphuta (Sun + Venus + Jupiter):</strong> {{ prog.fertility_and_conception_capacity.beeja_sphuta_sign }} ({{ prog.fertility_and_conception_capacity.beeja_sphuta_longitude }}°) &nbsp;|&nbsp;
                     <strong>Kshetra Sphuta (Moon + Mars + Jupiter):</strong> {{ prog.fertility_and_conception_capacity.kshetra_sphuta_sign }} ({{ prog.fertility_and_conception_capacity.kshetra_sphuta_longitude }}°)
                 </p>
-                <p><strong>Santana Gopala Shloka:</strong> <code>{{ prog.santana_gopala_shloka }}</code></p>
+                <p><strong>Santana Gopala Shloka:</strong> <code class="notranslate" translate="no">{{ prog.santana_gopala_shloka }}</code>{% if prog.santana_gopala_shloka_meaning %}<br><span style="font-size:13px;color:var(--ink);"><b>Shloka Meaning:</b> {{ prog.santana_gopala_shloka_meaning }}</span>{% endif %}</p>
             </div>
 
             <h3 style="margin-top:18px;">👶 Child-by-Child D-7 Saptamsha Profile (Gender Inclination, Temperament & Destiny)</h3>
@@ -1009,12 +1010,18 @@
 <script src="/static/vastu_architect.js"></script>
 <script>
 function showDestinyTab(tabId, btn) {
-    document.querySelectorAll('.destiny-tab, .d-tab-pane').forEach(function(el) {
-        el.style.display = 'none';
-    });
-    var target = document.getElementById(tabId);
-    if (target) {
-        target.style.display = 'block';
+    if (tabId === 'all') {
+        document.querySelectorAll('.destiny-tab, .d-tab-pane').forEach(function(el) {
+            el.style.display = 'block';
+        });
+    } else {
+        document.querySelectorAll('.destiny-tab, .d-tab-pane').forEach(function(el) {
+            el.style.display = 'none';
+        });
+        var target = document.getElementById(tabId);
+        if (target) {
+            target.style.display = 'block';
+        }
     }
     document.querySelectorAll('.destiny-tab-btn, .d-tab-btn').forEach(function(b) {
         b.style.background = '#475569';

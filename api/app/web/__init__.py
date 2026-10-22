@@ -50,10 +50,22 @@ def hm(s, ref: str | None = None):
         out += d.strftime(", %b %d")
     return out
 
+def dt_ampm(s):
+    """Format ISO datetime string '2026-10-10T21:19:32+05:30' -> '2026-10-10 09:20 PM'."""
+    if not s:
+        return "—"
+    try:
+        d = _parse_iso(str(s))
+        d = (d + timedelta(seconds=30)).replace(second=0, microsecond=0)
+        return f"{d.date().isoformat()} {d.strftime('%I:%M %p')}"
+    except Exception:
+        return str(s)
+
 def span(item, ref):
     return f"{hm(item.get('start'), ref)} – {hm(item.get('end'), ref)}" if item else "—"
 
 templates.env.filters["hm"] = hm
+templates.env.filters["dt_ampm"] = dt_ampm
 templates.env.globals.update(span=span, BRAND=BRAND, SITE=SITE, SIGNS=ephem.SIGNS, RASHIS=ephem.RASHIS, NAKSHATRAS=ephem.NAKSHATRAS)
 
 def loc_from(request: Request):
@@ -178,14 +190,10 @@ def _term_re(lang):
     return _TERMS[lang]
 
 def localize_html(html: str, lang: str) -> str:
-    """Translate known names/labels inside text nodes (not tags, scripts, styles or form values)."""
-    if lang == "en": return html
-    rx = _term_re(lang); m = i18n.MAPS[lang]
-    parts = _re.split(r"(<script.*?</script>|<style.*?</style>|<textarea.*?</textarea>|<option[^>]*>.*?</option>|<[^>]+>)", html, flags=_re.S)
-    for i, part in enumerate(parts):
-        if part and not part.startswith("<"):
-            parts[i] = rx.sub(lambda mm: m[mm.group(1)], part)
-    return "".join(parts)
+    """Translate 100% of visible HTML text nodes into `lang` while preserving Sanskrit Shlokas & AM/PM."""
+    if lang == "en":
+        return html
+    return i18n.localize_html_full(html, lang)
 
 def page(request, tpl, title, desc, path, **ctx):
     loc = ctx.pop("loc", None) or loc_from(request)
@@ -194,9 +202,14 @@ def page(request, tpl, title, desc, path, **ctx):
     current_user = auth.get_user_from_request(request.cookies, dict(request.headers))
     resp = templates.TemplateResponse(request, tpl, {"title": title, "desc": desc, "canonical": SITE + path, "lang": lang, "LANGS": i18n.LANGS,
                                                      "path": path, "loc": loc, "current_user": current_user, "locq": urlencode({"city": loc["city"], "lat": loc["lat"], "lon": loc["lon"], "tz": loc["tz"]}), **ctx})
-    if lang == "en": return resp
-    body = localize_html(resp.body.decode(), lang)
-    return HTMLResponse(body, status_code=resp.status_code, headers={"Content-Language": lang})
+    if lang != "en":
+        body = localize_html(resp.body.decode(), lang)
+        resp = HTMLResponse(body, status_code=resp.status_code, headers={"Content-Language": lang})
+    if getattr(request.state, "ph_birth_to_save", None):
+        _with_cookie(resp, "ph_birth", request.state.ph_birth_to_save)
+    if request.query_params.get("lang") in i18n.LANGS:
+        resp.set_cookie("ph_lang", request.query_params["lang"], max_age=31536000, path="/", samesite="lax")
+    return resp
 
 NAV = [("/", "Home"), ("/mine", "For You"), ("/week", "This Week"), ("/compare", "Two Cities"),
        ("/names", "Names"), ("/sade-sati", "Sade Sati"), ("/panchang", "Daily Panchang"),
@@ -229,14 +242,58 @@ def _resolve_city_coords(city_str: str, lat: float, lon: float, tz: str):
 def birth_from_query(request, prefix=""):
     q = request.query_params
     g = lambda k, d=None: q.get(prefix + k, d)
-    if not g("date") or not g("lat"):
-        return None
-    tm = g("time", "12:00")
-    city_s, lat_f, lon_f, tz_s = _resolve_city_coords(
-        g("city", ""), float(g("lat")), float(g("lon")), g("tz", "Asia/Kolkata")
+    if g("date") and (g("lat") or g("city")):
+        tm = g("time", "10:30")
+        raw_lat = float(g("lat")) if g("lat") else 28.6139
+        raw_lon = float(g("lon")) if g("lon") else 77.2090
+        city_s, lat_f, lon_f, tz_s = _resolve_city_coords(
+            g("city", "New Delhi, India"), raw_lat, raw_lon, g("tz", "Asia/Kolkata")
+        )
+        res = dict(
+            date=g("date"),
+            time=tm if len(tm) > 5 else tm + ":00",
+            latitude=lat_f,
+            longitude=lon_f,
+            timezone=tz_s,
+            name=g("name") or ("Gargi" if prefix == "g_" else "Aryabhata"),
+            city=city_s,
+        )
+        if prefix == "":
+            try:
+                request.state.ph_birth_to_save = res
+            except Exception:
+                pass
+        return res
+    if prefix == "":
+        c = request.cookies.get("ph_birth")
+        if c:
+            try:
+                from urllib.parse import unquote
+                raw = unquote(c) if ("%" in c) else c
+                v = json.loads(raw)
+                if v.get("date") and v.get("latitude") is not None:
+                    return v
+            except Exception:
+                pass
+    if prefix == "g_":
+        return dict(
+            date="1992-08-20",
+            time="14:15:00",
+            latitude=19.0760,
+            longitude=72.8777,
+            timezone="Asia/Kolkata",
+            name="Gargi",
+            city="Mumbai, India",
+        )
+    return dict(
+        date="1990-05-15",
+        time="10:30:00",
+        latitude=28.6139,
+        longitude=77.2090,
+        timezone="Asia/Kolkata",
+        name="Aryabhata",
+        city="New Delhi, India",
     )
-    return dict(date=g("date"), time=tm if len(tm) > 5 else tm + ":00", latitude=lat_f, longitude=lon_f,
-                timezone=tz_s, name=g("name"), city=city_s)
 
 def register(app: FastAPI):
     app.mount("/static", StaticFiles(directory=os.path.join(WEB_ROOT, "static")), name="static")
@@ -290,6 +347,8 @@ def register(app: FastAPI):
     def compare(request: Request):
         loc = loc_from(request); d = qdate(request)
         loc2, explicit = loc2_from(request)
+        if not loc2:
+            loc2 = {"city": "Mumbai, India", "lat": 19.0760, "lon": 72.8777, "tz": "Asia/Kolkata"} if abs(loc["lat"] - 19.076) > 0.5 else {"city": "Varanasi, India", "lat": 25.3176, "lon": 82.9739, "tz": "Asia/Kolkata"}
         p = RP.panchang(d, L(loc), 0.0, None, None)
         p2 = RP.panchang(d, L(loc2), 0.0, None, None) if loc2 else None
         extra = {"city": loc["city"], "lat": loc["lat"], "lon": loc["lon"], "tz": loc["tz"]}
@@ -352,7 +411,7 @@ def register(app: FastAPI):
         loc = loc_from(request)
         q = request.query_params
         rashi = _opt_int(q.get("rashi"), 1, 12)
-        b = birth_from_query(request) if q.get("date") and q.get("lat") else None
+        b = birth_from_query(request) if not rashi else None
         sign = None
         moon_name = None
         if b:
@@ -556,9 +615,10 @@ def register(app: FastAPI):
                 remedies_corpus = None
                 soul_guidance = None
 
+        qs_val = str(request.query_params) or urlencode({"name": b.get("name") or "Native", "date": b["date"], "time": b["time"], "lat": b["latitude"], "lon": b["longitude"], "tz": b["timezone"], "city": b.get("city") or ""})
         return page(request, "kundli.html", f"Free Kundli (Janam Kundali) Online – {BRAND}",
                     "Free Vedic birth chart with North/South Indian charts, D1–D60 vargas, Vimshottari & Yogini dasha, ashtakavarga, doshas and yogas.",
-                    "/kundli", b=b, k=k, charts=charts, style=style, qs=str(request.query_params),
+                    "/kundli", b=b, k=k, charts=charts, style=style, qs=qs_val,
                     special_lagnas=special_lagnas, av_suite=av_suite, sudarshan_data=sudarshan_data,
                     varshaphala_data=varshaphala_data, kp_data=kp_data, holistic_reading=holistic_reading,
                     soul_guidance=soul_guidance, remedies_corpus=remedies_corpus)
@@ -903,14 +963,21 @@ def register(app: FastAPI):
 
     @app.get("/iching", response_class=HTMLResponse, include_in_schema=False)
     def iching(request: Request):
-        q = request.query_params; c = ESO.iching_cast(q.get("question"), q.get("seed")) if (q.get("question") or q.get("cast")) else None
+        q = request.query_params
+        c = ESO.iching_cast(q.get("question") or "Daily Dharmic & Destiny Guidance", q.get("seed") or Date.today().isoformat())
         return page(request, "iching.html", f"I-Ching Oracle – {BRAND}", "Cast an I-Ching hexagram with the three-coin method; all 64 hexagrams.",
                     "/iching", c=c, q=q, all=ESO.iching_all())
 
     @app.get("/palmistry", response_class=HTMLResponse, include_in_schema=False)
     def palmistry(request: Request):
         q = request.query_params
-        r = ESO.palmistry(q.get("hand_shape"), q.get("heart"), q.get("head"), q.get("life"), q.get("fate"))
+        r = ESO.palmistry(
+            q.get("hand_shape") or "fire",
+            q.get("heart") or "curved",
+            q.get("head") or "long",
+            q.get("life") or "deep",
+            q.get("fate") or "clear",
+        )
         return page(request, "palmistry.html", f"Palmistry Guide – {BRAND}", "Hand shapes, palm lines and mounts explained, with a reading from your features.",
                     "/palmistry", r=r, q=q)
 
@@ -919,7 +986,7 @@ def register(app: FastAPI):
         q = request.query_params; today = Date.today()
         by = int(q.get("birth_year", 1990)); d = qdate(request, "on")
         ctx = {"mayan": ESO.mayan(d), "cf": ESO.chinese_forecast(by, today.year), "by": by,
-               "kab": ESO.kabbalah(q["name"]) if q.get("name") else None, "dream": ESO.dream(q["symbol"]) if q.get("symbol") else None,
+               "kab": ESO.kabbalah(q.get("name") or "Aryabhata"), "dream": ESO.dream(q.get("symbol") or "lotus"),
                "crys": ESO.crystals(), "q": q, "d": d}
         return page(request, "tools.html", f"Mayan, Chinese Forecast, Kabbalah, Dreams & Crystals – {BRAND}", "More free tools: Mayan calendar, Chinese yearly forecast, Kabbalah, dream meanings, crystals.",
                     "/tools", **ctx)

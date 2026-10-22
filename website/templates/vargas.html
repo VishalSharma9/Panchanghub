@@ -271,17 +271,17 @@ function selectAllVargas() {
 
 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:16px 0">
   <span style="font-weight:600;font-size:14px">Quick Filter:</span>
-  <a href="/vargas?{{ locq }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=all" class="pill {{ 'good' if v_filter=='all' or not v_filter else '' }}">All 31 Vargas</a>
-  <a href="/vargas?{{ locq }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D1" class="pill {{ 'good' if v_filter=='D1' else '' }}">D1 Rashi</a>
-  <a href="/vargas?{{ locq }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D9" class="pill {{ 'good' if v_filter=='D9' else '' }}">D9 Navamsha</a>
-  <a href="/vargas?{{ locq }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D10" class="pill {{ 'good' if v_filter=='D10' else '' }}">D10 Dashamsha</a>
-  <a href="/vargas?{{ locq }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D3" class="pill {{ 'good' if v_filter=='D3' else '' }}">D3 Drekkana</a>
-  <a href="/vargas?{{ locq }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D5" class="pill {{ 'good' if v_filter=='D5' else '' }}">D5 Panchamsha</a>
-  <a href="/vargas?{{ locq }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D6" class="pill {{ 'good' if v_filter=='D6' else '' }}">D6 Shashtamsha</a>
-  <a href="/vargas?{{ locq }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D8" class="pill {{ 'good' if v_filter=='D8' else '' }}">D8 Ashtamsha</a>
-  <a href="/vargas?{{ locq }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D11" class="pill {{ 'good' if v_filter=='D11' else '' }}">D11 Ekadashamsha</a>
-  <a href="/vargas?{{ locq }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D150" class="pill {{ 'good' if v_filter=='D150' else '' }}">D150 Nadiamsha</a>
-  <a href="/vargas?{{ locq }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D2_IYER" class="pill {{ 'good' if v_filter=='D2_IYER' else '' }}">Hora Iyer</a>
+  <a href="/vargas?name={{ b.name|urlencode }}&date={{ b.date }}&time={{ b.time }}&lat={{ b.latitude }}&lon={{ b.longitude }}&tz={{ b.timezone|urlencode }}&city={{ b.city|urlencode }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=all" class="pill {{ 'good' if v_filter=='all' or not v_filter else '' }}">All 31 Vargas</a>
+  <a href="/vargas?name={{ b.name|urlencode }}&date={{ b.date }}&time={{ b.time }}&lat={{ b.latitude }}&lon={{ b.longitude }}&tz={{ b.timezone|urlencode }}&city={{ b.city|urlencode }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D1" class="pill {{ 'good' if v_filter=='D1' else '' }}">D1 Rashi</a>
+  <a href="/vargas?name={{ b.name|urlencode }}&date={{ b.date }}&time={{ b.time }}&lat={{ b.latitude }}&lon={{ b.longitude }}&tz={{ b.timezone|urlencode }}&city={{ b.city|urlencode }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D9" class="pill {{ 'good' if v_filter=='D9' else '' }}">D9 Navamsha</a>
+  <a href="/vargas?name={{ b.name|urlencode }}&date={{ b.date }}&time={{ b.time }}&lat={{ b.latitude }}&lon={{ b.longitude }}&tz={{ b.timezone|urlencode }}&city={{ b.city|urlencode }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D10" class="pill {{ 'good' if v_filter=='D10' else '' }}">D10 Dashamsha</a>
+  <a href="/vargas?name={{ b.name|urlencode }}&date={{ b.date }}&time={{ b.time }}&lat={{ b.latitude }}&lon={{ b.longitude }}&tz={{ b.timezone|urlencode }}&city={{ b.city|urlencode }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D3" class="pill {{ 'good' if v_filter=='D3' else '' }}">D3 Drekkana</a>
+  <a href="/vargas?name={{ b.name|urlencode }}&date={{ b.date }}&time={{ b.time }}&lat={{ b.latitude }}&lon={{ b.longitude }}&tz={{ b.timezone|urlencode }}&city={{ b.city|urlencode }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D5" class="pill {{ 'good' if v_filter=='D5' else '' }}">D5 Panchamsha</a>
+  <a href="/vargas?name={{ b.name|urlencode }}&date={{ b.date }}&time={{ b.time }}&lat={{ b.latitude }}&lon={{ b.longitude }}&tz={{ b.timezone|urlencode }}&city={{ b.city|urlencode }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D6" class="pill {{ 'good' if v_filter=='D6' else '' }}">D6 Shashtamsha</a>
+  <a href="/vargas?name={{ b.name|urlencode }}&date={{ b.date }}&time={{ b.time }}&lat={{ b.latitude }}&lon={{ b.longitude }}&tz={{ b.timezone|urlencode }}&city={{ b.city|urlencode }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D8" class="pill {{ 'good' if v_filter=='D8' else '' }}">D8 Ashtamsha</a>
+  <a href="/vargas?name={{ b.name|urlencode }}&date={{ b.date }}&time={{ b.time }}&lat={{ b.latitude }}&lon={{ b.longitude }}&tz={{ b.timezone|urlencode }}&city={{ b.city|urlencode }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D11" class="pill {{ 'good' if v_filter=='D11' else '' }}">D11 Ekadashamsha</a>
+  <a href="/vargas?name={{ b.name|urlencode }}&date={{ b.date }}&time={{ b.time }}&lat={{ b.latitude }}&lon={{ b.longitude }}&tz={{ b.timezone|urlencode }}&city={{ b.city|urlencode }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D150" class="pill {{ 'good' if v_filter=='D150' else '' }}">D150 Nadiamsha</a>
+  <a href="/vargas?name={{ b.name|urlencode }}&date={{ b.date }}&time={{ b.time }}&lat={{ b.latitude }}&lon={{ b.longitude }}&tz={{ b.timezone|urlencode }}&city={{ b.city|urlencode }}&style={{ style }}&ayanamsa={{ ayanamsa }}&varga=D2_IYER" class="pill {{ 'good' if v_filter=='D2_IYER' else '' }}">Hora Iyer</a>
 </div>
 
 {% for vk, vinfo in vdata.vargas.items() %}

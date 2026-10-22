@@ -40,7 +40,7 @@
   <h2>Solar Return Overview for Year {{ vdata.year }} (Age {{ vdata.age }})</h2>
   <div class="body">
     <div class="suntimes" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));">
-      <div><span>Solar Return Moment</span><b>{{ vdata.solar_return_moment[:19].replace('T',' ') }}</b></div>
+      <div><span>Solar Return Moment</span><b>{{ vdata.solar_return_moment|dt_ampm }}</b></div>
       <div><span>Year Lord (Varshesha)</span><b style="color:var(--good)">{{ vdata.year_lord }}</b></div>
       <div><span>Muntha Location</span><b>{{ vdata.muntha.sign }} (H{{ vdata.muntha.house }})</b></div>
       <div><span>Varsha Lagna</span><b>{{ vdata.varsha_lagna.rashi }} {{ vdata.varsha_lagna.dms }}</b></div>
