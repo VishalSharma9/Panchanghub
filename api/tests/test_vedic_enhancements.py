@@ -451,7 +451,7 @@ def test_master_destiny_and_ravana_endpoints():
         '&cur_lat=40.7128&cur_lon=-74.0060&cur_tz=-4.0&cur_city=New+York&scan_days=15'
     )
     assert dweb.status_code == 200
-    assert 'Ravana Samhita 9-Planet Control' in dweb.text
-    assert 'Lottery & Windfall Oracle' in dweb.text
+    assert 'Ravana Samhita 9-Planet Mastery' in dweb.text
+    assert 'Lottery, Speculation & Sudden Windfall Oracle' in dweb.text
     assert 'Grandchildren' in dweb.text
     assert 'D-60 Shashtiamsha' in dweb.text

@@ -814,21 +814,21 @@
 
 <script>
 function showDestinyTab(tabId, btn) {
-    document.querySelectorAll('.destiny-tab').forEach(function(el) {
+    document.querySelectorAll('.destiny-tab, .d-tab-pane').forEach(function(el) {
         el.style.display = 'none';
     });
     var target = document.getElementById(tabId);
     if (target) {
         target.style.display = 'block';
     }
-    document.querySelectorAll('.destiny-tab-btn').forEach(function(b) {
-        b.style.background = 'rgba(255,255,255,0.05)';
-        b.style.color = 'var(--text)';
+    document.querySelectorAll('.destiny-tab-btn, .d-tab-btn').forEach(function(b) {
+        b.style.background = '#475569';
+        b.style.color = '#fff';
         b.style.fontWeight = 'normal';
     });
     if (btn) {
-        btn.style.background = 'var(--accent)';
-        btn.style.color = '#111';
+        btn.style.background = '#b45309';
+        btn.style.color = '#fff';
         btn.style.fontWeight = 'bold';
     }
 }
