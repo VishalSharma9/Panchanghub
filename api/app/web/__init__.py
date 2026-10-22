@@ -797,13 +797,23 @@ def register(app: FastAPI):
 
         dossier = None
         try:
+            def _split_tz(tz_raw):
+                if tz_raw is None:
+                    return ("Asia/Kolkata", None)
+                try:
+                    return (None, float(tz_raw))
+                except ValueError:
+                    return (str(tz_raw), None)
+
+            b_tz_name, b_utc_off = _split_tz(b_tz)
+            c_tz_name, c_utc_off = _split_tz(c_tz)
             d_obj = Date.fromisoformat(dob_str)
             t_obj = datetime.strptime(tm_str, "%H:%M:%S").time()
-            tz_b = ephem.make_tz(b_tz, None)
+            tz_b = ephem.make_tz(b_tz_name, b_utc_off)
             dt_utc = datetime.combine(d_obj, t_obj).replace(tzinfo=tz_b).astimezone(timezone.utc)
             dossier = compute_master_destiny_dossier(
-                dt_utc, b_lat, b_lon, b_tz, None, name=name,
-                current_lat=c_lat, current_lon=c_lon, current_tz_name=c_tz,
+                dt_utc, b_lat, b_lon, b_tz_name, b_utc_off, name=name,
+                current_lat=c_lat, current_lon=c_lon, current_tz_name=c_tz_name, current_utc_offset=c_utc_off,
                 current_city=c_city, scan_days=min(max(scan_days, 7), 90)
             )
         except Exception:
@@ -812,7 +822,7 @@ def register(app: FastAPI):
             request, "destiny.html",
             f"Master Destiny, Ravana Planetary Control, Lottery, Longevity & Past/Future Life – {BRAND}",
             "Cross-linked Vedic astrology oracle: diseases, longevity, accident dates & hours, lottery luck, marriage count, children & grandchildren, past/future life, and Ravana Samhita 9-planet control.",
-            "/destiny", dossier=dossier, q=q, b=b,
+            "/destiny", dossier=dossier, q=q, b=b, cur_city=c_city,
             form={"name": name, "date": dob_str, "time": tm_str[:5], "lat": b_lat, "lon": b_lon, "tz": b_tz, "city": b_city,
                   "cur_lat": c_lat, "cur_lon": c_lon, "cur_tz": c_tz, "cur_city": c_city, "scan_days": scan_days}
         )
