@@ -148,25 +148,62 @@
           alignSugg(list);
         }catch(e){list.hidden=true}
       },200)})});
-  // birth-place pickers in forms
+  // birth-place & current-place pickers in forms
   document.querySelectorAll('[data-place]').forEach(el=>{
-    const pre=el.dataset.place, list=document.createElement('div');list.className='sugg';list.hidden=true;el.parentNode.style.position='relative';el.parentNode.appendChild(list);
-    let tt;el.addEventListener('input',()=>{clearTimeout(tt);const q=el.value.trim();if(q.length<2){list.hidden=true;return}
+    const pre=el.dataset.place||'', list=document.createElement('div');
+    list.className='sugg';list.hidden=true;
+    el.parentNode.style.position='relative';
+    el.parentNode.appendChild(list);
+    const scope=el.form||document;
+    let lastPickedVal=el.value.trim();
+    let lastResults=[];
+    function applyCity(c){
+      const formatted=[c.name,c.admin1_name,c.country_name||c.country].filter(Boolean).join(', ');
+      el.value=formatted;
+      lastPickedVal=formatted;
+      const latF=scope.querySelector(`[name="${pre}lat"]`);if(latF) latF.value=c.latitude;
+      const lonF=scope.querySelector(`[name="${pre}lon"]`);if(lonF) lonF.value=c.longitude;
+      const tzF=scope.querySelector(`[name="${pre}tz"]`);if(tzF) tzF.value=c.timezone;
+      list.hidden=true;
+    }
+    let tt;
+    el.addEventListener('input',()=>{
+      clearTimeout(tt);
+      const q=el.value.trim();
+      if(q.length<2){list.hidden=true;return;}
       tt=setTimeout(async()=>{
         try{
           const j=await (await fetch('/api/cities?limit=10&q='+encodeURIComponent(q))).json();
+          lastResults=j.results||[];
           list.innerHTML='';
-          (j.results||[]).forEach(c=>{list.appendChild(makeSuggDiv(c, ()=>{
-            el.value=[c.name,c.admin1_name,c.country_name||c.country].filter(Boolean).join(', ');
-            const latF=document.querySelector(`[name=${pre}lat]`);if(latF) latF.value=c.latitude;
-            const lonF=document.querySelector(`[name=${pre}lon]`);if(lonF) lonF.value=c.longitude;
-            const tzF=document.querySelector(`[name=${pre}tz]`);if(tzF) tzF.value=c.timezone;
-            list.hidden=true;
-          }))});
-          if(!j.results||!j.results.length){const d=document.createElement('div');d.textContent='No place found. Try another spelling.';list.appendChild(d)}
+          lastResults.forEach(c=>{
+            const item=makeSuggDiv(c, ()=>applyCity(c));
+            item.addEventListener('mousedown', e=>{e.preventDefault();applyCity(c);});
+            list.appendChild(item);
+          });
+          if(!lastResults.length){
+            const d=document.createElement('div');
+            d.textContent='No place found. Try another spelling.';
+            list.appendChild(d);
+          }
           alignSugg(list);
-        }catch(e){list.hidden=true}
-      },200)})});
+        }catch(e){list.hidden=true;}
+      },180);
+    });
+    el.addEventListener('change', async()=>{
+      const q=el.value.trim();
+      if(q.length>=2 && q!==lastPickedVal){
+        if(lastResults.length>0){
+          applyCity(lastResults[0]);
+        }else{
+          try{
+            const j=await (await fetch('/api/cities?limit=1&q='+encodeURIComponent(q))).json();
+            if(j.results && j.results.length>0) applyCity(j.results[0]);
+          }catch(e){}
+        }
+      }
+    });
+  });
 
   // Close suggestions when clicking outside
   document.addEventListener('click', e => {

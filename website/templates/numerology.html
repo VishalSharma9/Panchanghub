@@ -38,7 +38,7 @@
                 </label>
                 <label>
                     City / Place (Optional for Kundli)
-                    <input type="text" name="city" id="city_search" value="{{ q.get('city', 'New Delhi') }}" placeholder="Search city..." autocomplete="off">
+                    <input type="text" data-place="" name="city" id="city_search" value="{{ q.get('city', 'New Delhi') }}" placeholder="Search city..." autocomplete="off">
                     <input type="hidden" name="lat" id="city_lat" value="{{ q.get('lat', '28.6139') }}">
                     <input type="hidden" name="lon" id="city_lon" value="{{ q.get('lon', '77.2090') }}">
                     <input type="hidden" name="tz" id="city_tz" value="{{ q.get('tz', 'Asia/Kolkata') }}">

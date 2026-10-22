@@ -2,20 +2,22 @@
 {% block content %}
 <div class="hero-section" style="margin-bottom: 24px;">
     <h1 style="margin: 0 0 8px 0; font-size: 28px; display: flex; align-items: center; gap: 10px;">
-        <span>ðŸ”±</span> Master Destiny, Ravana Graha Control & Life Oracle
+        <span>&#x1F531;</span> Master Destiny, Ravana Graha Control &amp; Life Oracle
     </h1>
     <p class="neutral" style="margin: 0; font-size: 15px;">
-        Location-Calibrated Cross-Linked Vedic Intelligence: Ravana Samhita 9-Planet Mastery, Lottery & Windfall Horas, Accident & Danger Windows, Diseases & Longevity (Ayurdaya), Marriage Count & Fixes, Progeny & Grandchildren (D-7), and Past/Future Life (D-60).
+        Location-Calibrated Cross-Linked Vedic Intelligence: Ravana Samhita 9-Planet Mastery, Lottery &amp; Windfall Horas, Accident &amp; Danger Windows, Diseases &amp; Longevity (Ayurdaya), Marriage Count &amp; Fixes, Progeny &amp; Grandchildren (D-7), and Past/Future Life (D-60).
     </p>
 </div>
 
 <!-- Dual-Location Input Form: Birth Chart + Current Location Calibration -->
 <section class="card" style="margin-bottom: 20px;">
-    <h2>1. Birth Chart & Current Location Calibration</h2>
+    <h2>1. Birth Chart &amp; Current Location Calibration</h2>
     <div class="body">
-        <form class="f" method="get" action="/destiny">
-            <div style="font-weight: 700; margin-bottom: 8px; color: var(--accent, #b45309);">A. Natal Birth Data (Root Karma Anchor)</div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px;">
+        <form method="get" action="/destiny" style="display: block;">
+            <div style="font-weight: 700; margin-bottom: 10px; color: #8e1b3a; font-size: 15px;">
+                A. Natal Birth Data (Root Karma Anchor)
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 12px; margin-bottom: 16px;">
                 <label>Full Name
                     <input type="text" name="name" value="{{ form.name }}" required>
                 </label>
@@ -26,7 +28,7 @@
                     <input type="time" name="time" value="{{ form.time }}" step="60" required>
                 </label>
                 <label>Birth City
-                    <input type="text" name="city" value="{{ form.city }}" placeholder="New Delhi, India">
+                    <input type="text" data-place="" name="city" value="{{ form.city }}" placeholder="Type birth city to search..." autocomplete="off">
                 </label>
                 <label>Birth Latitude
                     <input type="number" step="any" name="lat" value="{{ form.lat }}" required>
@@ -39,21 +41,21 @@
                 </label>
             </div>
 
-            <div style="font-weight: 700; margin: 16px 0 8px 0; padding-top: 12px; border-top: 1px dashed var(--border, #e2e8f0); color: var(--accent, #0f766e);">
-                B. Current Location (Where You Are Now â€” Calibrates Local Sunrise, Horas, Rahu Kaal, Lottery & Accident Hours)
+            <div style="font-weight: 700; margin: 16px 0 10px 0; padding-top: 14px; border-top: 1px dashed var(--border, #e2e8f0); color: #0f766e; font-size: 15px;">
+                B. Current Location (Where You Are Now &mdash; Calibrates Local Sunrise, Horas, Rahu Kaal, Lottery &amp; Accident Hours)
             </div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 12px;">
                 <label>Current City
-                    <input type="text" name="cur_city" id="cur_city" value="{{ form.cur_city }}">
+                    <input type="text" data-place="cur_" name="cur_city" id="cur_city_input" value="{{ form.cur_city }}" placeholder="Type current city to search..." autocomplete="off">
                 </label>
                 <label>Current Latitude
-                    <input type="number" step="any" name="cur_lat" id="cur_lat" value="{{ form.cur_lat }}">
+                    <input type="number" step="any" name="cur_lat" id="cur_lat_input" value="{{ form.cur_lat }}">
                 </label>
                 <label>Current Longitude
-                    <input type="number" step="any" name="cur_lon" id="cur_lon" value="{{ form.cur_lon }}">
+                    <input type="number" step="any" name="cur_lon" id="cur_lon_input" value="{{ form.cur_lon }}">
                 </label>
                 <label>Current Timezone
-                    <input type="text" name="cur_tz" id="cur_tz" value="{{ form.cur_tz }}">
+                    <input type="text" name="cur_tz" id="cur_tz_input" value="{{ form.cur_tz }}">
                 </label>
                 <label>Scan Window (Days)
                     <input type="number" name="scan_days" min="7" max="90" value="{{ form.scan_days }}">
@@ -61,8 +63,8 @@
             </div>
 
             <div style="margin-top: 16px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
-                <button type="submit" class="btn">ðŸ”± Compute Complete Destiny & Location Horas</button>
-                <button type="button" class="btn" style="background:#334155;" onclick="useMyGPS()">ðŸ“ Use My Live GPS for Current Location</button>
+                <button type="submit" class="btn alt">&#x1F531; Compute Complete Destiny &amp; Location Horas</button>
+                <button type="button" class="btn" style="background:#334155; color:#fff;" onclick="useMyGPS()">&#x1F4CD; Use My Live GPS for Current Location</button>
             </div>
         </form>
     </div>
@@ -75,7 +77,7 @@
 <section class="card" style="margin-bottom: 20px; background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 1px solid #f59e0b;">
     <div class="body" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;">
         <div>
-            <strong>ðŸ”— Cross-Linked Chart Modules for {{ dossier.name }}:</strong>
+            <strong>&#x1F517; Cross-Linked Chart Modules for {{ dossier.name }}:</strong>
             <span class="neutral" style="font-size:13px;">
                 Natal Lagna: <b>{{ dossier.birth_chart_anchor.natal_lagna }}</b> |
                 Natal Moon: <b>{{ dossier.birth_chart_anchor.natal_moon }}</b> |
@@ -84,60 +86,60 @@
             </span>
         </div>
         <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-            <a class="btn" style="padding: 6px 12px; font-size: 13px;" href="/kundli?{{ bq }}">â˜¸ï¸ Full Kundli</a>
-            <a class="btn" style="padding: 6px 12px; font-size: 13px;" href="/vargas?{{ bq }}">ðŸ“ 31 Vargas (D1â€“D150)</a>
-            <a class="btn" style="padding: 6px 12px; font-size: 13px;" href="/numerology?{{ bq }}">ðŸ”¢ Astro-Numerology</a>
-            <a class="btn" style="padding: 6px 12px; font-size: 13px;" href="/reading?{{ bq }}">ðŸ“œ 144 Lords Reading</a>
-            <a class="btn" style="padding: 6px 12px; font-size: 13px;" href="/yogas?{{ bq }}">âœ¨ Classical Yogas</a>
-            <a class="btn" style="padding: 6px 12px; font-size: 13px;" href="/prashna?lat={{ form.cur_lat }}&lon={{ form.cur_lon }}&tz={{ form.cur_tz }}">ðŸ”® Live Prashna</a>
+            <a class="btn" style="padding: 6px 12px; font-size: 13px;" href="/kundli?{{ bq }}">&#x2638; Full Kundli</a>
+            <a class="btn" style="padding: 6px 12px; font-size: 13px;" href="/vargas?{{ bq }}">&#x1F4D0; 31 Vargas (D1&ndash;D150)</a>
+            <a class="btn" style="padding: 6px 12px; font-size: 13px;" href="/numerology?{{ bq }}">&#x1F522; Astro-Numerology</a>
+            <a class="btn" style="padding: 6px 12px; font-size: 13px;" href="/reading?{{ bq }}">&#x1F4DC; 144 Lords Reading</a>
+            <a class="btn" style="padding: 6px 12px; font-size: 13px;" href="/yogas?{{ bq }}">&#x2728; Classical Yogas</a>
+            <a class="btn" style="padding: 6px 12px; font-size: 13px;" href="/prashna?lat={{ form.cur_lat }}&lon={{ form.cur_lon }}&tz={{ form.cur_tz }}">&#x1F52E; Live Prashna</a>
         </div>
     </div>
 </section>
 
 <!-- 8-Tab Navigation -->
 <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;">
-    <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-ravana', this)" style="background:#b45309;">ðŸ‘‘ 1. Ravana 9-Planet Control</button>
-    <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-lottery', this)" style="background:#475569;">ðŸŽ° 2. Lottery & Windfall Horas</button>
-    <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-turning', this)" style="background:#475569;">âš¡ 3. Good/Bad Dates & Luck Fix</button>
-    <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-accidents', this)" style="background:#475569;">ðŸ›¡ï¸ 4. Accidents & Danger Hours</button>
-    <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-medical', this)" style="background:#475569;">ðŸ¥ 5. Diseases, Death & Longevity</button>
-    <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-marriage', this)" style="background:#475569;">ðŸ’ 6. Marriage Count & Fixes</button>
-    <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-progeny', this)" style="background:#475569;">ðŸ‘¶ 7. Kids & Grandchildren (D-7)</button>
-    <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-reincarnation', this)" style="background:#475569;">ðŸ•‰ï¸ 8. Past/Future Life & Purpose</button>
+    <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-ravana', this)" style="background:#b45309; color:#fff; font-weight:bold;">&#x1F451; 1. Ravana 9-Planet Control</button>
+    <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-lottery', this)" style="background:#475569; color:#fff;">&#x1F3B0; 2. Lottery &amp; Windfall Horas</button>
+    <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-turning', this)" style="background:#475569; color:#fff;">&#x26A1; 3. Good/Bad Dates &amp; Luck Fix</button>
+    <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-accidents', this)" style="background:#475569; color:#fff;">&#x1F6E1; 4. Accidents &amp; Danger Hours</button>
+    <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-medical', this)" style="background:#475569; color:#fff;">&#x2695; 5. Diseases, Death &amp; Longevity</button>
+    <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-marriage', this)" style="background:#475569; color:#fff;">&#x1F48D; 6. Marriage Count &amp; Fixes</button>
+    <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-progeny', this)" style="background:#475569; color:#fff;">&#x1F476; 7. Kids &amp; Grandchildren (D-7)</button>
+    <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-reincarnation', this)" style="background:#475569; color:#fff;">&#x1F549; 8. Past/Future Life &amp; Purpose</button>
 </div>
 
 <!-- ==================== TAB 1: RAVANA SAMHITA 9-PLANET MASTERY ==================== -->
 {% set rm = dossier.ravana_samhita_planetary_mastery %}
 <div id="tab-ravana" class="d-tab-pane">
     <section class="card" style="margin-bottom: 20px;">
-        <h2>ðŸ‘‘ Ravana Samhita Graha Prabandhana â€” Complete 9-Planet Mastery</h2>
+        <h2>&#x1F451; Ravana Samhita Graha Prabandhana &mdash; Complete 9-Planet Mastery</h2>
         <div class="body">
             <p>Just as Dashagriva Ravana commanded the 9 Grahas around his throne through supreme astronomical timing and Tantra/Mantra discipline, your <b>{{ rm.functional_planet_hierarchy.lagna_sign }} ({{ rm.functional_planet_hierarchy.lagna_rashi }})</b> chart has a specific command hierarchy:</p>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 16px;">
                 <div style="padding:12px; background:#f0fdf4; border-left:4px solid #16a34a; border-radius:6px;">
-                    <strong>ðŸŒŸ Functional Benefics (Amplify):</strong><br>
+                    <strong>&#x1F31F; Functional Benefics (Amplify):</strong><br>
                     {{ rm.functional_planet_hierarchy.functional_benefics | join(', ') }}
                 </div>
                 <div style="padding:12px; background:#fef2f2; border-left:4px solid #dc2626; border-radius:6px;">
-                    <strong>ðŸ”¥ Functional Malefics (Pacify & Command):</strong><br>
+                    <strong>&#x1F525; Functional Malefics (Pacify &amp; Command):</strong><br>
                     {{ rm.functional_planet_hierarchy.functional_malefics | join(', ') }}
                 </div>
                 <div style="padding:12px; background:#fffbeb; border-left:4px solid #d97706; border-radius:6px;">
-                    <strong>âš ï¸ Marakas & Badhaka Lord:</strong><br>
+                    <strong>&#x26A0; Marakas &amp; Badhaka Lord:</strong><br>
                     Marakas: {{ rm.functional_planet_hierarchy.maraka_lords | join(', ') }} | Badhaka: {{ rm.functional_planet_hierarchy.badhaka_lord }}
                 </div>
             </div>
 
-            <h3>ðŸ’Ž Strategic Gemstone Prescription (Life, Luck & Destiny Stones)</h3>
+            <h3>&#x1F48E; Strategic Gemstone Prescription (Life, Luck &amp; Destiny Stones)</h3>
             <div class="table-wrap">
                 <table>
                     <thead>
                         <tr>
                             <th>Role</th>
-                            <th>Planet & Gem</th>
+                            <th>Planet &amp; Gem</th>
                             <th>Substitute</th>
-                            <th>Weight, Metal & Finger</th>
-                            <th>Exact Wearing Time & Energization Shloka</th>
+                            <th>Weight, Metal &amp; Finger</th>
+                            <th>Exact Wearing Time &amp; Energization Shloka</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -154,43 +156,43 @@
                 </table>
             </div>
 
-            <h3 style="margin-top:18px; color:#b91c1c;">ðŸš« Forbidden Gemstones (Never Wear These)</h3>
+            <h3 style="margin-top:18px; color:#b91c1c;">&#x1F6AB; Forbidden Gemstones (Never Wear These)</h3>
             <ul>
                 {% for fg in rm.forbidden_gemstones_warning %}
                 <li><strong>{{ fg.planet }} ({{ fg.gem_to_avoid }}):</strong> {{ fg.why_avoid }}</li>
                 {% endfor %}
             </ul>
 
-            <h3 style="margin-top:18px;">ðŸ”± Things to Keep Close vs. Things to Avoid (Colors, Numbers, Objects, Directions)</h3>
+            <h3 style="margin-top:18px;">&#x1F531; Things to Keep Close vs. Things to Avoid (Colors, Numbers, Objects, Directions)</h3>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
                 <div style="padding:16px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px;">
-                    <h4 style="margin-top:0; color:#15803d;">âœ… KEEP CLOSE TO YOU</h4>
-                    <p><strong>Sacred Objects (Wallet/Desk):</strong> {{ rm.things_to_keep_close_master_guide.sacred_objects_for_wallet_and_desk | join(' â€¢ ') }}</p>
+                    <h4 style="margin-top:0; color:#15803d;">&#x2705; KEEP CLOSE TO YOU</h4>
+                    <p><strong>Sacred Objects (Wallet/Desk):</strong> {{ rm.things_to_keep_close_master_guide.sacred_objects_for_wallet_and_desk | join(' &bull; ') }}</p>
                     <p><strong>Power Colors:</strong> {{ rm.things_to_keep_close_master_guide.power_colors_to_wear | join(', ') }}</p>
                     <p><strong>Power Numbers:</strong> {{ rm.things_to_keep_close_master_guide.power_numbers_to_use | join(', ') }}</p>
                     <p><strong>Favorable Metals:</strong> {{ rm.things_to_keep_close_master_guide.favorable_metals | join(', ') }}</p>
                     <p><strong>Directions:</strong> {{ rm.things_to_keep_close_master_guide.auspicious_directions_for_head_and_desk | join(' | ') }}</p>
-                    <p><strong>Plants & Animal Service:</strong> {{ rm.things_to_keep_close_master_guide.trees_and_plants_to_nurture | join(', ') }} â€¢ {{ rm.things_to_keep_close_master_guide.animals_to_feed_for_instant_punya | join(' â€¢ ') }}</p>
+                    <p><strong>Plants &amp; Animal Service:</strong> {{ rm.things_to_keep_close_master_guide.trees_and_plants_to_nurture | join(', ') }} &bull; {{ rm.things_to_keep_close_master_guide.animals_to_feed_for_instant_punya | join(' &bull; ') }}</p>
                 </div>
                 <div style="padding:16px; background:#fef2f2; border:1px solid #fecaca; border-radius:8px;">
-                    <h4 style="margin-top:0; color:#b91c1c;">âŒ STRICTLY AVOID</h4>
-                    <p><strong>Objects to Remove:</strong> {{ rm.things_to_avoid_master_guide.objects_to_strictly_remove_from_home_and_body | join(' â€¢ ') }}</p>
+                    <h4 style="margin-top:0; color:#b91c1c;">&#x274C; STRICTLY AVOID</h4>
+                    <p><strong>Objects to Remove:</strong> {{ rm.things_to_avoid_master_guide.objects_to_strictly_remove_from_home_and_body | join(' &bull; ') }}</p>
                     <p><strong>Colors to Avoid:</strong> {{ rm.things_to_avoid_master_guide.colors_to_avoid_in_high_stakes | join(', ') }}</p>
                     <p><strong>Inimical Numbers:</strong> {{ rm.things_to_avoid_master_guide.numbers_to_avoid | join(', ') }}</p>
                     <p><strong>Habits to Never Do:</strong> {{ rm.things_to_avoid_master_guide.habits_and_actions_to_never_do | join(' ') }}</p>
                 </div>
             </div>
 
-            <h3 style="margin-top:20px;">ðŸ•‰ï¸ All 9 Planets Command Schedule: God to Worship, When, How Long & Ravana Secret</h3>
+            <h3 style="margin-top:20px;">&#x1F549; All 9 Planets Command Schedule: God to Worship, When, How Long &amp; Ravana Secret</h3>
             <div class="table-wrap">
                 <table>
                     <thead>
                         <tr>
-                            <th>Planet & Placement</th>
+                            <th>Planet &amp; Placement</th>
                             <th>Command Strategy</th>
-                            <th>Deity, When & How Long</th>
-                            <th>Beej & Puranic Shloka</th>
-                            <th>Ravana Samhita Secret & Dana</th>
+                            <th>Deity, When &amp; How Long</th>
+                            <th>Beej &amp; Puranic Shloka</th>
+                            <th>Ravana Samhita Secret &amp; Dana</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -812,6 +814,7 @@
     </section>
 </div>
 
+{% endif %}
 <script>
 function showDestinyTab(tabId, btn) {
     document.querySelectorAll('.destiny-tab, .d-tab-pane').forEach(function(el) {
@@ -838,16 +841,25 @@ function useMyGPS() {
         alert('Geolocation is not supported by your browser.');
         return;
     }
-    navigator.geolocation.getCurrentPosition(function(pos) {
-        document.getElementById('cur_lat_input').value = pos.coords.latitude.toFixed(4);
-        document.getElementById('cur_lon_input').value = pos.coords.longitude.toFixed(4);
-        var tzOffset = -new Date().getTimezoneOffset() / 60;
-        document.getElementById('cur_tz_input').value = tzOffset;
-        document.getElementById('cur_city_input').value = 'My Current GPS Location';
+    navigator.geolocation.getCurrentPosition(async function(pos) {
+        var lat = pos.coords.latitude;
+        var lon = pos.coords.longitude;
+        document.getElementById('cur_lat_input').value = lat.toFixed(4);
+        document.getElementById('cur_lon_input').value = lon.toFixed(4);
+        var tz = (Intl.DateTimeFormat().resolvedOptions().timeZone) || 'UTC';
+        try {
+            var r = await fetch('/api/cities/nearest?lat=' + lat + '&lon=' + lon);
+            if (r.ok) {
+                var c = await r.json();
+                var label = [c.name, c.admin1_name, c.country_name || c.country].filter(Boolean).join(', ');
+                if (label) document.getElementById('cur_city_input').value = label;
+                if (c.timezone) tz = c.timezone;
+            }
+        } catch (e) {}
+        document.getElementById('cur_tz_input').value = tz;
     }, function(err) {
         alert('Unable to retrieve GPS coordinates: ' + err.message);
     });
 }
 </script>
-{% endif %}
 {% endblock %}

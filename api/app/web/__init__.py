@@ -209,14 +209,34 @@ NAV = [("/", "Home"), ("/mine", "For You"), ("/week", "This Week"), ("/compare",
        ("/human-design", "Human Design"), ("/vastu", "Vastu"), ("/iching", "I-Ching"), ("/palmistry", "Palmistry"), ("/tools", "More Tools"), ("/regional", "Regional Calendars")]
 templates.env.globals["NAV"] = NAV
 
+def _resolve_city_coords(city_str: str, lat: float, lon: float, tz: str):
+    if not city_str or len(city_str.strip()) < 2:
+        return city_str, lat, lon, tz
+    try:
+        from ..api.routers import geo as RGeo
+        q_clean = city_str.split(",")[0].strip()
+        if len(q_clean) >= 2:
+            res = RGeo.search(q=q_clean, limit=1).get("results", [])
+            if res:
+                top = res[0]
+                if abs(top["latitude"] - lat) > 0.5 or abs(top["longitude"] - lon) > 0.5:
+                    full_label = ", ".join(x for x in (top.get("name"), top.get("admin1_name"), top.get("country_name") or top.get("country")) if x)
+                    return full_label or city_str, float(top["latitude"]), float(top["longitude"]), top.get("timezone") or tz
+    except Exception:
+        pass
+    return city_str, lat, lon, tz
+
 def birth_from_query(request, prefix=""):
     q = request.query_params
     g = lambda k, d=None: q.get(prefix + k, d)
     if not g("date") or not g("lat"):
         return None
     tm = g("time", "12:00")
-    return dict(date=g("date"), time=tm if len(tm) > 5 else tm + ":00", latitude=float(g("lat")), longitude=float(g("lon")),
-                timezone=g("tz", "Asia/Kolkata"), name=g("name"), city=g("city", ""))
+    city_s, lat_f, lon_f, tz_s = _resolve_city_coords(
+        g("city", ""), float(g("lat")), float(g("lon")), g("tz", "Asia/Kolkata")
+    )
+    return dict(date=g("date"), time=tm if len(tm) > 5 else tm + ":00", latitude=lat_f, longitude=lon_f,
+                timezone=tz_s, name=g("name"), city=city_s)
 
 def register(app: FastAPI):
     app.mount("/static", StaticFiles(directory=os.path.join(WEB_ROOT, "static")), name="static")
@@ -788,11 +808,13 @@ def register(app: FastAPI):
         b_lon = float(q["lon"]) if q.get("lon") else (b.get("longitude") if b else 77.2090)
         b_tz = q.get("tz") or (b.get("timezone") if b else "Asia/Kolkata")
         b_city = q.get("city") or (b.get("city") if b else "New Delhi, India")
+        b_city, b_lat, b_lon, b_tz = _resolve_city_coords(b_city, b_lat, b_lon, b_tz)
 
         c_lat = float(q["cur_lat"]) if q.get("cur_lat") else loc["lat"]
         c_lon = float(q["cur_lon"]) if q.get("cur_lon") else loc["lon"]
         c_tz = q.get("cur_tz") or loc["tz"]
         c_city = q.get("cur_city") or loc["city"]
+        c_city, c_lat, c_lon, c_tz = _resolve_city_coords(c_city, c_lat, c_lon, c_tz)
         scan_days = int(q.get("scan_days", 30)) if str(q.get("scan_days", "30")).isdigit() else 30
 
         dossier = None
