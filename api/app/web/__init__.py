@@ -864,11 +864,42 @@ def register(app: FastAPI):
 
     @app.get("/vastu", response_class=HTMLResponse, include_in_schema=False)
     def vastu(request: Request):
+        from ..core.astro_vastu_engine import compute_personalized_astro_vastu, PLAIN_ENGLISH_GLOSSARY
         q = request.query_params
+        b = birth_from_query(request)
+        dob_str = q.get("date") or q.get("dob") or (b.get("date") if b else "") or "1990-05-15"
+        tm_str = q.get("time") or (b.get("time") if b else "08:30:00")
+        if len(tm_str) == 5:
+            tm_str += ":00"
+        b_lat = float(q["lat"]) if q.get("lat") else (b.get("latitude") if b else 28.6139)
+        b_lon = float(q["lon"]) if q.get("lon") else (b.get("longitude") if b else 77.2090)
+        b_tz = q.get("tz") or (b.get("timezone") if b else "Asia/Kolkata")
+        b_city = q.get("city") or (b.get("city") if b else "New Delhi, India")
+        b_city, b_lat, b_lon, b_tz = _resolve_city_coords(b_city, b_lat, b_lon, b_tz)
+
+        astro_vastu = None
+        try:
+            try:
+                tz_b = ephem.make_tz(None, float(b_tz))
+            except (ValueError, TypeError):
+                tz_b = ephem.make_tz(str(b_tz), None)
+            dt_utc = datetime.combine(Date.fromisoformat(dob_str), datetime.strptime(tm_str, "%H:%M:%S").time()).replace(tzinfo=tz_b).astimezone(timezone.utc)
+            jd = ephem.jd_from_utc(dt_utc)
+            pos = ephem.all_positions(jd, sidereal=True)
+            _, asc_lon, _ = ephem.houses(jd, b_lat, b_lon, "P", sidereal=True)
+            astro_vastu = compute_personalized_astro_vastu(pos, asc_lon)
+        except Exception:
+            astro_vastu = None
+
         layout = {r: q.get("room_" + r.replace(" ", "_")) for r in ESO.ROOM_BEST if q.get("room_" + r.replace(" ", "_"))}
         v = ESO.vastu(layout or None, q.get("facing"))
-        return page(request, "vastu.html", f"Vastu Shastra Guide & Home Checker – {BRAND}", "Vastu directions, deities and elements with a room placement score.",
-                    "/vastu", v=v, q=q, rooms=list(ESO.ROOM_BEST), dirs=list(ESO.VASTU))
+        return page(
+            request, "vastu.html", f"Interactive Visual Vastu Studio & Astro-Vastu Guide – {BRAND}",
+            "Interactive Visual House (Square/Rectangle) & Outer-Lot Vastu Architect with Birth-Chart Astro-Vastu synthesis, Do's/Don'ts, and zero-demolition remedies.",
+            "/vastu", v=v, q=q, rooms=list(ESO.ROOM_BEST), dirs=list(ESO.VASTU),
+            astro_vastu=astro_vastu, glossary=PLAIN_ENGLISH_GLOSSARY,
+            b_form={"date": dob_str, "time": tm_str[:5], "lat": b_lat, "lon": b_lon, "tz": b_tz, "city": b_city}
+        )
 
     @app.get("/iching", response_class=HTMLResponse, include_in_schema=False)
     def iching(request: Request):

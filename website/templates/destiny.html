@@ -2,10 +2,10 @@
 {% block content %}
 <div class="hero-section" style="margin-bottom: 24px;">
     <h1 style="margin: 0 0 8px 0; font-size: 28px; display: flex; align-items: center; gap: 10px;">
-        <span>&#x1F531;</span> Master Destiny, Ravana Graha Control &amp; Life Oracle
+        <span>&#x1F531;</span> Master Destiny, Ravana Graha Control, Astro-Vastu &amp; Life Oracle
     </h1>
     <p class="neutral" style="margin: 0; font-size: 15px;">
-        Location-Calibrated Cross-Linked Vedic Intelligence: Ravana Samhita 9-Planet Mastery, Lottery &amp; Windfall Horas, Accident &amp; Danger Windows, Diseases &amp; Longevity (Ayurdaya), Marriage Count &amp; Fixes, Progeny &amp; Grandchildren (D-7), and Past/Future Life (D-60).
+        Deep Plain-English Vedic Intelligence: Ravana Samhita 9-Planet Mastery, Lottery &amp; Windfall Horas, Accident &amp; Danger Windows, Diseases &amp; Longevity (Ayurdaya), Marriage Count &amp; Fixes, Progeny &amp; Grandchildren (D-7), Past/Future Life (D-60), Interactive House/Lot Visual Vastu Architect, and Plain-English Term Dictionary.
     </p>
 </div>
 
@@ -91,12 +91,53 @@
             <a class="btn" style="padding: 6px 12px; font-size: 13px;" href="/numerology?{{ bq }}">&#x1F522; Astro-Numerology</a>
             <a class="btn" style="padding: 6px 12px; font-size: 13px;" href="/reading?{{ bq }}">&#x1F4DC; 144 Lords Reading</a>
             <a class="btn" style="padding: 6px 12px; font-size: 13px;" href="/yogas?{{ bq }}">&#x2728; Classical Yogas</a>
+            <a class="btn" style="padding: 6px 12px; font-size: 13px; background:#0f766e; color:#fff;" href="/vastu?{{ bq }}">&#x1F3E1; Visual Vastu Studio</a>
             <a class="btn" style="padding: 6px 12px; font-size: 13px;" href="/prashna?lat={{ form.cur_lat }}&lon={{ form.cur_lon }}&tz={{ form.cur_tz }}">&#x1F52E; Live Prashna</a>
         </div>
     </div>
 </section>
 
-<!-- 8-Tab Navigation -->
+{% set simp = dossier.simple_step_by_step_explanations %}
+{% macro render_simple_guide(exp) %}
+{% if exp %}
+<div style="margin-bottom: 18px; padding: 16px 18px; background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%); border-left: 5px solid #2563eb; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+    <h3 style="margin: 0 0 8px 0; color: #1e3a8a; font-size: 16px;">&#x1F4A1; Plain-English Step-by-Step Guide: {{ exp.headline }}</h3>
+    <p style="margin: 0 0 10px 0; line-height: 1.65; color: #1e293b; font-size: 14.5px;">{{ exp.what_it_means }}</p>
+    {% if exp.maraka_and_badhaka_explained_simply %}
+    <div style="margin: 10px 0; padding: 10px 14px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; font-size: 13.5px; line-height: 1.6; color: #78350f; white-space: pre-line;">{{ exp.maraka_and_badhaka_explained_simply }}</div>
+    {% endif %}
+    {% if exp.key_terms_in_this_section %}
+    <div style="margin: 12px 0;">
+        <strong style="font-size: 13.5px; color: #1e40af;">&#x1F4D6; Simple Meaning of Every Term Used Here:</strong>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 8px; margin-top: 6px;">
+            {% for kt in exp.key_terms_in_this_section %}
+            <div style="padding: 8px 10px; background: #ffffff; border: 1px solid #dbeafe; border-radius: 6px; font-size: 13px; line-height: 1.45;">
+                <strong style="color: #1d4ed8;">{{ kt.term }}:</strong> {{ kt.meaning }}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    {% if exp.step_by_step_how_to_use %}
+    <div style="margin: 10px 0;">
+        <strong style="font-size: 13.5px; color: #15803d;">&#x2705; Exact Action Plan (In Simple Steps):</strong>
+        <ul style="margin: 4px 0 0 18px; padding: 0; font-size: 13.5px; line-height: 1.55;">
+            {% for st in exp.step_by_step_how_to_use %}
+            <li>{{ st }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    {% if exp.vastu_double_boost_tip %}
+    <div style="margin-top: 10px; padding: 8px 12px; background: #f0fdf4; border-left: 4px solid #16a34a; border-radius: 5px; font-size: 13.5px; color: #14532d;">
+        <strong>&#x1F3E1; {{ exp.vastu_double_boost_tip }}</strong>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+{% endmacro %}
+
+<!-- 10-Tab Navigation -->
 <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;">
     <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-ravana', this)" style="background:#b45309; color:#fff; font-weight:bold;">&#x1F451; 1. Ravana 9-Planet Control</button>
     <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-lottery', this)" style="background:#475569; color:#fff;">&#x1F3B0; 2. Lottery &amp; Windfall Horas</button>
@@ -106,6 +147,8 @@
     <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-marriage', this)" style="background:#475569; color:#fff;">&#x1F48D; 6. Marriage Count &amp; Fixes</button>
     <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-progeny', this)" style="background:#475569; color:#fff;">&#x1F476; 7. Kids &amp; Grandchildren (D-7)</button>
     <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-reincarnation', this)" style="background:#475569; color:#fff;">&#x1F549; 8. Past/Future Life &amp; Purpose</button>
+    <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-vastu', this)" style="background:#0f766e; color:#fff;">&#x1F3E1; 9. Astro-Vastu &amp; Visual House/Lot Architect</button>
+    <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-glossary', this)" style="background:#1e40af; color:#fff;">&#x1F4D6; 10. Plain-English Term Dictionary</button>
 </div>
 
 <!-- ==================== TAB 1: RAVANA SAMHITA 9-PLANET MASTERY ==================== -->
@@ -114,6 +157,7 @@
     <section class="card" style="margin-bottom: 20px;">
         <h2>&#x1F451; Ravana Samhita Graha Prabandhana &mdash; Complete 9-Planet Mastery</h2>
         <div class="body">
+            {{ render_simple_guide(simp.ravana_mastery_in_simple_words) }}
             <p>Just as Dashagriva Ravana commanded the 9 Grahas around his throne through supreme astronomical timing and Tantra/Mantra discipline, your <b>{{ rm.functional_planet_hierarchy.lagna_sign }} ({{ rm.functional_planet_hierarchy.lagna_rashi }})</b> chart has a specific command hierarchy:</p>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 16px;">
                 <div style="padding:12px; background:#f0fdf4; border-left:4px solid #16a34a; border-radius:6px;">
@@ -220,6 +264,7 @@
     <section class="section">
         <div class="card">
             <h2>🎰 Lottery, Speculation & Sudden Windfall Oracle (Calibrated to {{ cur_city }})</h2>
+            {{ render_simple_guide(simp.lottery_and_windfall_in_simple_words) }}
             <p class="neutral"><strong>Lakshmi Akarshana Shloka:</strong> <code>{{ lot.lakshmi_akarshana_shloka }}</code></p>
 
             <div class="grid-3" style="margin-top:16px;">
@@ -288,6 +333,7 @@
     <section class="section">
         <div class="card">
             <h2>⏳ Life Destiny Turning Points, Good/Bad Dates & Bad-Luck Reset</h2>
+            {{ render_simple_guide(simp.turning_points_and_bad_luck_in_simple_words) }}
             <p class="neutral">Bhrigu Chakra Paddhati activation years, Vimshottari Mahadasha junctions, and location-calibrated high-impact dates with exact hours.</p>
 
             <div class="grid-2" style="margin-top:14px;">
@@ -416,6 +462,7 @@
     <section class="section">
         <div class="card">
             <h2>🚨 Accident Proneness, D-8 Ashtamsha & Location-Calibrated Safety Windows</h2>
+            {{ render_simple_guide(simp.accidents_and_safety_in_simple_words) }}
             <p class="neutral"><strong>Narasimha Raksha Kavacha Shloka:</strong> <code>{{ acc.raksha_kavacha_shloka }}</code></p>
 
             <div class="grid-4" style="margin-top:12px;">
@@ -525,6 +572,7 @@
     <section class="section">
         <div class="card">
             <h2>⚕️ Medical Astrology (Ayur-Jyotish), Disease Susceptibility & Longevity (Ayurdaya)</h2>
+            {{ render_simple_guide(simp.medical_and_longevity_in_simple_words) }}
 
             <div class="grid-3" style="margin-top:14px;">
                 <div class="stat">
@@ -615,6 +663,7 @@
     <section class="section">
         <div class="card">
             <h2>💍 Marriage Count Estimator, Spouse Karakas & Ways to Fix / Save Marriage</h2>
+            {{ render_simple_guide(simp.marriage_in_simple_words) }}
 
             <div class="grid-3" style="margin-top:14px;">
                 <div class="stat">
@@ -671,6 +720,7 @@
     <section class="section">
         <div class="card">
             <h2>👶 Fertility (Beeja/Kshetra), Number of Children (D-7 Saptamsha) & Grandchildren's Future</h2>
+            {{ render_simple_guide(simp.progeny_and_grandchildren_in_simple_words) }}
 
             <div class="grid-3" style="margin-top:14px;">
                 <div class="stat">
@@ -743,6 +793,7 @@
     <section class="section">
         <div class="card">
             <h2>🕉️ Past Life (D-60 Shashtiamsha), Unfinished Karma, This Life's Purpose & Future Life Trajectory</h2>
+            {{ render_simple_guide(simp.past_and_future_life_in_simple_words) }}
 
             <div class="grid-3" style="margin-top:14px;">
                 <div class="stat">
@@ -814,7 +865,148 @@
     </section>
 </div>
 
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TAB 9: PERSONALIZED BIRTH-CHART ASTRO-VASTU & INTERACTIVE HOUSE/LOT ARCHITECT
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div id="tab-vastu" class="destiny-tab" style="display:none;">
+    {% set av = dossier.astro_vastu_guide %}
+    <section class="section">
+        <div class="card" style="margin-bottom:20px;">
+            <h2>&#x1F3E1; Personalized Birth-Chart Astro-Vastu Synthesis &mdash; Double Your Positive Planetary Effects</h2>
+            <div class="body">
+                <div style="margin-bottom: 16px; padding: 14px 18px; background: linear-gradient(135deg, #ecfdf5 0%, #f0fdfa 100%); border-left: 5px solid #0d9488; border-radius: 8px;">
+                    <h3 style="margin: 0 0 6px 0; color: #0f766e;">&#x1F4A1; Why Combining Your Birth Chart + Vastu Doubles Positive Results (In Plain English)</h3>
+                    <p style="margin: 0; line-height: 1.65; color: #134e4a; font-size: 14.5px;">
+                        Your birth chart shows the <b>time energy (Kala)</b> you were born with, while your home and outer lot control the <b>space energy (Desha / Vastu)</b> surrounding you 24 hours a day.
+                        When a friendly planet in your birth chart is also supported by keeping its matching compass direction in your house clean and active, its blessings <b>double in power</b>.
+                        And when a tough planet in your birth chart is causing delays, fixing its corresponding room or yard zone in your house acts as a <b>permanent 24/7 physical remedy</b>!
+                    </p>
+                </div>
+
+                <div class="grid-3" style="margin-bottom: 18px;">
+                    <div class="stat">
+                        <span class="label">Home &amp; Ascendant Signature</span>
+                        <span class="value" style="font-size:1rem;">Lagna: {{ av.native_home_signature.lagna_sign }}</span>
+                        <small>Ascendant Lord: <b>{{ av.native_home_signature.lagna_lord }}</b><br>4th Home Sign: <b>{{ av.native_home_signature.fourth_house_of_home_sign }}</b> ({{ av.native_home_signature.fourth_house_lord }})</small>
+                    </div>
+                    <div class="stat">
+                        <span class="label">Ideal House / Lot Facing &amp; Sleep Direction</span>
+                        <span class="value" style="font-size:0.95rem;">Door/Lot: {{ av.native_home_signature.ideal_house_or_lot_facing_directions | join(', ') }}</span>
+                        <small><b>Sleep Head Toward:</b> {{ av.native_home_signature.best_sleeping_head_directions | join(' | ') }}</small>
+                    </div>
+                    <div class="stat">
+                        <span class="label">Wealth &amp; Luck Multiplier Directions</span>
+                        <span class="value" style="font-size:0.95rem;">9th Luck: {{ av.native_home_signature.ninth_house_luck_lord }}</span>
+                        <small><b>11th Gains:</b> {{ av.native_home_signature.eleventh_house_gains_lord }}<br><b>Face While Working:</b> {{ av.native_home_signature.best_work_and_wealth_facing_directions | join(', ') }}</small>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-bottom: 20px;">
+                    <div style="padding: 16px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;">
+                        <h3 style="margin-top: 0; color: #15803d;">&#x2705; WHAT TO DO (Astro-Vastu Do's to Double Positive Effects)</h3>
+                        <ul style="line-height: 1.65; padding-left: 18px; margin: 0;">
+                            {% for item in av.astro_vastu_dos_to_double_positive_effect %}
+                            <li style="margin-bottom: 8px;">{{ item }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div style="padding: 16px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px;">
+                        <h3 style="margin-top: 0; color: #b91c1c;">&#x274C; WHAT NOT TO DO (Astro-Vastu Don'ts to Prevent Bad Luck)</h3>
+                        <ul style="line-height: 1.65; padding-left: 18px; margin: 0;">
+                            {% for item in av.astro_vastu_donts_to_prevent_bad_luck %}
+                            <li style="margin-bottom: 8px;">{{ item }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+                <h3>&#x1F9ED; Your Personalized 9-Zone Birth-Chart + Vastu Matrix</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Compass Zone</th>
+                                <th>Ruling Planet &amp; Element</th>
+                                <th>Your Birth-Chart Link</th>
+                                <th>Best Rooms &amp; Yard Items</th>
+                                <th>Strictly Avoid Here</th>
+                                <th>How to Double Positive Effect</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for z in av.personalized_nine_zone_astro_vastu_map %}
+                            <tr>
+                                <td><strong>{{ z.direction_name }}</strong><br><small class="neutral">Colors: {{ z.lucky_wall_and_decor_colors }}</small></td>
+                                <td><b>{{ z.ruling_planet }}</b><br><small>{{ z.deity_and_element }}</small></td>
+                                <td><strong>{{ z.your_chart_planet_placement }}</strong><br><span class="badge">{{ z.chart_zone_status }}</span></td>
+                                <td><small>{{ z.best_uses | join(', ') }}</small></td>
+                                <td style="color:#b91c1c;"><small>{{ z.strictly_avoid | join(', ') }}</small></td>
+                                <td><small>{{ z.double_positive_effect_secret }}</small></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- INTERACTIVE VISUAL HOUSE (SQUARE/RECTANGLE) & OUTER-LOT VASTU ARCHITECT -->
+        <div class="card">
+            <h2>&#x1F3D7; Interactive Visual House (Square / Rectangle) &amp; Outer-Lot Vastu Architect Studio</h2>
+            <div class="body">
+                <p style="margin-top:0; line-height:1.6;">
+                    Design your exact home and property lot below! Choose a <b>Giant Square</b> or switch to a <b>Wide / Deep Rectangle</b>, toggle the <b>Outer Lot / Yard</b> boundary, and place <b>as many blocks as you want</b>:
+                    <b>Inside House</b> (Main Entrance, Back Door, Master Bedroom, Bedroom, Guest Room, Living Room, Kitchen, Bathroom, Storage, Balcony, Dining, Puja, Study, Staircase, Safe) and
+                    <b>Outside Lot / Yard</b> (Fence, Main Gate, Parking Gate, Trees, Flowers, Bushes, Fireplace/Firepit, Garden, Grass Lawn, Pool/Water, Septic/Trash).
+                    Drag blocks anywhere, drag their bottom-right corner to resize, set <b>Door/Gate Facing Directions</b>, and click <b>Run Full Vastu &amp; Birth-Chart Breakdown</b> for a complete room-by-room and yard-by-yard analysis with zero-demolition remedies!
+                </p>
+                <div id="destiny-vastu-studio-root"></div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TAB 10: PLAIN-ENGLISH DICTIONARY OF ALL ASTROLOGICAL & VASTU TERMS
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div id="tab-glossary" class="destiny-tab" style="display:none;">
+    <section class="section">
+        <div class="card">
+            <h2>&#x1F4D6; Plain-English Dictionary of Every Astrological &amp; Vastu Term</h2>
+            <div class="body">
+                <p style="margin-top:0;">
+                    Every technical Sanskrit or Vedic term used across this entire platform (such as <b>Maraka</b>, <b>Badhaka</b>, <b>Yogakaraka</b>, <b>Dusthana</b>, <b>Indu Lagna</b>, <b>Hora</b>, <b>Rahu Kaal</b>, <b>Tara Bala</b>, <b>Chandrashtama</b>, <b>Mrityu Bhaga</b>, <b>Upapada Lagna</b>, <b>Darakaraka</b>, <b>Beeja/Kshetra Sphuta</b>, <b>D-7 / D-8 / D-9 / D-60</b>, <b>Atmakaraka</b>, <b>Rina</b>, <b>Brahmasthan</b>, etc.) explained in simple everyday words:
+                </p>
+                <div style="margin-bottom: 14px;">
+                    <input type="text" id="glossary-filter-input" placeholder="&#x1F50D; Type any term (e.g., Maraka, Badhaka, Indu, Hora, Vastu, D-60) to filter..." oninput="filterGlossaryRows(this.value)" style="max-width: 520px; width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
+                </div>
+                <div class="table-wrap">
+                    <table id="glossary-dict-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 24%;">Term</th>
+                                <th style="width: 38%;">Simple Meaning (In Plain Everyday Words)</th>
+                                <th style="width: 38%;">Why It Matters &amp; How It Affects Your Life</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for g in dossier.plain_english_glossary %}
+                            <tr class="glossary-row">
+                                <td><strong style="color:#1e3a8a; font-size:14.5px;">{{ g.term }}</strong></td>
+                                <td style="line-height:1.55;">{{ g.simple_meaning }}</td>
+                                <td style="line-height:1.55;">{{ g.why_it_matters }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
 {% endif %}
+<script src="/static/vastu_architect.js"></script>
 <script>
 function showDestinyTab(tabId, btn) {
     document.querySelectorAll('.destiny-tab, .d-tab-pane').forEach(function(el) {
@@ -835,6 +1027,26 @@ function showDestinyTab(tabId, btn) {
         btn.style.fontWeight = 'bold';
     }
 }
+
+function filterGlossaryRows(q) {
+    var needle = (q || '').toLowerCase().trim();
+    document.querySelectorAll('#glossary-dict-table .glossary-row').forEach(function(row) {
+        var txt = row.textContent.toLowerCase();
+        row.style.display = (!needle || txt.indexOf(needle) !== -1) ? '' : 'none';
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.initVastuArchitect && document.getElementById('destiny-vastu-studio-root')) {
+        window.initVastuArchitect('destiny-vastu-studio-root', {
+            date: {{ form.date | tojson }},
+            time: {{ form.time | tojson }},
+            lat: {{ form.lat | tojson }},
+            lon: {{ form.lon | tojson }},
+            tz: {{ form.tz | tojson }}
+        });
+    }
+});
 
 function useMyGPS() {
     if (!navigator.geolocation) {

@@ -1,13 +1,161 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Vastu Shastra Guide</h1>
-<section class="card"><h2>Check your home</h2><div class="body"><form class="f" method="get" action="/vastu">
-<label>Main door facing<select name="facing"><option value="">—</option>{% for d in dirs if d!='Centre' %}<option {{ 'selected' if q.get('facing')==d }}>{{ d }}</option>{% endfor %}</select></label>
-{% for r in rooms[:9] %}<label>{{ r|title }}<select name="room_{{ r.replace(' ','_') }}"><option value="">—</option>{% for d in dirs %}<option {{ 'selected' if q.get('room_'+r.replace(' ','_'))==d }}>{{ d }}</option>{% endfor %}</select></label>{% endfor %}
-<button class="btn alt">Evaluate</button></form></div></section>
+<div class="hero-section" style="margin-bottom: 20px;">
+    <h1 style="margin: 0 0 8px 0;">&#x1F3E1; Interactive Visual House &amp; Lot Vastu Architect + Birth-Chart Astro-Vastu</h1>
+    <p class="neutral" style="margin: 0;">
+        Design your house (<b>Giant Square</b> or <b>Wide / Deep Rectangle</b>) and surrounding <b>Outer Lot / Yard</b> with multi-instance rooms, doors, gates, trees, flowers, bushes, fireplace, garden, grass, and water features — cross-linked with your <b>Birth Chart</b> to double positive planetary effects!
+    </p>
+</div>
+
+<!-- 1. Optional Birth Chart Calibration for Astro-Vastu Synergy -->
+<section class="card" style="margin-bottom: 20px;">
+    <h2>1. Birth Chart Calibration (To Double Positive Vastu + Planetary Effects)</h2>
+    <div class="body">
+        <form method="get" action="/vastu" style="display: block;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px;">
+                <label>Birth Date
+                    <input type="date" name="date" id="vastu_b_date" value="{{ b_form.date }}">
+                </label>
+                <label>Birth Time
+                    <input type="time" name="time" id="vastu_b_time" value="{{ b_form.time }}" step="60">
+                </label>
+                <label>Birth City
+                    <input type="text" data-place="" name="city" value="{{ b_form.city }}" placeholder="Type birth city to search..." autocomplete="off">
+                </label>
+                <label>Birth Latitude
+                    <input type="number" step="any" name="lat" id="vastu_b_lat" value="{{ b_form.lat }}">
+                </label>
+                <label>Birth Longitude
+                    <input type="number" step="any" name="lon" id="vastu_b_lon" value="{{ b_form.lon }}">
+                </label>
+                <label>Birth Timezone
+                    <input type="text" name="tz" id="vastu_b_tz" value="{{ b_form.tz }}">
+                </label>
+            </div>
+            <div style="margin-top: 14px; display: flex; flex-wrap: wrap; gap: 10px;">
+                <button type="submit" class="btn alt">&#x1F3E1; Sync Birth Chart with Vastu Studio</button>
+                <a class="btn" style="background:#8e1b3a; color:#fff;" href="/destiny?date={{ b_form.date }}&time={{ b_form.time }}&lat={{ b_form.lat }}&lon={{ b_form.lon }}&tz={{ b_form.tz|urlencode }}&city={{ b_form.city|urlencode }}">&#x1F531; Open Full Master Destiny &amp; Ravana Control</a>
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- 2. Interactive Visual House (Square/Rectangle) & Outer-Lot Vastu Architect Studio -->
+<section class="card" style="margin-bottom: 20px;">
+    <h2>2. &#x1F3D7; Interactive Visual House (Square / Rectangle) &amp; Outer-Lot Vastu Designer</h2>
+    <div class="body">
+        <p style="margin-top:0; line-height:1.6;">
+            Switch between a <b>Square</b> or <b>Rectangle</b> house footprint, toggle the <b>Outer Lot / Yard</b> area, and click any button below to add <b>multiple instances</b> of:
+            <b>Inside House</b> (Main Entrance, Back Door, Master Bedroom, Bedroom, Guest Room, Living Room, Kitchen, Bathroom, Storage, Balcony, Dining, Puja, Study, Staircase, Safe) and
+            <b>Outside Lot / Yard</b> (Fence, Main Gate, Parking Gate, Trees, Flowers, Bushes, Fireplace/Firepit, Garden, Grass Lawn, Pool/Water, Septic/Trash).
+            Drag blocks to position them, drag their bottom-right corner to resize, set <b>Door/Gate Facing Directions</b>, and get a complete Vastu + Birth-Chart breakdown and zero-demolition fixes!
+        </p>
+        <div id="standalone-vastu-studio-root"></div>
+    </div>
+</section>
+
+{% if astro_vastu %}
+<!-- 3. Personalized Birth-Chart + Vastu Synthesis ("Double Positive Effect") -->
+<section class="card" style="margin-bottom: 20px;">
+    <h2>3. &#x2728; Personalized Birth-Chart + Vastu Synthesis (Double Your Positive Effects)</h2>
+    <div class="body">
+        <div class="grid-3" style="margin-bottom: 18px;">
+            <div class="stat">
+                <span class="label">Home &amp; Ascendant Signature</span>
+                <span class="value" style="font-size:1rem;">Lagna: {{ astro_vastu.native_home_signature.lagna_sign }}</span>
+                <small>Ascendant Lord: <b>{{ astro_vastu.native_home_signature.lagna_lord }}</b><br>4th Home Sign: <b>{{ astro_vastu.native_home_signature.fourth_house_of_home_sign }}</b> ({{ astro_vastu.native_home_signature.fourth_house_lord }})</small>
+            </div>
+            <div class="stat">
+                <span class="label">Ideal House / Lot Facing &amp; Sleep Direction</span>
+                <span class="value" style="font-size:0.95rem;">Door/Lot: {{ astro_vastu.native_home_signature.ideal_house_or_lot_facing_directions | join(', ') }}</span>
+                <small><b>Sleep Head Toward:</b> {{ astro_vastu.native_home_signature.best_sleeping_head_directions | join(' | ') }}</small>
+            </div>
+            <div class="stat">
+                <span class="label">Wealth &amp; Luck Multiplier Directions</span>
+                <span class="value" style="font-size:0.95rem;">9th Luck: {{ astro_vastu.native_home_signature.ninth_house_luck_lord }}</span>
+                <small><b>11th Gains:</b> {{ astro_vastu.native_home_signature.eleventh_house_gains_lord }}<br><b>Face While Working:</b> {{ astro_vastu.native_home_signature.best_work_and_wealth_facing_directions | join(', ') }}</small>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-bottom: 20px;">
+            <div style="padding: 16px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;">
+                <h3 style="margin-top: 0; color: #15803d;">&#x2705; WHAT TO DO (Astro-Vastu Do's to Double Positive Effects)</h3>
+                <ul style="line-height: 1.65; padding-left: 18px; margin: 0;">
+                    {% for item in astro_vastu.astro_vastu_dos_to_double_positive_effect %}
+                    <li style="margin-bottom: 8px;">{{ item }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div style="padding: 16px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px;">
+                <h3 style="margin-top: 0; color: #b91c1c;">&#x274C; WHAT NOT TO DO (Astro-Vastu Don'ts to Prevent Bad Luck)</h3>
+                <ul style="line-height: 1.65; padding-left: 18px; margin: 0;">
+                    {% for item in astro_vastu.astro_vastu_donts_to_prevent_bad_luck %}
+                    <li style="margin-bottom: 8px;">{{ item }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <h3>&#x1F9ED; Personalized 9-Zone Birth-Chart + Vastu Matrix</h3>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Compass Zone</th>
+                        <th>Ruling Planet &amp; Element</th>
+                        <th>Your Birth-Chart Link</th>
+                        <th>Best Rooms &amp; Yard Items</th>
+                        <th>Strictly Avoid Here</th>
+                        <th>How to Double Positive Effect</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for z in astro_vastu.personalized_nine_zone_astro_vastu_map %}
+                    <tr>
+                        <td><strong>{{ z.direction_name }}</strong><br><small class="neutral">Colors: {{ z.lucky_wall_and_decor_colors }}</small></td>
+                        <td><b>{{ z.ruling_planet }}</b><br><small>{{ z.deity_and_element }}</small></td>
+                        <td><strong>{{ z.your_chart_planet_placement }}</strong><br><span class="badge">{{ z.chart_zone_status }}</span></td>
+                        <td><small>{{ z.best_uses | join(', ') }}</small></td>
+                        <td style="color:#b91c1c;"><small>{{ z.strictly_avoid | join(', ') }}</small></td>
+                        <td><small>{{ z.double_positive_effect_secret }}</small></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- 4. Classic Quick Dropdown Checker & 9 Zones Reference -->
+<section class="card" style="margin-bottom: 20px;">
+    <h2>4. Quick Dropdown Room Checker</h2>
+    <div class="body">
+        <form class="f" method="get" action="/vastu">
+            <label>Main door facing<select name="facing"><option value="">—</option>{% for d in dirs if d!='Centre' %}<option {{ 'selected' if q.get('facing')==d }}>{{ d }}</option>{% endfor %}</select></label>
+            {% for r in rooms[:9] %}<label>{{ r|title }}<select name="room_{{ r.replace(' ','_') }}"><option value="">—</option>{% for d in dirs %}<option {{ 'selected' if q.get('room_'+r.replace(' ','_'))==d }}>{{ d }}</option>{% endfor %}</select></label>{% endfor %}
+            <button class="btn alt">Evaluate</button>
+        </form>
+    </div>
+</section>
 {% if v.facing %}<section class="card"><h2>Entrance</h2><div class="body"><p><b>{{ v.facing.direction }}</b>: {{ v.facing.remark }}</p></div></section>{% endif %}
 {% if v.evaluation %}<section class="card"><h2>Score: {{ v.score_percent }}%</h2><div class="body"><table class="t"><tr><th>Room</th><th>Direction</th><th>Points</th><th>Advice</th></tr>
 {% for r in v.evaluation %}<tr><td>{{ r.room|title }}</td><td>{{ r.direction }}</td><td>{{ r.points }}/10</td><td>{{ r.advice }}</td></tr>{% endfor %}</table></div></section>{% endif %}
-<section class="card"><h2>The nine zones</h2><div class="body" style="overflow-x:auto"><table class="t"><tr><th>Direction</th><th>Deity</th><th>Element</th><th>Planet</th><th>Good for</th><th>Avoid</th></tr>
+<section class="card"><h2>The Nine Classical Vastu Zones</h2><div class="body" style="overflow-x:auto"><table class="t"><tr><th>Direction</th><th>Deity</th><th>Element</th><th>Planet</th><th>Good for</th><th>Avoid</th></tr>
 {% for d, x in v.directions.items() %}<tr><td><b>{{ d }}</b></td><td>{{ x.deity }}</td><td>{{ x.element }}</td><td>{{ x.planet }}</td><td>{{ x.good_for|join(', ') }}</td><td>{{ x.avoid|join(', ') }}</td></tr>{% endfor %}</table></div></section>
+
+<script src="/static/vastu_architect.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.initVastuArchitect && document.getElementById('standalone-vastu-studio-root')) {
+        window.initVastuArchitect('standalone-vastu-studio-root', {
+            date: {{ b_form.date | tojson }},
+            time: {{ b_form.time | tojson }},
+            lat: {{ b_form.lat | tojson }},
+            lon: {{ b_form.lon | tojson }},
+            tz: {{ b_form.tz | tojson }}
+        });
+    }
+});
+</script>
 {% endblock %}

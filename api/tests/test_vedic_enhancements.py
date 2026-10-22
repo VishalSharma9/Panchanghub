@@ -455,3 +455,70 @@ def test_master_destiny_and_ravana_endpoints():
     assert 'Lottery, Speculation & Sudden Windfall Oracle' in dweb.text
     assert 'Grandchildren' in dweb.text
     assert 'D-60 Shashtiamsha' in dweb.text
+    assert 'Plain-English Step-by-Step Guide' in dweb.text
+    assert 'Plain-English Dictionary of Every Astrological &amp; Vastu Term' in dweb.text
+    assert 'Interactive Visual House (Square / Rectangle) &amp; Outer-Lot Vastu Architect Studio' in dweb.text
+
+
+def test_astro_vastu_and_visual_vastu_architect():
+    # 1. Personalized Birth-Chart Astro-Vastu endpoint
+    av_res = client.post('/api/kundli/astro-vastu', json=SAMPLE_BIRTH)
+    assert av_res.status_code == 200
+    av_data = av_res.json()
+    assert 'astro_vastu_guide' in av_data
+    assert 'plain_english_glossary' in av_data
+    assert len(av_data['plain_english_glossary']) >= 20
+    guide = av_data['astro_vastu_guide']
+    assert len(guide['personalized_nine_zone_astro_vastu_map']) == 9
+    assert len(guide['astro_vastu_dos_to_double_positive_effect']) >= 5
+    assert len(guide['astro_vastu_donts_to_prevent_bad_luck']) >= 5
+
+    # 2. Interactive Visual House (Square / Rectangle) + Outer-Lot Vastu Layout Analyzer
+    layout_payload = {
+        'house_shape': 'wide_rectangle',
+        'has_outer_lot': True,
+        'compass_rotation': 0.0,
+        'birth_date': '1990-05-15',
+        'birth_time': '10:30:00',
+        'birth_latitude': 28.6139,
+        'birth_longitude': 77.2090,
+        'birth_timezone': 5.5,
+        'items': [
+            {'type': 'entrance', 'label': 'Main Entrance', 'x': 72, 'y': 20, 'w': 12, 'h': 7, 'door_dir': 'NE', 'scope': 'indoor'},
+            {'type': 'back_door', 'label': 'Back Door', 'x': 22, 'y': 14, 'w': 10, 'h': 6, 'door_dir': 'NW', 'scope': 'indoor'},
+            {'type': 'master_bedroom', 'label': 'Master Bedroom', 'x': 20, 'y': 58, 'w': 22, 'h': 18, 'door_dir': 'N', 'scope': 'indoor'},
+            {'type': 'bedroom', 'label': 'Bedroom 2', 'x': 20, 'y': 38, 'w': 18, 'h': 16, 'door_dir': 'E', 'scope': 'indoor'},
+            {'type': 'guest_room', 'label': 'Guest Room', 'x': 20, 'y': 20, 'w': 18, 'h': 15, 'door_dir': 'E', 'scope': 'indoor'},
+            {'type': 'living_room', 'label': 'Living Room 1', 'x': 52, 'y': 24, 'w': 22, 'h': 18, 'door_dir': '', 'scope': 'indoor'},
+            {'type': 'living_room', 'label': 'Family Living Room 2', 'x': 44, 'y': 44, 'w': 14, 'h': 14, 'door_dir': '', 'scope': 'indoor'},
+            {'type': 'kitchen', 'label': 'Kitchen', 'x': 64, 'y': 60, 'w': 18, 'h': 16, 'door_dir': 'E', 'scope': 'indoor'},
+            {'type': 'bathroom', 'label': 'Bathroom 1', 'x': 40, 'y': 20, 'w': 10, 'h': 12, 'door_dir': '', 'scope': 'indoor'},
+            {'type': 'bathroom', 'label': 'Bathroom 2', 'x': 18, 'y': 48, 'w': 10, 'h': 10, 'door_dir': '', 'scope': 'indoor'},
+            {'type': 'storage', 'label': 'Storage Closet', 'x': 44, 'y': 64, 'w': 14, 'h': 12, 'door_dir': '', 'scope': 'indoor'},
+            {'type': 'balcony', 'label': 'Balcony', 'x': 58, 'y': 14, 'w': 14, 'h': 6, 'door_dir': 'N', 'scope': 'indoor'},
+            {'type': 'fence', 'label': 'Boundary Fence', 'x': 2, 'y': 88, 'w': 30, 'h': 5, 'door_dir': '', 'scope': 'outdoor'},
+            {'type': 'gate', 'label': 'Main Lot Gate', 'x': 70, 'y': 3, 'w': 14, 'h': 6, 'door_dir': 'NE', 'scope': 'outdoor'},
+            {'type': 'parking_gate', 'label': 'Parking Gate', 'x': 14, 'y': 3, 'w': 18, 'h': 7, 'door_dir': 'NW', 'scope': 'outdoor'},
+            {'type': 'trees', 'label': 'Shade Trees 1', 'x': 6, 'y': 76, 'w': 16, 'h': 16, 'door_dir': '', 'scope': 'outdoor'},
+            {'type': 'trees', 'label': 'Shade Trees 2', 'x': 24, 'y': 78, 'w': 14, 'h': 14, 'door_dir': '', 'scope': 'outdoor'},
+            {'type': 'flowers', 'label': 'Flower Bed', 'x': 84, 'y': 14, 'w': 11, 'h': 14, 'door_dir': '', 'scope': 'outdoor'},
+            {'type': 'bushes', 'label': 'Bushes', 'x': 4, 'y': 32, 'w': 9, 'h': 20, 'door_dir': '', 'scope': 'outdoor'},
+            {'type': 'fireplace', 'label': 'Outdoor Fireplace', 'x': 84, 'y': 76, 'w': 12, 'h': 12, 'door_dir': '', 'scope': 'outdoor'},
+            {'type': 'garden', 'label': 'Garden', 'x': 44, 'y': 3, 'w': 22, 'h': 8, 'door_dir': '', 'scope': 'outdoor'},
+            {'type': 'grass', 'label': 'Front Grass', 'x': 84, 'y': 32, 'w': 11, 'h': 28, 'door_dir': '', 'scope': 'outdoor'},
+        ]
+    }
+    vres = client.post('/api/vastu/analyze-layout', json=layout_payload)
+    assert vres.status_code == 200
+    vdata = vres.json()
+    assert vdata['total_items_evaluated'] == 22
+    assert 0 <= vdata['overall_vastu_score_percent'] <= 100
+    assert 'Wide Rectangle' in vdata['house_shape_analysis']['name']
+    assert any('Birth-Chart' in it['birth_chart_synergy'] for it in vdata['item_by_item_breakdown'])
+
+    # 3. Standalone /vastu web page
+    vweb = client.get('/vastu?date=1990-05-15&time=10:30&lat=28.6139&lon=77.2090&tz=Asia/Kolkata&city=New+Delhi')
+    assert vweb.status_code == 200
+    assert 'standalone-vastu-studio-root' in vweb.text
+    assert 'WHAT TO DO (Astro-Vastu Do\'s to Double Positive Effects)' in vweb.text
+

@@ -1781,8 +1781,9 @@ def compute_master_destiny_dossier(
         transit_date=ref_d,
     )
     soul_guidance = compute_soul_guidance(pos, asc_lon)
+    from .astro_vastu_engine import enrich_destiny_with_deep_simple_explanations
 
-    return {
+    res_dossier = {
         "name": name or "Native",
         "ayanamsa": ayanamsa,
         "reference_date": ref_d.isoformat(),
@@ -1820,3 +1821,4 @@ def compute_master_destiny_dossier(
         },
         "cross_linked_soul_guidance": soul_guidance,
     }
+    return enrich_destiny_with_deep_simple_explanations(res_dossier, pos, asc_lon)

@@ -510,3 +510,61 @@ def ravana_mastery_endpoint(req: DestinyRequest):
         "birth_chart_anchor": res["birth_chart_anchor"],
         "ravana_samhita_planetary_mastery": res["ravana_samhita_planetary_mastery"],
     }
+
+
+
+@router.post("/kundli/astro-vastu", summary="Personalized Birth-Chart Astro-Vastu Synthesis, 9-Zone Map, Do's/Don'ts & Plain-English Glossary")
+def astro_vastu_endpoint(req: DestinyRequest):
+    res = _run_destiny(req)
+    return {
+        "name": res["name"],
+        "birth_chart_anchor": res["birth_chart_anchor"],
+        "astro_vastu_guide": res["astro_vastu_guide"],
+        "plain_english_glossary": res["plain_english_glossary"],
+    }
+
+
+@router.post("/vastu/analyze-layout", summary="Evaluate Interactive Visual House (Square/Rectangle) & Outer-Lot Vastu Layout with Birth-Chart Synergy")
+def analyze_visual_vastu_layout_endpoint(payload: dict):
+    from ...core.astro_vastu_engine import evaluate_visual_vastu_layout
+    items = payload.get("items") or []
+    house_shape = payload.get("house_shape", "square")
+    has_outer_lot = bool(payload.get("has_outer_lot", True))
+    compass_rotation = float(payload.get("compass_rotation", 0.0))
+
+    pos = None
+    asc_lon = None
+    b_date = payload.get("date") or payload.get("birth_date")
+    b_lat = payload.get("latitude") if payload.get("latitude") is not None else payload.get("birth_latitude")
+    b_lon = payload.get("longitude") if payload.get("longitude") is not None else payload.get("birth_longitude")
+    if b_date and b_lat is not None and b_lon is not None:
+        try:
+            b_time = payload.get("time") or payload.get("birth_time") or "10:30:00"
+            b_tz = payload.get("timezone") if payload.get("timezone") is not None else payload.get("birth_timezone", "Asia/Kolkata")
+            try:
+                tz_name, utc_off = None, float(b_tz)
+            except (ValueError, TypeError):
+                tz_name, utc_off = str(b_tz), None
+            b_req = DestinyRequest(
+                date=b_date,
+                time=b_time,
+                latitude=float(b_lat),
+                longitude=float(b_lon),
+                timezone=tz_name,
+                utc_offset=utc_off,
+            )
+            ephem.set_ayanamsa_mode(b_req.ayanamsa)
+            jd = ephem.jd_from_utc(birth_utc(b_req))
+            pos = ephem.all_positions(jd, sidereal=True, true_node=False)
+            _, asc_lon, _ = ephem.houses(jd, b_req.latitude, b_req.longitude, "W", True)
+        except Exception:
+            pass
+
+    return evaluate_visual_vastu_layout(
+        items=items,
+        house_shape=house_shape,
+        has_outer_lot=has_outer_lot,
+        compass_rotation=compass_rotation,
+        pos=pos,
+        asc_lon=asc_lon,
+    )
