@@ -590,3 +590,43 @@ WantedBy=multi-user.target
 - `GET /api/numerology/pinnacles`: 4 Life Pinnacles, Challenges, and age epochs.
 - `GET /numerology`: 6-tab responsive interactive Vedic UI with live client-side calculations and AJAX synthesis.
 
+
+---
+
+## 10. Master Destiny, Location-Calibrated Oracle & Ravana Samhita Planetary Control Engine (`api/app/core/destiny_engine.py`)
+
+### 10.1 Core Predictive & Remedial Modules
+1. **Ravana Samhita 9-Planet Mastery (`compute_ravana_planetary_control`)**:
+   - Classifies all 9 Grahas into functional roles (Yogakaraka, Functional Benefic, Maraka, Dusthana Lord, Nodes) and checks natal dignity, house placement, and retrograde status.
+   - Prescribes **Strategic Gemstones to Wear** (Life Stone = 1st Lord, Bhagya Stone = 9th Lord, Punya Stone = 5th Lord) with exact carat weight, metal, finger, day, and planetary Hora, while strictly listing **Gemstones to Never Wear** (6th, 8th, 12th, and Maraka lords).
+   - Provides a complete **9-Graha Command Schedule**: exact Deity to worship, when to worship (weekday + Hora/Muhurta), how long (duration in days & mantra count), Beej & Puranic Shlokas, and *Ravana Samhita* Tantra/Dana secrets.
+   - Includes a comprehensive **Keep Close vs. Avoid Encyclopedia**: objects, colors, numbers, metals, directions, sacred plants, and symbolic animals tailored to the native's chart.
+2. **Lottery, Speculation & Sudden Windfall Oracle (`compute_lottery_and_windfall_oracle`)**:
+   - Computes **Indu Lagna** (Kalas of 9th from Lagna + 9th from Moon mod 12), 5th house speculation, 8th house sudden unearned wealth, and 11th house gains.
+   - Scans upcoming days at the native's **Current Location** (Sunrise/Sunset, Horas, Rahu Kaal, Tara Bala, Moon Gochar in 2nd/5th/8th/9th/11th from natal Moon) to output **Golden Lottery Windows** with exact **1-hour Wealth Horas**, **15-minute Lakshmi sub-windows**, and harmonic lucky number combinations (5-pick, Powerball/Mega number, 2-digit & 3-digit picks).
+3. **Life Destiny Turning Points & Bad-Luck Reset (`compute_destiny_turning_points_and_dates`)**:
+   - Computes **Bhrigu Chakra Paddhati** major turning ages/years (planet cycle maturity ages + natal house progressions), Vimshottari Mahadasha transition junctions (*Dasha Sandhi*), and Saturn Return / Sade Sati epochs.
+   - Generates location-calibrated **Upcoming Good Destiny Dates & Golden Hours** and **Upcoming Bad/Obstacle Dates & Critical Hours to Avoid**.
+   - Provides a 6-step **Durbhagya Nashaka (Too Many Bad Luck Reset) Protocol** using Saturday Peepal Chhaya Dana, Amavasya Pitru Tarpana, salt/mustard Drishti removal, and directional alignment.
+4. **Accidents, Surgeries & Safety Windows (`compute_accidents_and_safety`)**:
+   - Evaluates natal accident proneness using D-1 (1st/6th/8th/12th houses, Mars-Saturn/Mars-Rahu/Sun-Mars combinations) and **D-8 Ashtamsha**.
+   - Scans current-location transits (Mars 1st/4th/7th/8th/12th from Lagna/Moon, Chandrashtama 8th Moon, Vipat/Pratyak/Naidhana Tara) and outputs **Exact Local Danger Hours** (Mars/Saturn Horas + Rahu Kaal + Yamaganda) alongside **Safe Travel & Procedure Windows**.
+5. **Medical Astrology (Ayur-Jyotish), Diseases & Longevity (`compute_medical_and_longevity`)**:
+   - Computes **Ayurvedic Tridosha Prakriti** (Vata, Pitta, Kapha percentages) from Lagna, Moon, Sun, and 6th house influences.
+   - Maps organ and disease vulnerabilities across all 9 planets using D-1 (6th/8th/12th houses) and **D-6 Shashthamsha**.
+   - Calculates **BPHS Three-Pairs Ayurdaya** (Lagna Lord + 8th Lord, Saturn + Moon, Lagna + Hora Lagna) for *Alpayu / Madhyayu / Purnayu / Dirghayu* longevity span, **Maraka Grahas** (2nd & 7th lords/occupants), **Mrityu Bhaga** degree afflictions, critical Maraka Dasha windows, and the **Maha Mrityunjaya Mrit Sanjeevani** protocol.
+6. **Marriage Count, Spouse Karakas & Relationship Repair (`compute_marriage_and_relationship_destiny`)**:
+   - Analyzes 7th house, 7th lord, **D-9 Navamsha**, **Jaimini Upapada Lagna (UL)**, **2nd from UL**, and **Darakaraka (DK)** to estimate single vs. multiple marriage/union indicators, favorable marriage Dasha windows, and classical remedies (*Kumbha/Ark Vivaha*, Upapada fast, *Swayamvara Parvati*).
+7. **Progeny, Number of Children & Grandchildren's Future (`compute_progeny_and_grandchildren`)**:
+   - Computes **Beeja Sphuta** (Sun + Venus + Jupiter) and **Kshetra Sphuta** (Moon + Mars + Jupiter) fertility strength.
+   - Uses *BPHS* **D-7 Saptamsha** step-by-step counting (forward from 5th house for odd D-7 Lagna, backward for even D-7 Lagna) to profile each child's order, governing planet, classical gender inclination (*Oja/Yugma Rashi*), vitality, and destiny.
+   - Evaluates **Grandchildren (9th house = 5th from 5th & D-7 9th house)** count and generational fortune.
+8. **Past Life (D-60 Shashtiamsha), Karmic Debts, Life Purpose & Future Life (`compute_past_future_life_and_purpose`)**:
+   - Decodes **D-60 Shashtiamsha** deities for Lagna and Moon, Ketu past-life persona, 9th lord prior incarnation link, and retrograde (*Vakri*) unfinished promises.
+   - Identifies active **Past-Life Karmic Debts (Rinas)** — *Pitru Rina*, *Matru Rina*, *Deva/Brahmana Rina*, *Stri/Shukra Rina*, and *Jeeva/Ahimsa Rina* — with exact countermeasures.
+   - Formulates **This Life's Goal & Ideal Daily Lifestyle** (Rahu mission, Atmakaraka soul lesson, 10th lord dharma) and **Future Life / Moksha Trajectory** (12th house & 12th from Jaimini Karakamsha).
+
+### 10.2 REST API Endpoints & Web UI
+- `POST /api/kundli/destiny-dossier`: Master cross-linked dossier calibrated to birth chart + current location.
+- Focused sub-endpoints: `/api/kundli/medical-longevity`, `/api/kundli/accidents-safety`, `/api/kundli/destiny-dates`, `/api/kundli/lottery-windfall`, `/api/kundli/marriage-analysis`, `/api/kundli/progeny-lineage`, `/api/kundli/past-future-life`, `/api/kundli/ravana-mastery`.
+- `GET /destiny`: 8-tab interactive web workstation (`website/templates/destiny.html`) with dual-location calibration (Birth Place + Current GPS/City) and 1-click cross-links to `/kundli`, `/numerology`, `/vargas`, `/reading`, `/yogas`, and `/prashna`.

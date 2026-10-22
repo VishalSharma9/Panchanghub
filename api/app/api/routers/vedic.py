@@ -1,7 +1,8 @@
 from datetime import datetime as _dt, timezone as _tz
 from fastapi import APIRouter
-from ...models import KundliRequest, MatchRequest, VarshaphalaRequest, KPRequest, PrashnaRequest
+from ...models import KundliRequest, MatchRequest, VarshaphalaRequest, KPRequest, PrashnaRequest, DestinyRequest
 from ...core import ephem
+from ...core.destiny_engine import compute_master_destiny_dossier
 from ...core.kundli import compute_kundli
 from ...core.matching import ashtakoota, porutham
 from ...core.panchang import moon_sid
@@ -30,6 +31,19 @@ def kundli(req: KundliRequest):
     k = wrap(compute_kundli, birth_utc(req), req.latitude, req.longitude, ephem.make_tz(req.timezone, req.utc_offset),
              req.true_node, req.dasha_levels, HS[req.house_system])
     k["name"] = req.name
+    k["cross_linked_features"] = {
+        "master_destiny_dossier": "/api/kundli/destiny-dossier",
+        "medical_diseases_and_longevity": "/api/kundli/medical-longevity",
+        "accidents_and_safety_windows": "/api/kundli/accidents-safety",
+        "destiny_turning_dates_and_bad_luck_fix": "/api/kundli/destiny-dates",
+        "lottery_and_windfall_oracle": "/api/kundli/lottery-windfall",
+        "marriage_count_and_remedies": "/api/kundli/marriage-analysis",
+        "progeny_children_and_grandchildren": "/api/kundli/progeny-lineage",
+        "past_future_life_and_rinas": "/api/kundli/past-future-life",
+        "ravana_samhita_planetary_mastery": "/api/kundli/ravana-mastery",
+        "astro_numerology_synthesis": "/api/numerology/chart",
+        "web_portal": "/destiny",
+    }
     return k
 
 @router.post("/kundli/vargas", summary="All 16 Shodashavargas (D1 to D60) with Ascendant, degrees, and Vargottama")
@@ -401,3 +415,98 @@ def mantras_catalog():
     return {"grahas": GRAHA_REMEDIES}
 
 
+
+def _run_destiny(req: DestinyRequest):
+    return wrap(
+        compute_master_destiny_dossier,
+        birth_utc(req),
+        req.latitude,
+        req.longitude,
+        req.timezone,
+        req.utc_offset,
+        req.name,
+        req.current_latitude,
+        req.current_longitude,
+        req.current_timezone,
+        req.current_utc_offset,
+        req.current_city,
+        req.target_date,
+        req.scan_days,
+        req.ayanamsa,
+    )
+
+@router.post("/kundli/destiny-dossier", summary="Master Cross-Linked Destiny Dossier: Diseases, Longevity, Accidents, Lottery, Marriage, Progeny/Grandkids, Past/Future Life & Ravana Mastery")
+def destiny_dossier_endpoint(req: DestinyRequest):
+    return _run_destiny(req)
+
+@router.post("/kundli/medical-longevity", summary="Ayurvedic Tridosha, Organ & Disease Vulnerabilities, BPHS Ayurdaya Longevity, Marakas & Mrityu Bhaga")
+def medical_longevity_endpoint(req: DestinyRequest):
+    res = _run_destiny(req)
+    return {
+        "name": res["name"],
+        "birth_chart_anchor": res["birth_chart_anchor"],
+        "medical_diseases_and_longevity": res["medical_diseases_and_longevity"],
+    }
+
+@router.post("/kundli/accidents-safety", summary="Natal D1/D8 Accident Susceptibility & Location-Calibrated Exact Danger/Safe Dates & Horas")
+def accidents_safety_endpoint(req: DestinyRequest):
+    res = _run_destiny(req)
+    return {
+        "name": res["name"],
+        "current_location_anchor": res["current_location_anchor"],
+        "accidents_and_safety_windows": res["accidents_and_safety_windows"],
+    }
+
+@router.post("/kundli/destiny-dates", summary="Lifelong Bhrigu Turning Ages, Dasha Junctions, Location-Calibrated Good/Bad Dates & Chronic Bad-Luck Reset")
+def destiny_dates_endpoint(req: DestinyRequest):
+    res = _run_destiny(req)
+    return {
+        "name": res["name"],
+        "current_location_anchor": res["current_location_anchor"],
+        "destiny_turning_points_and_dates": res["destiny_turning_points_and_dates"],
+    }
+
+@router.post("/kundli/lottery-windfall", summary="Indu Lagna, 5th/8th/11th Windfall Yogas, Location-Calibrated Golden Lottery Dates, Horas & Lucky Numbers")
+def lottery_windfall_endpoint(req: DestinyRequest):
+    res = _run_destiny(req)
+    return {
+        "name": res["name"],
+        "current_location_anchor": res["current_location_anchor"],
+        "lottery_and_windfall_oracle": res["lottery_and_windfall_oracle"],
+    }
+
+@router.post("/kundli/marriage-analysis", summary="Number of Marriages/Unions Estimator, Upapada Lagna, Darakaraka, Timing & Ways to Fix Marriage")
+def marriage_analysis_endpoint(req: DestinyRequest):
+    res = _run_destiny(req)
+    return {
+        "name": res["name"],
+        "birth_chart_anchor": res["birth_chart_anchor"],
+        "marriage_count_and_remedies": res["marriage_count_and_remedies"],
+    }
+
+@router.post("/kundli/progeny-lineage", summary="Fertility (Beeja/Kshetra Sphuta), D-7 Saptamsha Number of Children & Grandchildren's Future Destiny")
+def progeny_lineage_endpoint(req: DestinyRequest):
+    res = _run_destiny(req)
+    return {
+        "name": res["name"],
+        "birth_chart_anchor": res["birth_chart_anchor"],
+        "progeny_children_and_grandchildren": res["progeny_children_and_grandchildren"],
+    }
+
+@router.post("/kundli/past-future-life", summary="Past Life (D-60 & Ketu), Active Past-Life Rinas & Fixes, This Life's Purpose & Future Life/Moksha Trajectory")
+def past_future_life_endpoint(req: DestinyRequest):
+    res = _run_destiny(req)
+    return {
+        "name": res["name"],
+        "birth_chart_anchor": res["birth_chart_anchor"],
+        "past_life_future_life_and_purpose": res["past_life_future_life_and_purpose"],
+    }
+
+@router.post("/kundli/ravana-mastery", summary="Ravana Samhita 9-Planet Control Matrix: Gemstones, Shlokas, Deity Worship Schedule & Keep-Close vs Avoid Guide")
+def ravana_mastery_endpoint(req: DestinyRequest):
+    res = _run_destiny(req)
+    return {
+        "name": res["name"],
+        "birth_chart_anchor": res["birth_chart_anchor"],
+        "ravana_samhita_planetary_mastery": res["ravana_samhita_planetary_mastery"],
+    }

@@ -201,7 +201,7 @@ def page(request, tpl, title, desc, path, **ctx):
 NAV = [("/", "Home"), ("/mine", "For You"), ("/week", "This Week"), ("/compare", "Two Cities"),
        ("/names", "Names"), ("/sade-sati", "Sade Sati"), ("/panchang", "Daily Panchang"),
        ("/calendar", "Calendar"), ("/festivals", "Festivals"), ("/choghadiya", "Choghadiya"),
-       ("/kundli", "Kundli"), ("/vargas", "Shodashavargas"), ("/varshaphala", "Varshaphala"), ("/kp", "KP System"),
+       ("/kundli", "Kundli"), ("/destiny", "Destiny & Ravana Mastery"), ("/vargas", "Shodashavargas"), ("/varshaphala", "Varshaphala"), ("/kp", "KP System"),
        ("/prashna", "Prashna"), ("/yogas", "Classical Yogas"), ("/reading", "Vedic Reading"),
        ("/matching", "Matching"), ("/muhurat", "Muhurat"),
        ("/hora", "Hora"), ("/rahu-kaal", "Rahu Kaal"), ("/lagna-table", "Lagna & Gowri"), ("/transits", "Transits"),
@@ -772,6 +772,50 @@ def register(app: FastAPI):
         return page(request, "numerology.html", f"Astro-Numerology & Destiny Calculator – {BRAND}",
                     "Comprehensive Vedic Astro-Numerology, Lucky Numbers, Shatru Anka, Karmic Debts & Lo Shu Grid.",
                     "/numerology", n=n, q=q, b=b)
+
+    @app.get("/destiny", response_class=HTMLResponse, include_in_schema=False)
+    def destiny_page(request: Request):
+        from ..core.destiny_engine import compute_master_destiny_dossier
+        q = request.query_params
+        loc = loc_from(request)
+        b = birth_from_query(request)
+        name = q.get("name") or (b.get("name") if b else "") or "Aryabhata"
+        dob_str = q.get("date") or q.get("dob") or (b.get("date") if b else "") or "1990-05-15"
+        tm_str = q.get("time") or (b.get("time") if b else "08:30:00")
+        if len(tm_str) == 5:
+            tm_str += ":00"
+        b_lat = float(q["lat"]) if q.get("lat") else (b.get("latitude") if b else 28.6139)
+        b_lon = float(q["lon"]) if q.get("lon") else (b.get("longitude") if b else 77.2090)
+        b_tz = q.get("tz") or (b.get("timezone") if b else "Asia/Kolkata")
+        b_city = q.get("city") or (b.get("city") if b else "New Delhi, India")
+
+        c_lat = float(q["cur_lat"]) if q.get("cur_lat") else loc["lat"]
+        c_lon = float(q["cur_lon"]) if q.get("cur_lon") else loc["lon"]
+        c_tz = q.get("cur_tz") or loc["tz"]
+        c_city = q.get("cur_city") or loc["city"]
+        scan_days = int(q.get("scan_days", 30)) if str(q.get("scan_days", "30")).isdigit() else 30
+
+        dossier = None
+        try:
+            d_obj = Date.fromisoformat(dob_str)
+            t_obj = datetime.strptime(tm_str, "%H:%M:%S").time()
+            tz_b = ephem.make_tz(b_tz, None)
+            dt_utc = datetime.combine(d_obj, t_obj).replace(tzinfo=tz_b).astimezone(timezone.utc)
+            dossier = compute_master_destiny_dossier(
+                dt_utc, b_lat, b_lon, b_tz, None, name=name,
+                current_lat=c_lat, current_lon=c_lon, current_tz_name=c_tz,
+                current_city=c_city, scan_days=min(max(scan_days, 7), 90)
+            )
+        except Exception:
+            pass
+        return page(
+            request, "destiny.html",
+            f"Master Destiny, Ravana Planetary Control, Lottery, Longevity & Past/Future Life – {BRAND}",
+            "Cross-linked Vedic astrology oracle: diseases, longevity, accident dates & hours, lottery luck, marriage count, children & grandchildren, past/future life, and Ravana Samhita 9-planet control.",
+            "/destiny", dossier=dossier, q=q, b=b,
+            form={"name": name, "date": dob_str, "time": tm_str[:5], "lat": b_lat, "lon": b_lon, "tz": b_tz, "city": b_city,
+                  "cur_lat": c_lat, "cur_lon": c_lon, "cur_tz": c_tz, "cur_city": c_city, "scan_days": scan_days}
+        )
 
     @app.get("/tarot", response_class=HTMLResponse, include_in_schema=False)
     def tarot(request: Request):

@@ -69,4 +69,29 @@ class PrashnaRequest(BaseModel):
     )
     question_text: Optional[str] = Field(None, description="Optional natural language query text")
 
+class DestinyRequest(KundliRequest):
+    current_latitude: Optional[float] = Field(None, ge=-90, le=90, description="Current living/travel latitude for location-calibrated hours & dates")
+    current_longitude: Optional[float] = Field(None, ge=-180, le=180, description="Current living/travel longitude for location-calibrated hours & dates")
+    current_timezone: Optional[str | float] = Field(None, description="Current location IANA timezone (e.g. America/New_York) or UTC offset in hours")
+    current_utc_offset: Optional[float] = Field(None, ge=-14, le=14, description="Current location UTC offset in hours")
+    current_city: Optional[str] = Field(None, description="Current city display name")
+    scan_days: int = Field(30, ge=7, le=180, description="Number of upcoming days to scan for lottery, accident, and destiny date-time windows")
+
+    @model_validator(mode="after")
+    def _normalize_current_tz(self):
+        if isinstance(self.current_timezone, (int, float)):
+            if self.current_utc_offset is None:
+                self.current_utc_offset = float(self.current_timezone)
+            self.current_timezone = None
+        elif isinstance(self.current_timezone, str):
+            try:
+                val = float(self.current_timezone)
+                if self.current_utc_offset is None:
+                    self.current_utc_offset = val
+                self.current_timezone = None
+            except ValueError:
+                pass
+        return self
+
+
 

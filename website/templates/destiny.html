@@ -1,0 +1,853 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="hero-section" style="margin-bottom: 24px;">
+    <h1 style="margin: 0 0 8px 0; font-size: 28px; display: flex; align-items: center; gap: 10px;">
+        <span>ðŸ”±</span> Master Destiny, Ravana Graha Control & Life Oracle
+    </h1>
+    <p class="neutral" style="margin: 0; font-size: 15px;">
+        Location-Calibrated Cross-Linked Vedic Intelligence: Ravana Samhita 9-Planet Mastery, Lottery & Windfall Horas, Accident & Danger Windows, Diseases & Longevity (Ayurdaya), Marriage Count & Fixes, Progeny & Grandchildren (D-7), and Past/Future Life (D-60).
+    </p>
+</div>
+
+<!-- Dual-Location Input Form: Birth Chart + Current Location Calibration -->
+<section class="card" style="margin-bottom: 20px;">
+    <h2>1. Birth Chart & Current Location Calibration</h2>
+    <div class="body">
+        <form class="f" method="get" action="/destiny">
+            <div style="font-weight: 700; margin-bottom: 8px; color: var(--accent, #b45309);">A. Natal Birth Data (Root Karma Anchor)</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px;">
+                <label>Full Name
+                    <input type="text" name="name" value="{{ form.name }}" required>
+                </label>
+                <label>Birth Date
+                    <input type="date" name="date" value="{{ form.date }}" required>
+                </label>
+                <label>Birth Time
+                    <input type="time" name="time" value="{{ form.time }}" step="60" required>
+                </label>
+                <label>Birth City
+                    <input type="text" name="city" value="{{ form.city }}" placeholder="New Delhi, India">
+                </label>
+                <label>Birth Latitude
+                    <input type="number" step="any" name="lat" value="{{ form.lat }}" required>
+                </label>
+                <label>Birth Longitude
+                    <input type="number" step="any" name="lon" value="{{ form.lon }}" required>
+                </label>
+                <label>Birth Timezone
+                    <input type="text" name="tz" value="{{ form.tz }}" required>
+                </label>
+            </div>
+
+            <div style="font-weight: 700; margin: 16px 0 8px 0; padding-top: 12px; border-top: 1px dashed var(--border, #e2e8f0); color: var(--accent, #0f766e);">
+                B. Current Location (Where You Are Now â€” Calibrates Local Sunrise, Horas, Rahu Kaal, Lottery & Accident Hours)
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px;">
+                <label>Current City
+                    <input type="text" name="cur_city" id="cur_city" value="{{ form.cur_city }}">
+                </label>
+                <label>Current Latitude
+                    <input type="number" step="any" name="cur_lat" id="cur_lat" value="{{ form.cur_lat }}">
+                </label>
+                <label>Current Longitude
+                    <input type="number" step="any" name="cur_lon" id="cur_lon" value="{{ form.cur_lon }}">
+                </label>
+                <label>Current Timezone
+                    <input type="text" name="cur_tz" id="cur_tz" value="{{ form.cur_tz }}">
+                </label>
+                <label>Scan Window (Days)
+                    <input type="number" name="scan_days" min="7" max="90" value="{{ form.scan_days }}">
+                </label>
+            </div>
+
+            <div style="margin-top: 16px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
+                <button type="submit" class="btn">ðŸ”± Compute Complete Destiny & Location Horas</button>
+                <button type="button" class="btn" style="background:#334155;" onclick="useMyGPS()">ðŸ“ Use My Live GPS for Current Location</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+{% if dossier %}
+{% set bq = "name=" ~ (form.name|urlencode) ~ "&date=" ~ form.date ~ "&dob=" ~ form.date ~ "&time=" ~ form.time ~ "&lat=" ~ form.lat ~ "&lon=" ~ form.lon ~ "&tz=" ~ (form.tz|urlencode) ~ "&city=" ~ (form.city|urlencode) %}
+
+<!-- Cross-Linking Bar across the entire Astrology & Numerology Suite -->
+<section class="card" style="margin-bottom: 20px; background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 1px solid #f59e0b;">
+    <div class="body" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;">
+        <div>
+            <strong>ðŸ”— Cross-Linked Chart Modules for {{ dossier.name }}:</strong>
+            <span class="neutral" style="font-size:13px;">
+                Natal Lagna: <b>{{ dossier.birth_chart_anchor.natal_lagna }}</b> |
+                Natal Moon: <b>{{ dossier.birth_chart_anchor.natal_moon }}</b> |
+                Relocated Lagna ({{ dossier.current_location_anchor.city }}): <b>{{ dossier.current_location_anchor.relocated_birth_lagna_at_current_city }}</b> |
+                Moolank/Bhagyank: <b>{{ dossier.cross_linked_numerology.moolank }} / {{ dossier.cross_linked_numerology.bhagyank }}</b>
+            </span>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <a class="btn" style="padding: 6px 12px; font-size: 13px;" href="/kundli?{{ bq }}">â˜¸ï¸ Full Kundli</a>
+            <a class="btn" style="padding: 6px 12px; font-size: 13px;" href="/vargas?{{ bq }}">ðŸ“ 31 Vargas (D1â€“D150)</a>
+            <a class="btn" style="padding: 6px 12px; font-size: 13px;" href="/numerology?{{ bq }}">ðŸ”¢ Astro-Numerology</a>
+            <a class="btn" style="padding: 6px 12px; font-size: 13px;" href="/reading?{{ bq }}">ðŸ“œ 144 Lords Reading</a>
+            <a class="btn" style="padding: 6px 12px; font-size: 13px;" href="/yogas?{{ bq }}">âœ¨ Classical Yogas</a>
+            <a class="btn" style="padding: 6px 12px; font-size: 13px;" href="/prashna?lat={{ form.cur_lat }}&lon={{ form.cur_lon }}&tz={{ form.cur_tz }}">ðŸ”® Live Prashna</a>
+        </div>
+    </div>
+</section>
+
+<!-- 8-Tab Navigation -->
+<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;">
+    <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-ravana', this)" style="background:#b45309;">ðŸ‘‘ 1. Ravana 9-Planet Control</button>
+    <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-lottery', this)" style="background:#475569;">ðŸŽ° 2. Lottery & Windfall Horas</button>
+    <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-turning', this)" style="background:#475569;">âš¡ 3. Good/Bad Dates & Luck Fix</button>
+    <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-accidents', this)" style="background:#475569;">ðŸ›¡ï¸ 4. Accidents & Danger Hours</button>
+    <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-medical', this)" style="background:#475569;">ðŸ¥ 5. Diseases, Death & Longevity</button>
+    <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-marriage', this)" style="background:#475569;">ðŸ’ 6. Marriage Count & Fixes</button>
+    <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-progeny', this)" style="background:#475569;">ðŸ‘¶ 7. Kids & Grandchildren (D-7)</button>
+    <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-reincarnation', this)" style="background:#475569;">ðŸ•‰ï¸ 8. Past/Future Life & Purpose</button>
+</div>
+
+<!-- ==================== TAB 1: RAVANA SAMHITA 9-PLANET MASTERY ==================== -->
+{% set rm = dossier.ravana_samhita_planetary_mastery %}
+<div id="tab-ravana" class="d-tab-pane">
+    <section class="card" style="margin-bottom: 20px;">
+        <h2>ðŸ‘‘ Ravana Samhita Graha Prabandhana â€” Complete 9-Planet Mastery</h2>
+        <div class="body">
+            <p>Just as Dashagriva Ravana commanded the 9 Grahas around his throne through supreme astronomical timing and Tantra/Mantra discipline, your <b>{{ rm.functional_planet_hierarchy.lagna_sign }} ({{ rm.functional_planet_hierarchy.lagna_rashi }})</b> chart has a specific command hierarchy:</p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 16px;">
+                <div style="padding:12px; background:#f0fdf4; border-left:4px solid #16a34a; border-radius:6px;">
+                    <strong>ðŸŒŸ Functional Benefics (Amplify):</strong><br>
+                    {{ rm.functional_planet_hierarchy.functional_benefics | join(', ') }}
+                </div>
+                <div style="padding:12px; background:#fef2f2; border-left:4px solid #dc2626; border-radius:6px;">
+                    <strong>ðŸ”¥ Functional Malefics (Pacify & Command):</strong><br>
+                    {{ rm.functional_planet_hierarchy.functional_malefics | join(', ') }}
+                </div>
+                <div style="padding:12px; background:#fffbeb; border-left:4px solid #d97706; border-radius:6px;">
+                    <strong>âš ï¸ Marakas & Badhaka Lord:</strong><br>
+                    Marakas: {{ rm.functional_planet_hierarchy.maraka_lords | join(', ') }} | Badhaka: {{ rm.functional_planet_hierarchy.badhaka_lord }}
+                </div>
+            </div>
+
+            <h3>ðŸ’Ž Strategic Gemstone Prescription (Life, Luck & Destiny Stones)</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Role</th>
+                            <th>Planet & Gem</th>
+                            <th>Substitute</th>
+                            <th>Weight, Metal & Finger</th>
+                            <th>Exact Wearing Time & Energization Shloka</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for g in rm.strategic_gemstone_prescription %}
+                        <tr>
+                            <td><strong>{{ g.category }}</strong><br><small class="neutral">{{ g.purpose }}</small></td>
+                            <td><b>{{ g.planet }}</b><br>{{ g.primary_gem }}</td>
+                            <td>{{ g.substitute_gem }}</td>
+                            <td>{{ g.carat_weight }}<br>{{ g.metal }} ({{ g.finger }})</td>
+                            <td>{{ g.wearing_day_hora }}<br><code>{{ g.prana_pratishtha_shloka }}</code></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 style="margin-top:18px; color:#b91c1c;">ðŸš« Forbidden Gemstones (Never Wear These)</h3>
+            <ul>
+                {% for fg in rm.forbidden_gemstones_warning %}
+                <li><strong>{{ fg.planet }} ({{ fg.gem_to_avoid }}):</strong> {{ fg.why_avoid }}</li>
+                {% endfor %}
+            </ul>
+
+            <h3 style="margin-top:18px;">ðŸ”± Things to Keep Close vs. Things to Avoid (Colors, Numbers, Objects, Directions)</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+                <div style="padding:16px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px;">
+                    <h4 style="margin-top:0; color:#15803d;">âœ… KEEP CLOSE TO YOU</h4>
+                    <p><strong>Sacred Objects (Wallet/Desk):</strong> {{ rm.things_to_keep_close_master_guide.sacred_objects_for_wallet_and_desk | join(' â€¢ ') }}</p>
+                    <p><strong>Power Colors:</strong> {{ rm.things_to_keep_close_master_guide.power_colors_to_wear | join(', ') }}</p>
+                    <p><strong>Power Numbers:</strong> {{ rm.things_to_keep_close_master_guide.power_numbers_to_use | join(', ') }}</p>
+                    <p><strong>Favorable Metals:</strong> {{ rm.things_to_keep_close_master_guide.favorable_metals | join(', ') }}</p>
+                    <p><strong>Directions:</strong> {{ rm.things_to_keep_close_master_guide.auspicious_directions_for_head_and_desk | join(' | ') }}</p>
+                    <p><strong>Plants & Animal Service:</strong> {{ rm.things_to_keep_close_master_guide.trees_and_plants_to_nurture | join(', ') }} â€¢ {{ rm.things_to_keep_close_master_guide.animals_to_feed_for_instant_punya | join(' â€¢ ') }}</p>
+                </div>
+                <div style="padding:16px; background:#fef2f2; border:1px solid #fecaca; border-radius:8px;">
+                    <h4 style="margin-top:0; color:#b91c1c;">âŒ STRICTLY AVOID</h4>
+                    <p><strong>Objects to Remove:</strong> {{ rm.things_to_avoid_master_guide.objects_to_strictly_remove_from_home_and_body | join(' â€¢ ') }}</p>
+                    <p><strong>Colors to Avoid:</strong> {{ rm.things_to_avoid_master_guide.colors_to_avoid_in_high_stakes | join(', ') }}</p>
+                    <p><strong>Inimical Numbers:</strong> {{ rm.things_to_avoid_master_guide.numbers_to_avoid | join(', ') }}</p>
+                    <p><strong>Habits to Never Do:</strong> {{ rm.things_to_avoid_master_guide.habits_and_actions_to_never_do | join(' ') }}</p>
+                </div>
+            </div>
+
+            <h3 style="margin-top:20px;">ðŸ•‰ï¸ All 9 Planets Command Schedule: God to Worship, When, How Long & Ravana Secret</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Planet & Placement</th>
+                            <th>Command Strategy</th>
+                            <th>Deity, When & How Long</th>
+                            <th>Beej & Puranic Shloka</th>
+                            <th>Ravana Samhita Secret & Dana</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in rm.nine_graha_command_protocols %}
+                        <tr>
+                            <td><strong>{{ p.planet }}</strong><br><small>{{ p.natal_placement }}</small></td>
+                            <td><span class="badge">{{ p.functional_role }}</span></td>
+                            <td><b>{{ p.deity_to_worship }}</b><br><small>{{ p.when_and_how_long_to_worship }}</small></td>
+                            <td><code>{{ p.beej_mantra }}</code><br><small>{{ p.beej_transliteration }}</small><br><small class="neutral">{{ p.puranic_shloka }}</small></td>
+                            <td>{{ p.ravana_samhita_mastery_secret }}<br><small><b>Dana:</b> {{ p.charitable_dana_to_command }}</small></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TAB 2: LOTTERY & SUDDEN WINDFALL ORACLE (LOCATION-CALIBRATED)
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div id="tab-lottery" class="destiny-tab" style="display:none;">
+    {% set lot = dossier.lottery_and_windfall_oracle %}
+    <section class="section">
+        <div class="card">
+            <h2>🎰 Lottery, Speculation & Sudden Windfall Oracle (Calibrated to {{ cur_city }})</h2>
+            <p class="neutral"><strong>Lakshmi Akarshana Shloka:</strong> <code>{{ lot.lakshmi_akarshana_shloka }}</code></p>
+
+            <div class="grid-3" style="margin-top:16px;">
+                <div class="stat">
+                    <span class="label">Indu Lagna (Wealth Ascendant)</span>
+                    <span class="value">{{ lot.indu_lagna_wealth_ascendant.sign }} ({{ lot.indu_lagna_wealth_ascendant.rashi }})</span>
+                    <small>Lord: <b>{{ lot.indu_lagna_wealth_ascendant.lord }}</b> — {{ lot.indu_lagna_wealth_ascendant.significance }}</small>
+                </div>
+                <div class="stat">
+                    <span class="label">Natal Windfall Potential Score</span>
+                    <span class="value" style="color:var(--accent);">{{ lot.windfall_and_lottery_potential_score }} / 100</span>
+                    <small>5th: {{ lot.key_wealth_and_speculation_lords['5th_lord_speculation_intuition'] }} | 8th: {{ lot.key_wealth_and_speculation_lords['8th_lord_sudden_unearned_windfall'] }} | 11th: {{ lot.key_wealth_and_speculation_lords['11th_lord_massive_gains'] }}</small>
+                </div>
+                <div class="stat">
+                    <span class="label">Core Personal Lucky Digits</span>
+                    <span class="value">{{ lot.core_personal_lucky_digits | join(', ') }}</span>
+                    <small>2nd Treasury Lord: {{ lot.key_wealth_and_speculation_lords['2nd_lord_treasury'] }}</small>
+                </div>
+            </div>
+
+            <h3 style="margin-top:18px;">✨ Active Natal Dhana & Windfall Yogas</h3>
+            <ul>
+                {% for y in lot.natal_windfall_yogas %}
+                <li>{{ y }}</li>
+                {% endfor %}
+            </ul>
+
+            <h3 style="margin-top:20px;">📅 Location-Calibrated Golden Lottery & Speculation Windows ({{ cur_city }})</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date & Weekday ({{ cur_city }})</th>
+                            <th>Wealth Tara & Moon Sector</th>
+                            <th>Best 1-Hour Golden Hora</th>
+                            <th>Peak 15-Min Lakshmi Sub-Window</th>
+                            <th>Harmonic Lucky Numbers & Direction</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for w in lot.location_calibrated_lottery_date_time_windows %}
+                        <tr>
+                            <td><strong>{{ w.date }}</strong><br><small>{{ w.weekday }}</small></td>
+                            <td><b>{{ w.wealth_tara }}</b><br><small>{{ w.moon_wealth_sector }}</small></td>
+                            <td><strong>{{ w.golden_hora_window }}</strong></td>
+                            <td><strong style="color:var(--accent);">{{ w.peak_15m_lakshmi_moment }}</strong></td>
+                            <td>
+                                <b>6-Pick:</b> <code>{{ w.harmonic_lucky_numbers | join(' - ') }}</code><br>
+                                <b>Power Root:</b> <code style="color:var(--accent);">{{ w.power_root_digit }}</code> |
+                                <small>Face: {{ w.direction_to_face }}</small>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TAB 3: DESTINY TURNING POINTS & BAD-LUCK COUNTER PROTOCOL
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div id="tab-turning" class="destiny-tab" style="display:none;">
+    {% set dt = dossier.destiny_turning_points_and_dates %}
+    <section class="section">
+        <div class="card">
+            <h2>⏳ Life Destiny Turning Points, Good/Bad Dates & Bad-Luck Reset</h2>
+            <p class="neutral">Bhrigu Chakra Paddhati activation years, Vimshottari Mahadasha junctions, and location-calibrated high-impact dates with exact hours.</p>
+
+            <div class="grid-2" style="margin-top:14px;">
+                <div>
+                    <h3>🔄 Bhrigu Chakra Life Turning Milestones</h3>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Age & Year</th>
+                                    <th>Activating Graha</th>
+                                    <th>Status</th>
+                                    <th>Destiny Shift</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for tp in dt.lifelong_destiny_turning_milestones %}
+                                <tr>
+                                    <td><strong>Age {{ tp.age }} ({{ tp.year }})</strong></td>
+                                    <td><b>{{ tp.activating_graha }}</b></td>
+                                    <td><span class="badge">{{ tp.status }}</span></td>
+                                    <td><small>{{ tp.destiny_shift }}</small></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div>
+                    <h3>🌌 Vimshottari Mahadasha Destiny Junctions</h3>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Mahadasha Lord</th>
+                                    <th>Period</th>
+                                    <th>Transformation Focus</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for md in dt.mahadasha_destiny_junctions %}
+                                <tr>
+                                    <td><strong>{{ md.mahadasha_lord }}</strong></td>
+                                    <td><small>{{ md.start_date }} → {{ md.end_date }}</small></td>
+                                    <td><small>{{ md.life_transformation_focus }}</small></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-2" style="margin-top:20px;">
+                <div>
+                    <h3 style="color:#2ecc71;">🌟 Upcoming Auspicious Destiny Dates & Golden Hours ({{ cur_city }})</h3>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Tara & Moon Transit</th>
+                                    <th>Power Hora & Abhijit</th>
+                                    <th>Best For</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for g in dt.upcoming_auspicious_destiny_dates %}
+                                <tr>
+                                    <td><strong>{{ g.date }}</strong><br><small>{{ g.weekday }}</small></td>
+                                    <td><b>{{ g.tara }}</b><br><small>{{ g.moon_transit }}</small></td>
+                                    <td><strong>{{ g.power_hora_window }}</strong><br><small>Abhijit: {{ g.abhijit_victory_window }}</small></td>
+                                    <td><small>{{ g.best_for }}</small></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div>
+                    <h3 style="color:#e74c3c;">⚡ Upcoming Adverse / Bad-Luck Dates & Hours to Avoid ({{ cur_city }})</h3>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Tara & Moon</th>
+                                    <th>Critical Hours to Avoid</th>
+                                    <th>Neutralizer</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for b in dt.upcoming_adverse_bad_luck_dates %}
+                                <tr>
+                                    <td><strong>{{ b.date }}</strong><br><small>{{ b.weekday }}</small></td>
+                                    <td><b>{{ b.tara }}</b><br><small>{{ b.moon_transit }}</small></td>
+                                    <td><strong>Hora: {{ b.avoid_hora_window }}</strong><br><small>Rahu Kaal: {{ b.local_rahu_kaal }}</small></td>
+                                    <td><small>{{ b.what_to_avoid }}<br><b>Fix:</b> {{ b.instant_neutralizer }}</small></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top:20px;background:rgba(212,175,55,0.08);border:1px solid var(--accent);">
+                <h3>🛡️ How to Fix Chronic Bad Luck Protocol (Durbhagya Nashaka)</h3>
+                <p><strong>Diagnostic Root Cause:</strong> {{ dt.how_to_fix_chronic_bad_luck_protocol.diagnostic_cause }}</p>
+                <ol style="line-height:1.7;">
+                    <li><strong>Salt & Mustard Aura Cleansing:</strong> {{ dt.how_to_fix_chronic_bad_luck_protocol.step_1_salt_and_mustard_cleansing }}</li>
+                    <li><strong>Bhagya Awakening Lamp:</strong> {{ dt.how_to_fix_chronic_bad_luck_protocol.step_2_bhagya_awakening_lamp }}</li>
+                    <li><strong>Badhaka Pacification:</strong> {{ dt.how_to_fix_chronic_bad_luck_protocol.step_3_badhaka_pacification }}</li>
+                    <li><strong>Kalabhairava Time-Command Shield:</strong> {{ dt.how_to_fix_chronic_bad_luck_protocol.step_4_hanuman_kalabhairava_shield }}</li>
+                </ol>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TAB 4: ACCIDENTS, SURGERIES & SAFETY WINDOWS
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div id="tab-accidents" class="destiny-tab" style="display:none;">
+    {% set acc = dossier.accidents_and_safety_windows %}
+    <section class="section">
+        <div class="card">
+            <h2>🚨 Accident Proneness, D-8 Ashtamsha & Location-Calibrated Safety Windows</h2>
+            <p class="neutral"><strong>Narasimha Raksha Kavacha Shloka:</strong> <code>{{ acc.raksha_kavacha_shloka }}</code></p>
+
+            <div class="grid-4" style="margin-top:12px;">
+                <div class="stat">
+                    <span class="label">D-8 Ashtamsha Lagna</span>
+                    <span class="value">{{ acc.d8_ashtamsha_profile.d8_lagna }}</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Mars in D-8</span>
+                    <span class="value">{{ acc.d8_ashtamsha_profile.mars_in_d8 }}</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Saturn in D-8</span>
+                    <span class="value">{{ acc.d8_ashtamsha_profile.saturn_in_d8 }}</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Rahu in D-8</span>
+                    <span class="value">{{ acc.d8_ashtamsha_profile.rahu_in_d8 }}</span>
+                </div>
+            </div>
+
+            <h3 style="margin-top:18px;">🔍 Natal Accident & Physical Hazard Indicators</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Yoga / Axis</th>
+                            <th>Nature of Hazard</th>
+                            <th>Lifelong Precaution</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ind in acc.natal_accident_indicators %}
+                        <tr>
+                            <td><strong>{{ ind.yoga }}</strong></td>
+                            <td>{{ ind.nature }}</td>
+                            <td>{{ ind.precaution }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="grid-2" style="margin-top:20px;">
+                <div>
+                    <h3 style="color:#e74c3c;">⚠️ Upcoming Danger & Caution Windows ({{ cur_city }})</h3>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date & Risk</th>
+                                    <th>Exact Local Danger Hours</th>
+                                    <th>Triggers & Protection</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for w in acc.upcoming_danger_and_caution_windows %}
+                                <tr>
+                                    <td><strong>{{ w.date }} ({{ w.weekday }})</strong><br><span class="badge">{{ w.risk_level }}</span></td>
+                                    <td>
+                                        <div><b>Hora:</b> <code>{{ w.peak_danger_hora }}</code></div>
+                                        <div><small>Rahu: {{ w.local_rahu_kaal }} | Yama: {{ w.local_yamaganda }}</small></div>
+                                        <div><small>Avoid Direction: {{ w.direction_to_avoid_disha_shool }}</small></div>
+                                    </td>
+                                    <td><small>{{ w.triggers }} ({{ w.hazard_type }})<br><b>Action:</b> {{ w.protective_action }}</small></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div>
+                    <h3 style="color:#2ecc71;">✅ Upcoming Safe Travel & Protected Windows ({{ cur_city }})</h3>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Tara & Chandrabalam</th>
+                                    <th>Golden Safe Hora</th>
+                                    <th>Favorable For</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in acc.upcoming_safe_and_protected_windows %}
+                                <tr>
+                                    <td><strong>{{ s.date }}</strong><br><small>{{ s.weekday }}</small></td>
+                                    <td><b>{{ s.tara_blessing }}</b><br><small>{{ s.chandrabalam }}</small></td>
+                                    <td><strong>{{ s.golden_safe_hora }}</strong></td>
+                                    <td><small>{{ s.favorable_for }}</small></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TAB 5: MEDICAL ASTROLOGY, DISEASES & MARAKA LONGEVITY
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div id="tab-medical" class="destiny-tab" style="display:none;">
+    {% set med = dossier.medical_diseases_and_longevity %}
+    <section class="section">
+        <div class="card">
+            <h2>⚕️ Medical Astrology (Ayur-Jyotish), Disease Susceptibility & Longevity (Ayurdaya)</h2>
+
+            <div class="grid-3" style="margin-top:14px;">
+                <div class="stat">
+                    <span class="label">Ayurvedic Tridosha Prakriti</span>
+                    <span class="value">{{ med.ayurvedic_constitution.dominant_prakriti }}</span>
+                    <small>Vata: {{ med.ayurvedic_constitution.tridosha_percentages.Vata }}% | Pitta: {{ med.ayurvedic_constitution.tridosha_percentages.Pitta }}% | Kapha: {{ med.ayurvedic_constitution.tridosha_percentages.Kapha }}%</small>
+                </div>
+                <div class="stat">
+                    <span class="label">Estimated Lifespan Potential (Ayurdaya)</span>
+                    <span class="value" style="font-size:1rem;">{{ med.longevity_ayurdaya.estimated_lifespan_potential }}</span>
+                    <small>Pair 1: {{ med.longevity_ayurdaya.bphs_pair_1_lagna_8th }} | Pair 2: {{ med.longevity_ayurdaya.bphs_pair_2_moon_saturn }}</small>
+                </div>
+                <div class="stat">
+                    <span class="label">Primary Maraka & 8th Lords</span>
+                    <span class="value">Marakas: {{ med.longevity_ayurdaya.primary_maraka_lords | join(', ') }}</span>
+                    <small>8th Lord: {{ med.longevity_ayurdaya.eighth_house_lord_ayush }} | Badhaka: {{ med.longevity_ayurdaya.badhakadhipati_obstruction_lord }}</small>
+                </div>
+            </div>
+
+            <h3 style="margin-top:18px;">🧬 Organ & Disease Vulnerability Matrix (6th, 8th, 12th Houses & Planetary Sensitivities)</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Category & Sign</th>
+                            <th>Governing Planet</th>
+                            <th>Vulnerable Organs</th>
+                            <th>Potential Conditions</th>
+                            <th>Ayurvedic & Shloka Remedy</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in med.disease_and_organ_vulnerabilities %}
+                        <tr>
+                            <td><strong>{{ d.category }}</strong><br><small>{{ d.sign }}</small></td>
+                            <td><span class="badge">{{ d.governing_planet }}</span></td>
+                            <td>{{ d.vulnerable_organs }}</td>
+                            <td>{{ d.potential_conditions }}</td>
+                            <td>{{ d.ayurvedic_remedy }}<br><small class="neutral"><code>{{ d.shloka_remedy }}</code></small></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if med.mrityu_bhaga_degree_diagnostics %}
+            <h3 style="margin-top:18px;color:#e74c3c;">⚠️ Critical Mrityu Bhaga Degree Diagnostics</h3>
+            <ul>
+                {% for mb in med.mrityu_bhaga_degree_diagnostics %}
+                <li><strong>{{ mb.body }} in {{ mb.sign }} at {{ mb.actual_degree }}°</strong> (Mrityu Bhaga: {{ mb.mrityu_degree }}°, orb {{ mb.orb }}°) — {{ mb.implication }} <em>Remedy: {{ mb.remedy }}</em></li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+
+            <h3 style="margin-top:18px;">🕯️ Critical Maraka & Health-Vigilance Dasha Windows</h3>
+            <p><strong>Maha Mrityunjaya Shloka:</strong> <code>{{ med.longevity_ayurdaya.maha_mrityunjaya_shloka }}</code></p>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Dasha Period</th>
+                            <th>Window (Start → End)</th>
+                            <th>Severity</th>
+                            <th>Astronomical Reason & Countermeasure</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for w in med.critical_maraka_and_health_windows %}
+                        <tr>
+                            <td><strong>{{ w.dasha_period }}</strong></td>
+                            <td>{{ w.start_date }} → {{ w.end_date }}</td>
+                            <td><span class="badge">{{ w.severity }}</span></td>
+                            <td>{{ w.astronomical_reason }}<br><small><b>Countermeasure:</b> {{ w.countermeasure }}</small></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TAB 6: MARRIAGE COUNT, TIMING & RELATIONSHIP REPAIR
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div id="tab-marriage" class="destiny-tab" style="display:none;">
+    {% set mar = dossier.marriage_count_and_remedies %}
+    <section class="section">
+        <div class="card">
+            <h2>💍 Marriage Count Estimator, Spouse Karakas & Ways to Fix / Save Marriage</h2>
+
+            <div class="grid-3" style="margin-top:14px;">
+                <div class="stat">
+                    <span class="label">Estimated Number of Marriages / Unions</span>
+                    <span class="value" style="font-size:1.05rem;">{{ mar.estimated_number_of_marriages }} — {{ mar.marriage_count_verdict }}</span>
+                </div>
+                <div class="stat">
+                    <span class="label">7th House & D-9 Navamsha</span>
+                    <span class="value">{{ mar.key_marital_pillars['7th_house_sign'] }} (Lord: {{ mar.key_marital_pillars['7th_house_lord'] }})</span>
+                    <small>D-9 7th: {{ mar.key_marital_pillars.navamsha_d9_7th_house }} | Venus in D-9: {{ mar.key_marital_pillars.venus_in_d9 }}</small>
+                </div>
+                <div class="stat">
+                    <span class="label">Jaimini Upapada (UL) & Darakaraka (DK)</span>
+                    <span class="value">UL: {{ mar.key_marital_pillars.upapada_lagna_ul }}</span>
+                    <small>2nd from UL: {{ mar.key_marital_pillars['2nd_from_upapada_bond_sustainer'] }} | DK: <b>{{ mar.key_marital_pillars.jaimini_darakaraka_spouse_indicator }}</b></small>
+                </div>
+            </div>
+
+            <div class="grid-2" style="margin-top:18px;">
+                <div class="card" style="background:rgba(255,255,255,0.02);">
+                    <h3>🔍 Classical Marriage Stability & Multiplicity Factors</h3>
+                    <ul>
+                        {% for f in mar.classical_factors_detected %}
+                        <li>{{ f }}</li>
+                        {% endfor %}
+                    </ul>
+                    <p><strong>Spouse Character & Direction:</strong> {{ mar.spouse_character_and_direction.temperament_from_darakaraka }} (Favorable Direction: <b>{{ mar.spouse_character_and_direction.favorable_meeting_direction }}</b>)</p>
+                    <p><strong>Manglik / Kuja Status:</strong> {{ mar.key_marital_pillars.manglik_kuja_status }}</p>
+                    <h4 style="margin-top:12px;">📅 Favorable Marriage / Relationship Renewal Windows</h4>
+                    <ul>
+                        {% for mw in mar.favorable_marriage_and_renewal_windows %}
+                        <li><strong>{{ mw.period }}</strong> ({{ mw.start }} → {{ mw.end }}) — {{ mw.reason }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="card" style="background:rgba(212,175,55,0.06);border:1px solid var(--accent);">
+                    <h3>🛠️ Ways to Fix, Save & Harmonize Marriage (Vedic Upayas)</h3>
+                    <ol style="line-height:1.7;">
+                        {% for fix in mar.ways_to_fix_and_harmonize_marriage %}
+                        <li>{{ fix }}</li>
+                        {% endfor %}
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TAB 7: CHILDREN, PROGENY COUNT & GRANDCHILDREN'S FUTURE
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div id="tab-progeny" class="destiny-tab" style="display:none;">
+    {% set prog = dossier.progeny_children_and_grandchildren %}
+    <section class="section">
+        <div class="card">
+            <h2>👶 Fertility (Beeja/Kshetra), Number of Children (D-7 Saptamsha) & Grandchildren's Future</h2>
+
+            <div class="grid-3" style="margin-top:14px;">
+                <div class="stat">
+                    <span class="label">Progeny & Fertility Capacity</span>
+                    <span class="value" style="font-size:1rem;">{{ prog.fertility_and_conception_capacity.verdict }}</span>
+                    <small>Vitality Score: <b>{{ prog.fertility_and_conception_capacity.fertility_vitality_score }}/100</b> | 5th Lord: {{ prog.fertility_and_conception_capacity['5th_house_lord'] }}</small>
+                </div>
+                <div class="stat">
+                    <span class="label">Estimated Number of Children</span>
+                    <span class="value" style="color:var(--accent);">{{ prog.estimated_number_of_children }}</span>
+                    <small>D-7 Lagna: {{ prog.fertility_and_conception_capacity.d7_saptamsha_lagna }}</small>
+                </div>
+                <div class="stat">
+                    <span class="label">Grandchildren Count & Lineage</span>
+                    <span class="value">{{ prog.grandchildren_and_lineage_future.estimated_grandchildren_blessing }}</span>
+                    <small>9th House (5th from 5th): {{ prog.grandchildren_and_lineage_future.bhavat_bhavam_9th_house }}</small>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top:16px;background:rgba(255,255,255,0.02);">
+                <h3>🌱 Classical Beeja Sphuta & Kshetra Sphuta Fertility Check</h3>
+                <p>
+                    <strong>Beeja Sphuta (Sun + Venus + Jupiter):</strong> {{ prog.fertility_and_conception_capacity.beeja_sphuta_sign }} ({{ prog.fertility_and_conception_capacity.beeja_sphuta_longitude }}°) &nbsp;|&nbsp;
+                    <strong>Kshetra Sphuta (Moon + Mars + Jupiter):</strong> {{ prog.fertility_and_conception_capacity.kshetra_sphuta_sign }} ({{ prog.fertility_and_conception_capacity.kshetra_sphuta_longitude }}°)
+                </p>
+                <p><strong>Santana Gopala Shloka:</strong> <code>{{ prog.santana_gopala_shloka }}</code></p>
+            </div>
+
+            <h3 style="margin-top:18px;">👶 Child-by-Child D-7 Saptamsha Profile (Gender Inclination, Temperament & Destiny)</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Child Order</th>
+                            <th>D-7 Sign & Governing Planet</th>
+                            <th>D-7 Occupants</th>
+                            <th>Gender Inclination (BPHS Oja/Yugma)</th>
+                            <th>Child's Personality & Future Destiny</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in prog.individual_children_predictions %}
+                        <tr>
+                            <td><strong>{{ c.child_order }}</strong></td>
+                            <td>{{ c.d7_house_sign }}<br><small>Lord: <b>{{ c.governing_planet }}</b></small></td>
+                            <td>{{ c.d7_occupants | join(', ') }}</td>
+                            <td>{{ c.classical_gender_tendency }}</td>
+                            <td>{{ c.personality_and_future_destiny }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card" style="margin-top:18px;background:rgba(46,204,113,0.06);border:1px solid rgba(46,204,113,0.3);">
+                <h3>🌳 Grandchildren (Pautra/Pautri — 9th House & D-7 9th House) & Their Futures</h3>
+                <p><strong>D-7 Grandchildren Sign:</strong> {{ prog.grandchildren_and_lineage_future.d7_grandchildren_sign }}</p>
+                <p><strong>Grandchildren Future Destiny:</strong> {{ prog.grandchildren_and_lineage_future.grandchildren_future_destiny }}</p>
+                <p class="neutral"><strong>3-Generation Ancestral Blessing to Leave Them:</strong> {{ prog.grandchildren_and_lineage_future.ancestral_blessing_to_leave_them }}</p>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TAB 8: PAST LIFE, KARMA DEBTS, LIFE PURPOSE & FUTURE LIFE
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div id="tab-reincarnation" class="destiny-tab" style="display:none;">
+    {% set pl = dossier.past_life_future_life_and_purpose %}
+    <section class="section">
+        <div class="card">
+            <h2>🕉️ Past Life (D-60 Shashtiamsha), Unfinished Karma, This Life's Purpose & Future Life Trajectory</h2>
+
+            <div class="grid-3" style="margin-top:14px;">
+                <div class="stat">
+                    <span class="label">D-60 Shashtiamsha Past-Life Deity</span>
+                    <span class="value" style="font-size:1rem;">{{ pl.past_life_reading_purva_janma.d60_shashtiamsha_lagna_deity[0] }} ({{ pl.past_life_reading_purva_janma.d60_shashtiamsha_lagna_deity[1] }})</span>
+                    <small>{{ pl.past_life_reading_purva_janma.d60_shashtiamsha_lagna_deity[2] }}</small>
+                </div>
+                <div class="stat">
+                    <span class="label">Ketu Past-Life Axis</span>
+                    <span class="value" style="font-size:1rem;">{{ pl.past_life_reading_purva_janma.ketu_past_life_sign_and_house }}</span>
+                    <small>D-60 Soul Deity: {{ pl.past_life_reading_purva_janma.d60_atmakaraka_soul_deity[0] }}</small>
+                </div>
+                <div class="stat">
+                    <span class="label">Future Life / Moksha Trajectory</span>
+                    <span class="value" style="font-size:0.95rem;">{{ pl.future_life_and_moksha_trajectory['12th_from_karakamsha_moksha_gate'] }}</span>
+                    <small>{{ pl.future_life_and_moksha_trajectory.post_life_destination_verdict }}</small>
+                </div>
+            </div>
+
+            <div class="grid-2" style="margin-top:18px;">
+                <div class="card" style="background:rgba(255,255,255,0.02);">
+                    <h3>📜 Past Life Persona, Siddhis & Unfinished Promises</h3>
+                    <p><strong>Past-Life Archetype & Era:</strong> {{ pl.past_life_reading_purva_janma.past_life_archetype_and_status }}</p>
+                    <p><strong>Talents & Siddhis Carried Forward:</strong> {{ pl.past_life_reading_purva_janma.talents_and_siddhis_carried_forward }}</p>
+                    <p><strong>Past-Life Unfinished Attachment:</strong> {{ pl.past_life_reading_purva_janma.past_life_unfinished_attachment }}</p>
+                    <h4>🔄 Retrograde (Vakri) Unfinished Past-Life Promises</h4>
+                    <ul>
+                        {% for u in pl.past_life_reading_purva_janma.retrograde_unfinished_promises %}
+                        <li><strong>{{ u.planet }} in {{ u.sign }} (House {{ u.house }}):</strong> {{ u.unfinished_past_life_promise }}</li>
+                        {% else %}
+                        <li>No retrograde planets at birth — direct evolutionary momentum in this incarnation.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div class="card" style="background:rgba(231,76,60,0.07);border:1px solid rgba(231,76,60,0.35);">
+                    <h3>⚖️ Bad Things Done / Karmic Debts (Rinas) from Past Lives & Exact Ways to Fix</h3>
+                    {% for debt in pl.bad_things_done_in_past_lives_and_how_to_fix %}
+                    <div style="margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border);">
+                        <strong style="color:#e74c3c;">{{ debt.rina }}</strong> <span class="badge">{{ debt.planetary_trigger }}</span>
+                        <p style="margin:6px 0;"><b>Past-Life Mistake:</b> {{ debt.past_life_cause }}</p>
+                        <p style="margin:4px 0;"><small><b>Symptoms in This Life:</b> {{ debt.symptoms_in_this_life }}</small></p>
+                        <p style="margin:4px 0;color:#2ecc71;"><b>Exact Remedy to Clear:</b> {{ debt.exact_remedy_to_clear }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="grid-2" style="margin-top:18px;">
+                <div class="card" style="background:rgba(46,204,113,0.06);border:1px solid rgba(46,204,113,0.35);">
+                    <h3>🧭 Goal of This Life, Dharma & Exact Type of Life to Live</h3>
+                    <p><strong>Supreme Soul Goal (Rahu-Ketu Axis):</strong> {{ pl.this_life_goal_and_how_to_live.supreme_soul_goal_rahu_axis }}</p>
+                    <p><strong>Atmakaraka Soul Lesson:</strong> {{ pl.this_life_goal_and_how_to_live.atmakaraka_soul_king }}</p>
+                    <p><strong>Amatyakaraka Career Mission:</strong> {{ pl.this_life_goal_and_how_to_live.amatyakaraka_career_minister }}</p>
+                    <p><strong>Ideal Daily Routine (Dinacharya):</strong> {{ pl.this_life_goal_and_how_to_live.type_of_life_to_live.ideal_daily_routine_dinacharya }}</p>
+                    <p><strong>Ideal Living Environment:</strong> {{ pl.this_life_goal_and_how_to_live.type_of_life_to_live.ideal_living_environment }}</p>
+                    <p><strong>Dharma Rule Never to Break:</strong> {{ pl.this_life_goal_and_how_to_live.type_of_life_to_live.dharma_rule_never_to_break }}</p>
+                </div>
+
+                <div class="card" style="background:rgba(212,175,55,0.07);border:1px solid var(--accent);">
+                    <h3>🌌 Future Life & Post-Life Trajectory (12th House & Karakamsha)</h3>
+                    <p><strong>Karakamsha Sign (D-9):</strong> {{ pl.future_life_and_moksha_trajectory.karakamsha_sign_d9 }}</p>
+                    <p><strong>12th from Karakamsha (Moksha Gate):</strong> {{ pl.future_life_and_moksha_trajectory['12th_from_karakamsha_moksha_gate'] }}</p>
+                    <p><strong>Post-Life Destination Verdict:</strong> {{ pl.future_life_and_moksha_trajectory.post_life_destination_verdict }}</p>
+                    <p><strong>How to Consciously Engineer Your Next Life / Liberation:</strong> {{ pl.future_life_and_moksha_trajectory.how_to_consciously_engineer_next_life }}</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+function showDestinyTab(tabId, btn) {
+    document.querySelectorAll('.destiny-tab').forEach(function(el) {
+        el.style.display = 'none';
+    });
+    var target = document.getElementById(tabId);
+    if (target) {
+        target.style.display = 'block';
+    }
+    document.querySelectorAll('.destiny-tab-btn').forEach(function(b) {
+        b.style.background = 'rgba(255,255,255,0.05)';
+        b.style.color = 'var(--text)';
+        b.style.fontWeight = 'normal';
+    });
+    if (btn) {
+        btn.style.background = 'var(--accent)';
+        btn.style.color = '#111';
+        btn.style.fontWeight = 'bold';
+    }
+}
+
+function useMyGPS() {
+    if (!navigator.geolocation) {
+        alert('Geolocation is not supported by your browser.');
+        return;
+    }
+    navigator.geolocation.getCurrentPosition(function(pos) {
+        document.getElementById('cur_lat_input').value = pos.coords.latitude.toFixed(4);
+        document.getElementById('cur_lon_input').value = pos.coords.longitude.toFixed(4);
+        var tzOffset = -new Date().getTimezoneOffset() / 60;
+        document.getElementById('cur_tz_input').value = tzOffset;
+        document.getElementById('cur_city_input').value = 'My Current GPS Location';
+    }, function(err) {
+        alert('Unable to retrieve GPS coordinates: ' + err.message);
+    });
+}
+</script>
+{% endif %}
+{% endblock %}

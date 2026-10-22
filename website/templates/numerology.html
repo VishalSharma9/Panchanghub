@@ -55,6 +55,15 @@
 </section>
 
 {% if n %}
+<div class="card" style="margin-bottom: 18px; padding: 12px 16px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+    <strong style="color: var(--accent);">🔗 Cross-Linked Chart Dossiers:</strong>
+    <a class="btn" href="/destiny?name={{ q.get('name', 'Soul Seeker') }}&date={{ q.get('dob', '1990-05-15') }}&time={{ q.get('time', '12:00') }}&lat={{ q.get('lat', '28.6139') }}&lon={{ q.get('lon', '77.2090') }}&tz=5.5&city={{ q.get('city', 'New Delhi') }}" style="background: var(--accent); color: #111; font-weight: bold; text-decoration: none;">
+        🔱 Master Destiny, Ravana Control, Lottery, Progeny &amp; Past/Future Life
+    </a>
+    <a class="btn" href="/kundli?name={{ q.get('name', 'Soul Seeker') }}&date={{ q.get('dob', '1990-05-15') }}&time={{ q.get('time', '12:00') }}&lat={{ q.get('lat', '28.6139') }}&lon={{ q.get('lon', '77.2090') }}&tz=5.5&city={{ q.get('city', 'New Delhi') }}" style="text-decoration: none;">
+        📜 11-Worksheet Janma Kundli
+    </a>
+</div>
 <!-- Interactive Tabs Navigation -->
 <div class="tabs-nav" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid var(--border, #e2e8f0); padding-bottom: 8px;">
     <button class="btn tab-btn active" onclick="openTab(event, 'tab-core')" style="padding: 8px 16px; border-radius: 6px; cursor: pointer;">✨ Core Vibrations</button>

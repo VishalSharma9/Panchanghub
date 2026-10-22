@@ -62,6 +62,12 @@
         <button class="btn alt" id="pdfBtn" style="display:inline-flex;align-items:center;gap:6px">
           <span id="pdfIcon">⬇</span> <span id="pdfText">Download Full PDF Life Report</span>
         </button>
+        <a class="btn" href="/destiny?name={{ b.name }}&date={{ b.date }}&time={{ b.time }}&lat={{ b.lat }}&lon={{ b.lon }}&tz={{ b.tz }}&city={{ b.city }}&cur_lat={{ b.lat }}&cur_lon={{ b.lon }}&cur_tz={{ b.tz }}&cur_city={{ b.city }}" style="display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:#111;font-weight:bold;text-decoration:none;">
+          🔱 Open Master Destiny, Ravana Control, Lottery, Progeny &amp; Past/Future Life Dossier
+        </a>
+        <a class="btn" href="/numerology?name={{ b.name }}&date={{ b.date }}&time={{ b.time }}&lat={{ b.lat }}&lon={{ b.lon }}&tz={{ b.tz }}&city={{ b.city }}" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;">
+          🔢 Astro-Numerology &amp; Lucky Numbers
+        </a>
         <span class="neutral">Moon: <b>{{ k.moon.rashi }}</b>, {{ k.moon.nakshatra }} (Pada {{ k.moon.pada }}) · Ayanamsha: <b>{{ k.ayanamsa }}</b></span>
       </div>
     </div>

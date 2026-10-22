@@ -397,3 +397,61 @@ def test_ephem_lru_cache():
     h2 = ephem.houses(jd, 23.0, 72.0)
     assert h1[1] == h2[1]
 
+
+
+def test_master_destiny_and_ravana_endpoints():
+    destiny_payload = {
+        **SAMPLE_BIRTH,
+        'name': 'Ravana Mastery Tester',
+        'current_latitude': 40.7128,
+        'current_longitude': -74.0060,
+        'current_timezone': -4.0,
+        'current_city': 'New York, USA',
+        'scan_days': 15
+    }
+    res = client.post('/api/kundli/destiny-dossier', json=destiny_payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert 'medical_diseases_and_longevity' in data
+    assert 'accidents_and_safety_windows' in data
+    assert 'destiny_turning_points_and_dates' in data
+    assert 'lottery_and_windfall_oracle' in data
+    assert 'marriage_count_and_remedies' in data
+    assert 'progeny_children_and_grandchildren' in data
+    assert 'past_life_future_life_and_purpose' in data
+    assert 'ravana_samhita_planetary_mastery' in data
+    assert len(data['ravana_samhita_planetary_mastery']['nine_graha_command_protocols']) == 9
+    assert len(data['progeny_children_and_grandchildren']['individual_children_predictions']) >= 1
+
+    # Test focused sub-endpoints
+    for sub in [
+        'medical-longevity',
+        'accidents-safety',
+        'destiny-dates',
+        'lottery-windfall',
+        'marriage-analysis',
+        'progeny-lineage',
+        'past-future-life',
+        'ravana-mastery',
+    ]:
+        sres = client.post(f'/api/kundli/{sub}', json=destiny_payload)
+        assert sres.status_code == 200
+
+    # Test cross-linked summary inside main /api/kundli
+    kres = client.post('/api/kundli', json=SAMPLE_BIRTH)
+    assert kres.status_code == 200
+    kdata = kres.json()
+    assert 'cross_linked_features' in kdata
+    assert 'master_destiny_dossier' in kdata['cross_linked_features']
+    assert 'progeny_children_and_grandchildren' in kdata['cross_linked_features']
+
+    # Test /destiny web route with birth + current location
+    dweb = client.get(
+        '/destiny?name=Vishal&date=1990-05-15&time=10:30&lat=28.6139&lon=77.2090&tz=5.5&city=New+Delhi'
+        '&cur_lat=40.7128&cur_lon=-74.0060&cur_tz=-4.0&cur_city=New+York&scan_days=15'
+    )
+    assert dweb.status_code == 200
+    assert 'Ravana Samhita 9-Planet Control' in dweb.text
+    assert 'Lottery & Windfall Oracle' in dweb.text
+    assert 'Grandchildren' in dweb.text
+    assert 'D-60 Shashtiamsha' in dweb.text
