@@ -384,9 +384,69 @@
         </div>
 
         <!-- Active Preset Banner -->
-        <div class="va-preset-banner" style="padding:8px 12px;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:7px;margin-bottom:12px;font-size:12.5px;color:#4c1d95;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;">
+        <div class="va-preset-banner" style="padding:8px 12px;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:7px;margin-bottom:10px;font-size:12.5px;color:#4c1d95;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;">
           <span class="va-preset-title-text">🌟 Loaded: Ideal Vastu &amp; Feng Shui Setting Calibrated to Your Birth Chart</span>
           <span style="font-size:11.5px;color:#6d28d9;">Customize any room, wall, fence, gate, photo, stove, tap, or trench below, then press <b>🔍 Evaluate</b>!</span>
+        </div>
+
+        <!-- Palm + Birth Chart + Vastu Integration Bar -->
+        <div class="va-palm-bar" style="padding:10px 12px;background:linear-gradient(135deg,#fff7ed 0%,#ffedd5 100%);border:1.5px solid #fdba74;border-radius:8px;margin-bottom:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;">
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+            <span style="font-size:12.5px;font-weight:800;color:#9a3412;">🖐️ Combine Palm + Birth Chart + Vastu:</span>
+            <label class="btn" style="background:#c2410c;color:#fff;padding:5px 10px;font-size:11.5px;font-weight:700;border-radius:6px;cursor:pointer;margin:0;">
+              📷 Upload Palm Photo
+              <input type="file" class="va-palm-file" accept="image/*" style="display:none;">
+            </label>
+            <span class="va-palm-status-badge" style="font-size:11.5px;font-weight:700;color:#7c2d12;background:#fed7aa;padding:3px 8px;border-radius:999px;">Palm Profile Active</span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:11.5px;color:#7c2d12;">
+            <label style="font-weight:700;">Hand:
+              <select class="va-palm-shape" style="padding:3px 6px;border:1px solid #fb923c;border-radius:4px;font-size:11px;font-weight:600;">
+                <option value="fire">🔥 Fire (Pitta)</option>
+                <option value="earth">🌍 Earth (Kapha)</option>
+                <option value="air">💨 Air (Vata)</option>
+                <option value="water">💧 Water (Luna)</option>
+              </select>
+            </label>
+            <label style="font-weight:700;">Life:
+              <select class="va-palm-life" style="padding:3px 6px;border:1px solid #fb923c;border-radius:4px;font-size:11px;">
+                <option value="deep">Deep</option>
+                <option value="wide">Wide Arc</option>
+                <option value="double">Double</option>
+                <option value="faint">Delicate/Faint</option>
+              </select>
+            </label>
+            <label style="font-weight:700;">Head:
+              <select class="va-palm-head" style="padding:3px 6px;border:1px solid #fb923c;border-radius:4px;font-size:11px;">
+                <option value="long">Long/Clear</option>
+                <option value="straight">Straight</option>
+                <option value="sloping">Sloping/Creative</option>
+                <option value="short">Short</option>
+              </select>
+            </label>
+            <label style="font-weight:700;">Heart:
+              <select class="va-palm-heart" style="padding:3px 6px;border:1px solid #fb923c;border-radius:4px;font-size:11px;">
+                <option value="curved">Curved</option>
+                <option value="straight">Straight</option>
+                <option value="chained">Chained</option>
+              </select>
+            </label>
+            <label style="font-weight:700;">Fate:
+              <select class="va-palm-fate" style="padding:3px 6px;border:1px solid #fb923c;border-radius:4px;font-size:11px;">
+                <option value="clear">Clear/Strong</option>
+                <option value="late">Late-Rising</option>
+                <option value="broken">Multi-Path</option>
+              </select>
+            </label>
+            <label style="font-weight:700;">Thumbprint:
+              <select class="va-palm-thumb" style="padding:3px 6px;border:1px solid #fb923c;border-radius:4px;font-size:11px;">
+                <option value="chakra_whorl">Chakra (Whorl)</option>
+                <option value="shankha_loop">Shankha (Conch Loop)</option>
+                <option value="padma_arch">Padma (Lotus Arch)</option>
+                <option value="simha_composite">Simha (Twin Loop)</option>
+              </select>
+            </label>
+          </div>
         </div>
 
         <!-- 2. Categorized Multi-Instance Palettes -->
@@ -575,7 +635,23 @@
       wallDraft: null,
       drawFenceMode: false,
       fenceDraftPoints: [],
-      dirty: false
+      dirty: false,
+      palmProfile: (function () {
+        try {
+          const saved = localStorage.getItem("panchang_palm_profile");
+          if (saved) return JSON.parse(saved);
+        } catch (e) {}
+        return {
+          has_uploaded_photo: false,
+          hand_shape: "fire",
+          life_line: "deep",
+          head_line: "long",
+          heart_line: "curved",
+          fate_line: "clear",
+          thumbprint_type: "chakra_whorl",
+          thumbprint_name: "Chakra Rekha (Concentric Whorl)"
+        };
+      })()
     };
 
     const canvasEl = root.querySelector(".va-canvas");
@@ -644,6 +720,182 @@
       if (presetTitleEl) {
         presetTitleEl.textContent = "🌟 Active Layout: " + state.presetTitle;
       }
+    }
+
+    // Sync Palm UI Controls
+    const palmShapeSel = root.querySelector(".va-palm-shape");
+    const palmLifeSel = root.querySelector(".va-palm-life");
+    const palmHeadSel = root.querySelector(".va-palm-head");
+    const palmHeartSel = root.querySelector(".va-palm-heart");
+    const palmFateSel = root.querySelector(".va-palm-fate");
+    const palmThumbSel = root.querySelector(".va-palm-thumb");
+    const palmFileInp = root.querySelector(".va-palm-file");
+    const palmStatusBadge = root.querySelector(".va-palm-status-badge");
+
+    function syncPalmControlsFromState() {
+      const pp = state.palmProfile || {};
+      if (palmShapeSel && pp.hand_shape) palmShapeSel.value = pp.hand_shape;
+      if (palmLifeSel && pp.life_line) palmLifeSel.value = pp.life_line;
+      if (palmHeadSel && pp.head_line) palmHeadSel.value = pp.head_line;
+      if (palmHeartSel && pp.heart_line) palmHeartSel.value = pp.heart_line;
+      if (palmFateSel && pp.fate_line) palmFateSel.value = pp.fate_line;
+      if (palmThumbSel && pp.thumbprint_type) palmThumbSel.value = pp.thumbprint_type;
+      if (palmStatusBadge) {
+        palmStatusBadge.textContent = pp.has_uploaded_photo
+          ? `✅ Uploaded Palm Photo Active (${(pp.hand_shape || 'fire').toUpperCase()} Hand)`
+          : `🖐️ Palm Profile: ${(pp.hand_shape || 'fire').toUpperCase()} Hand`;
+        palmStatusBadge.style.background = pp.has_uploaded_photo ? "#dcfce7" : "#fed7aa";
+        palmStatusBadge.style.color = pp.has_uploaded_photo ? "#166534" : "#7c2d12";
+      }
+    }
+    syncPalmControlsFromState();
+
+    function onPalmControlChange() {
+      state.palmProfile = Object.assign({}, state.palmProfile, {
+        hand_shape: palmShapeSel ? palmShapeSel.value : "fire",
+        life_line: palmLifeSel ? palmLifeSel.value : "deep",
+        head_line: palmHeadSel ? palmHeadSel.value : "long",
+        heart_line: palmHeartSel ? palmHeartSel.value : "curved",
+        fate_line: palmFateSel ? palmFateSel.value : "clear",
+        thumbprint_type: palmThumbSel ? palmThumbSel.value : "chakra_whorl",
+        thumbprint_name: palmThumbSel ? palmThumbSel.options[palmThumbSel.selectedIndex].text : "Chakra Rekha"
+      });
+      try {
+        localStorage.setItem("panchang_palm_profile", JSON.stringify(state.palmProfile));
+      } catch (e) {}
+      syncPalmControlsFromState();
+      markDirty("Updated Palm features for Palm + Chart + Vastu synthesis");
+    }
+
+    [palmShapeSel, palmLifeSel, palmHeadSel, palmHeartSel, palmFateSel, palmThumbSel].forEach(sel => {
+      if (sel) sel.addEventListener("change", onPalmControlChange);
+    });
+
+    if (palmFileInp) {
+      palmFileInp.addEventListener("change", e => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async ev => {
+          try {
+            const r = await fetch("/api/palmistry/analyze-photo", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                image_base64: ev.target.result,
+                birth_date: (birthMeta && birthMeta.date) || "1990-05-15",
+                birth_time: (birthMeta && birthMeta.time) || "10:30:00",
+                latitude: (birthMeta && birthMeta.lat) || 28.6139,
+                longitude: (birthMeta && birthMeta.lon) || 77.2090,
+                timezone: (birthMeta && birthMeta.tz) || "Asia/Kolkata"
+              })
+            });
+            if (r.ok) {
+              const pData = await r.json();
+              if (pData.extracted_palm_profile) {
+                state.palmProfile = Object.assign({}, pData.extracted_palm_profile, {
+                  has_uploaded_photo: true,
+                  saved_at: new Date().toISOString()
+                });
+                try {
+                  localStorage.setItem("panchang_palm_profile", JSON.stringify(state.palmProfile));
+                } catch (err) {}
+                syncPalmControlsFromState();
+                markDirty("Uploaded & analyzed Palm Photo — click Evaluate to combine Palm + Birth Chart + Vastu");
+              }
+            }
+          } catch (err) {}
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Sync Palm UI Controls
+    const palmShapeSel = root.querySelector(".va-palm-shape");
+    const palmLifeSel = root.querySelector(".va-palm-life");
+    const palmHeadSel = root.querySelector(".va-palm-head");
+    const palmHeartSel = root.querySelector(".va-palm-heart");
+    const palmFateSel = root.querySelector(".va-palm-fate");
+    const palmThumbSel = root.querySelector(".va-palm-thumb");
+    const palmFileInp = root.querySelector(".va-palm-file");
+    const palmStatusBadge = root.querySelector(".va-palm-status-badge");
+
+    function syncPalmControlsFromState() {
+      const pp = state.palmProfile || {};
+      if (palmShapeSel && pp.hand_shape) palmShapeSel.value = pp.hand_shape;
+      if (palmLifeSel && pp.life_line) palmLifeSel.value = pp.life_line;
+      if (palmHeadSel && pp.head_line) palmHeadSel.value = pp.head_line;
+      if (palmHeartSel && pp.heart_line) palmHeartSel.value = pp.heart_line;
+      if (palmFateSel && pp.fate_line) palmFateSel.value = pp.fate_line;
+      if (palmThumbSel && pp.thumbprint_type) palmThumbSel.value = pp.thumbprint_type;
+      if (palmStatusBadge) {
+        palmStatusBadge.textContent = pp.has_uploaded_photo
+          ? `✅ Uploaded Palm Photo Active (${(pp.hand_shape || 'fire').toUpperCase()} Hand)`
+          : `🖐️ Palm Profile: ${(pp.hand_shape || 'fire').toUpperCase()} Hand`;
+        palmStatusBadge.style.background = pp.has_uploaded_photo ? "#dcfce7" : "#fed7aa";
+        palmStatusBadge.style.color = pp.has_uploaded_photo ? "#166534" : "#7c2d12";
+      }
+    }
+    syncPalmControlsFromState();
+
+    function onPalmControlChange() {
+      state.palmProfile = Object.assign({}, state.palmProfile, {
+        hand_shape: palmShapeSel ? palmShapeSel.value : "fire",
+        life_line: palmLifeSel ? palmLifeSel.value : "deep",
+        head_line: palmHeadSel ? palmHeadSel.value : "long",
+        heart_line: palmHeartSel ? palmHeartSel.value : "curved",
+        fate_line: palmFateSel ? palmFateSel.value : "clear",
+        thumbprint_type: palmThumbSel ? palmThumbSel.value : "chakra_whorl",
+        thumbprint_name: palmThumbSel ? palmThumbSel.options[palmThumbSel.selectedIndex].text : "Chakra Rekha"
+      });
+      try {
+        localStorage.setItem("panchang_palm_profile", JSON.stringify(state.palmProfile));
+      } catch (e) {}
+      syncPalmControlsFromState();
+      markDirty("Updated Palm features for Palm + Chart + Vastu synthesis");
+    }
+
+    [palmShapeSel, palmLifeSel, palmHeadSel, palmHeartSel, palmFateSel, palmThumbSel].forEach(sel => {
+      if (sel) sel.addEventListener("change", onPalmControlChange);
+    });
+
+    if (palmFileInp) {
+      palmFileInp.addEventListener("change", e => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async ev => {
+          try {
+            const r = await fetch("/api/palmistry/analyze-photo", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                image_base64: ev.target.result,
+                birth_date: (birthMeta && birthMeta.date) || "1990-05-15",
+                birth_time: (birthMeta && birthMeta.time) || "10:30:00",
+                latitude: (birthMeta && birthMeta.lat) || 28.6139,
+                longitude: (birthMeta && birthMeta.lon) || 77.2090,
+                timezone: (birthMeta && birthMeta.tz) || "Asia/Kolkata"
+              })
+            });
+            if (r.ok) {
+              const pData = await r.json();
+              if (pData.extracted_palm_profile) {
+                state.palmProfile = Object.assign({}, pData.extracted_palm_profile, {
+                  has_uploaded_photo: true,
+                  saved_at: new Date().toISOString()
+                });
+                try {
+                  localStorage.setItem("panchang_palm_profile", JSON.stringify(state.palmProfile));
+                } catch (err) {}
+                syncPalmControlsFromState();
+                markDirty("Uploaded & analyzed Palm Photo — click Evaluate to combine Palm + Birth Chart + Vastu");
+              }
+            }
+          } catch (err) {}
+        };
+        reader.readAsDataURL(file);
+      });
     }
 
     if (evalBtnTop) evalBtnTop.addEventListener("click", () => runAnalyze());
@@ -1370,7 +1622,8 @@
         compass_rotation: state.compassRotation,
         items: visibleItems,
         walls: state.walls,
-        fences: state.hasOuterLot ? state.fences : []
+        fences: state.hasOuterLot ? state.fences : [],
+        palm_data: state.palmProfile
       }, birthMeta || {});
 
       try {
@@ -1479,6 +1732,37 @@
             <ul style="margin:0;padding-left:18px;font-size:13px;">${doshasHtml}</ul>
           </div>
         </div>
+
+        ${data.palm_vastu_chart_synthesis && data.palm_vastu_chart_synthesis.active ? `
+        <div style="margin-top:18px;padding:15px;background:linear-gradient(135deg,#fff7ed 0%,#ffedd5 100%);border:1.5px solid #fb923c;border-radius:10px;">
+          <h3 style="margin:0 0 6px 0;color:#9a3412;">${data.palm_vastu_chart_synthesis.headline}</h3>
+          <p style="margin:0 0 12px 0;font-size:13px;color:#7c2d12;line-height:1.55;">${data.palm_vastu_chart_synthesis.summary}</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Palm Feature &amp; Mount</th>
+                  <th>Birth-Chart Link</th>
+                  <th>Floorplan Alignment</th>
+                  <th>Combined Palm + Birth Chart + Vastu &amp; Feng Shui Insight</th>
+                  <th>Combined Hasta-Astro-Vastu Remedy</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(data.palm_vastu_chart_synthesis.tri_system_checks || []).map(tc => `
+                  <tr>
+                    <td><strong>${tc.palm_feature}</strong></td>
+                    <td><b>${tc.birth_chart_factor}</b></td>
+                    <td><span class="badge" style="background:#dcfce7;color:#15803d;">${tc.floorplan_alignment_status}</span></td>
+                    <td>${tc.combined_palm_chart_vastu_insight}</td>
+                    <td><small>${tc.actionable_remedy}</small></td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        ` : ""}
 
         ${specialSectionHtml}
 

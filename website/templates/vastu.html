@@ -40,6 +40,7 @@
             </div>
             <div style="margin-top: 14px; display: flex; flex-wrap: wrap; gap: 10px;">
                 <button type="submit" class="btn alt">&#x1F3E1; Sync Birth Chart &amp; Feng Shui Kua with Studio</button>
+                <a class="btn" style="background:#b45309; color:#fff;" href="/palmistry?date={{ b_form.date }}&time={{ b_form.time }}&lat={{ b_form.lat }}&lon={{ b_form.lon }}&tz={{ b_form.tz|urlencode }}&city={{ b_form.city|urlencode }}">&#x1F590; Open Palmistry &amp; Thumbprint Studio (Combine Palm + Chart + Vastu)</a>
                 <a class="btn" style="background:#8e1b3a; color:#fff;" href="/destiny?date={{ b_form.date }}&time={{ b_form.time }}&lat={{ b_form.lat }}&lon={{ b_form.lon }}&tz={{ b_form.tz|urlencode }}&city={{ b_form.city|urlencode }}">&#x1F531; Open Full Master Destiny &amp; 9-Planet Control</a>
                 <a class="btn" style="background:#0f766e; color:#fff;" href="/traditions?date={{ b_form.date }}&time={{ b_form.time }}&lat={{ b_form.lat }}&lon={{ b_form.lon }}&tz={{ b_form.tz|urlencode }}&city={{ b_form.city|urlencode }}">&#x1F30D; Open All Traditions, Vata-Pitta-Kapha &amp; Elements</a>
             </div>
@@ -234,7 +235,7 @@
 {% if v.evaluation %}<section class="card"><h2>Score: {{ v.score_percent }}%</h2><div class="body"><table class="t"><tr><th>Room</th><th>Direction</th><th>Points</th><th>Advice</th></tr>
 {% for r in v.evaluation %}<tr><td>{{ r.room|title }}</td><td>{{ r.direction }}</td><td>{{ r.points }}/10</td><td>{{ r.advice }}</td></tr>{% endfor %}</table></div></section>{% endif %}
 
-<script src="/static/vastu_architect.js?v=25"></script>
+<script src="/static/vastu_architect.js?v=26"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     if (window.initVastuArchitect && document.getElementById('standalone-vastu-studio-root')) {

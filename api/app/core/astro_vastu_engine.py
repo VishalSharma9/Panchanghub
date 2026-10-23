@@ -999,6 +999,7 @@ def evaluate_visual_vastu_layout(
     asc_lon: Optional[float] = None,
     walls: Optional[List[Dict[str, Any]]] = None,
     fences: Optional[List[Dict[str, Any]]] = None,
+    palm_data: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Evaluates a complete visual House + Outer-Lot Vastu & Feng Shui diagram with:
     - All 45+ indoor rooms, appliances (washer/dryer, stove, taps), sacred spaces (temple, meditation, medication),
@@ -1387,6 +1388,113 @@ def evaluate_visual_vastu_layout(
     else:
         overall_grade = "C (Multiple Elemental Clashes — Apply the Zero-Demolition Remedies Below)"
 
+    # -----------------------------------------------------------------------
+    # 5. PALM + BIRTH CHART + VASTU & FENG SHUI TRI-SYNTHESIS
+    # -----------------------------------------------------------------------
+    palm_vastu_chart_synthesis: Optional[Dict[str, Any]] = None
+    if palm_data and isinstance(palm_data, dict):
+        h_shape = str(palm_data.get("hand_shape") or "fire").lower()
+        l_life = str(palm_data.get("life_line") or "deep").lower()
+        l_head = str(palm_data.get("head_line") or "long").lower()
+        l_heart = str(palm_data.get("heart_line") or "curved").lower()
+        l_fate = str(palm_data.get("fate_line") or "clear").lower()
+        t_type = str(palm_data.get("thumbprint_type") or "chakra_whorl").lower()
+        t_name = str(palm_data.get("thumbprint_name") or t_type.replace("_", " ").title())
+        has_photo = bool(palm_data.get("has_uploaded_photo"))
+
+        lagna_sign = SIGNS[lagna_idx] if lagna_idx is not None else "Aries"
+        h4_lord_name = SIGN_LORDS[(lagna_idx + 3) % 12] if lagna_idx is not None else "Moon"
+        h9_lord_name = h9_lord or "Jupiter"
+
+        placed_zones_by_type = {k: [x["zone"] for x in v] for k, v in by_type.items()}
+        puja_zones = placed_zones_by_type.get("puja_room", []) + placed_zones_by_type.get("meditation_hall", [])
+        med_zones = placed_zones_by_type.get("medication_cabinet", [])
+        stove_zones = placed_zones_by_type.get("kitchen_stove", []) + placed_zones_by_type.get("kitchen", [])
+        bed_zones = placed_zones_by_type.get("master_bedroom", [])
+        safe_zones = placed_zones_by_type.get("safe_locker", [])
+        gate_zones = placed_zones_by_type.get("entrance", []) + placed_zones_by_type.get("gate", [])
+
+        tri_checks = [
+            {
+                "palm_feature": f"Hand Element: {h_shape.title()} Hand" + (" (Uploaded Photo Verified)" if has_photo else ""),
+                "birth_chart_factor": f"Ascendant: {lagna_sign} (Lord: {lagna_lord or 'Mars'}) · 4th Home Lord: {h4_lord_name}",
+                "floorplan_alignment_status": (
+                    "Harmonized" if (("SE" in stove_zones and "NE" in puja_zones) if h_shape == "fire" else ("SW" in bed_zones)) else "Needs Elemental Balancing"
+                ),
+                "combined_palm_chart_vastu_insight": {
+                    "fire": f"Your {h_shape.title()} Palm (strong Sun/Mars mount) + {lagna_sign} Ascendant generates high Agni drive. Your floorplan's Kitchen/Stove in {', '.join(stove_zones) or 'unplaced'} and Temple/Meditation in {', '.join(puja_zones) or 'unplaced'} directly regulate your Pitta thermal balance.",
+                    "earth": f"Your {h_shape.title()} Palm (strong Saturn/Venus mount) + {lagna_sign} Ascendant seeks grounded permanence. Anchoring your Master Bedroom in {', '.join(bed_zones) or 'SW'} and maintaining a 360° Closed-Loop Fence locks in your earthly stability.",
+                    "air": f"Your {h_shape.title()} Palm (Mercury/Jupiter intellectual current) + {lagna_sign} Ascendant needs Vata grounding. Sleeping in {', '.join(bed_zones) or 'SW'} with head South and keeping the central Brahmasthan open calms mental overdrive.",
+                    "water": f"Your {h_shape.title()} Palm (Moon/Venus intuitive sensitivity) + {lagna_sign} Ascendant is highly sensitive to water flow. Ensure all Water Taps, Garden Hose, and Trenches drain toward North-East and never stagnate in South-West.",
+                }.get(h_shape, f"Your {h_shape.title()} Palm and {lagna_sign} Ascendant work together through the NE–SW axis."),
+                "actionable_remedy": "Massage the center of your palm (Brahmasthan / Plain of Mars) with a drop of sandalwood or sesame oil before sleep and keep the house center clutter-free.",
+            },
+            {
+                "palm_feature": f"Life Line ({l_life.title()}) & Mount of Mars / Venus",
+                "birth_chart_factor": f"Lagna Lord {lagna_lord or 'Mars'} & 8th House Vitality",
+                "floorplan_alignment_status": (
+                    "Optimal Healing Zone" if any(z in ("NE", "N", "E") for z in med_zones) else "Place Medicine Cabinet in NE/N"
+                ),
+                "combined_palm_chart_vastu_insight": (
+                    f"Your {l_life.title()} Life Line governs physical immunity and cellular recovery. "
+                    f"On your floorplan, your Medication Cabinet is in {', '.join(med_zones) if med_zones else 'not yet placed (add in NE/N)'}. "
+                    "When the Medication Cabinet sits in North-East (Dhanvantari zone) and the East zone admits morning sunlight, your Life Line's vitality is doubled."
+                ),
+                "actionable_remedy": "Keep medicines in North-East/North (never in SW or Kitchen) and practice Prana Mudra (thumb + ring + little finger) for 10 minutes facing East.",
+            },
+            {
+                "palm_feature": f"Head Line ({l_head.title()}) & Mount of Jupiter (Index Base)",
+                "birth_chart_factor": f"5th House Intellect & 9th Wisdom Lord ({h9_lord_name})",
+                "floorplan_alignment_status": (
+                    "Optimal Wisdom Zone" if any(z in ("NE", "E", "N") for z in puja_zones) else "Activate NE Temple / Meditation"
+                ),
+                "combined_palm_chart_vastu_insight": (
+                    f"Your {l_head.title()} Head Line and Mount of Jupiter correspond directly to the North-East (Ishanya) sector of your home. "
+                    f"Your Temple / Meditation space is placed in {', '.join(puja_zones) if puja_zones else 'unplaced'}. "
+                    "Keeping North-East sacred, free of heavy storage or toilets, and free of Deceased Ancestors' photos keeps your Head Line decision-making razor-sharp."
+                ),
+                "actionable_remedy": "Practice Gyan Mudra in your NE Meditation/Temple corner and place Gods/Deities photos on the NE or East wall facing West/South.",
+            },
+            {
+                "palm_feature": f"Heart Line ({l_heart.title()}) & Mount of Venus / Marriage Lines",
+                "birth_chart_factor": f"4th Home Lord ({h4_lord_name}) & 7th House Partnership",
+                "floorplan_alignment_status": (
+                    "Optimal Relationship Zone" if "SW" in bed_zones else "Anchor Master Bedroom in SW"
+                ),
+                "combined_palm_chart_vastu_insight": (
+                    f"Your {l_heart.title()} Heart Line governs emotional peace and marital harmony. "
+                    f"Your Master Bedroom is placed in {', '.join(bed_zones) if bed_zones else 'unplaced'}. "
+                    "Placing the Master Bedroom in South-West, hanging Living Family/Couple Photos on the SW wall, and keeping TV/Mirrors from facing the bed protects your Heart Line from emotional turbulence."
+                ),
+                "actionable_remedy": "Keep a pair of Rose Quartz crystals in the SW Master Bedroom and never mix Deceased Ancestors' photos with Living Family photos.",
+            },
+            {
+                "palm_feature": f"Fate Line ({l_fate.title()}) & Nadi Thumbprint ({t_name})",
+                "birth_chart_factor": f"9th Luck Lord ({h9_lord_name}) & 10th/11th Wealth Axis",
+                "floorplan_alignment_status": (
+                    "Optimal Wealth & Gate Flow" if (any(z in ("N", "SW", "S") for z in safe_zones) or any(z in ("NE", "N", "E") for z in gate_zones)) else "Align Safe (N/SW) & Gate (NE/E)"
+                ),
+                "combined_palm_chart_vastu_insight": (
+                    f"Your {l_fate.title()} Fate Line rising toward the Mount of Saturn and your {t_name} thumbprint govern career rise and wealth retention. "
+                    f"Your Main Entrance/Gate is in {', '.join(gate_zones) if gate_zones else 'NE/E'} and Cash Safe is in {', '.join(safe_zones) if safe_zones else 'N/SW'}. "
+                    "Having your Gate/Door swing inward clockwise (or slide toward North/East) and your Safe open toward North activates your Fate Line's full financial potential."
+                ),
+                "actionable_remedy": "Keep a silver coin or Shree Yantra inside your North-opening Safe and light a cow-ghee lamp in the NE Temple on Thursdays.",
+            },
+        ]
+
+        palm_vastu_chart_synthesis = {
+            "active": True,
+            "has_uploaded_photo": has_photo,
+            "headline": f"🖐️ Palm ({h_shape.title()} Hand · {t_name}) + 🌟 Birth Chart ({lagna_sign} Lagna) + 🏡 Vastu Layout Synthesis",
+            "summary": (
+                f"Combined analysis of your {'uploaded palm photo' if has_photo else 'selected palm profile'} "
+                f"({h_shape.title()} Hand, {l_life} Life Line, {l_head} Head Line, {l_heart} Heart Line, {l_fate} Fate Line, {t_name}) "
+                f"with your {lagna_sign} Ascendant birth chart and your {len(evaluated_items)} placed Vastu/Feng Shui floorplan items."
+            ),
+            "tri_system_checks": tri_checks,
+        }
+
     return {
         "overall_vastu_score_percent": overall_score,
         "overall_score": overall_score,
@@ -1403,6 +1511,7 @@ def evaluate_visual_vastu_layout(
         "wall_line_evaluations": wall_evaluations,
         "fence_loop_evaluations": fence_evaluations,
         "item_by_item_breakdown": evaluated_items,
+        "palm_vastu_chart_synthesis": palm_vastu_chart_synthesis,
         "feng_shui_bagua_reference": FENG_SHUI_BAGUA_SECTORS,
         "feng_shui": FENG_SHUI_BAGUA_SECTORS,
     }

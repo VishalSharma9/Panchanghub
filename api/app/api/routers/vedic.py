@@ -578,6 +578,7 @@ def analyze_visual_vastu_layout_endpoint(payload: dict):
         asc_lon=asc_lon,
         walls=payload.get("walls"),
         fences=payload.get("fences"),
+        palm_data=payload.get("palm_data"),
     )
 
 

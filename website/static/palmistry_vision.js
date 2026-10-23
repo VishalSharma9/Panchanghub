@@ -764,6 +764,15 @@
         });
         if (!r.ok) return;
         const data = await r.json();
+        if (data.extracted_palm_profile) {
+          const prof = Object.assign({}, data.extracted_palm_profile, {
+            has_uploaded_photo: Boolean(state.customPalmDataUrl || state.customThumbDataUrl),
+            saved_at: new Date().toISOString()
+          });
+          try {
+            localStorage.setItem("panchang_palm_profile", JSON.stringify(prof));
+          } catch (err) {}
+        }
         renderVisionReport(data);
       } catch (e) {}
     }
@@ -854,7 +863,7 @@
 
         ${mountRows ? `
         <h3>🔗 Birth-Chart &amp; Lal Kitab 9-Planetary Mounts Cross-Link</h3>
-        <div class="table-wrap">
+        <div class="table-wrap" style="margin-bottom:18px;">
           <table>
             <thead>
               <tr>
@@ -865,6 +874,100 @@
             </thead>
             <tbody>${mountRows}</tbody>
           </table>
+        </div>
+        ` : ""}
+
+        ${data.palm_and_astrology_synthesis && data.palm_and_astrology_synthesis.headline ? `
+        <div style="padding:16px;background:linear-gradient(135deg,#faf5ff 0%,#f3e8ff 100%);border:1.5px solid #c084fc;border-radius:10px;margin-bottom:18px;">
+          <h3 style="margin:0 0 8px 0;color:#581c87;">🌟 ${data.palm_and_astrology_synthesis.headline}</h3>
+          <p style="margin:0 0 8px 0;font-size:13.5px;line-height:1.6;color:#3b0764;">
+            <b>Elemental &amp; Birth-Chart Fusion:</b> ${data.palm_and_astrology_synthesis.elemental_chart_fusion || ""}
+          </p>
+          <p style="margin:0 0 12px 0;font-size:13px;line-height:1.55;color:#4c1d95;">
+            <b>Nadi Thumbprint × Natal Dharma:</b> ${data.palm_and_astrology_synthesis.thumbprint_and_natal_dharma_fusion || ""}
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Major Palm Line</th>
+                  <th>Linked Birth-Chart Houses &amp; Planets</th>
+                  <th>Combined Palm + Astrology Synthesis</th>
+                  <th>Combined Hasta-Jyotish Remedy</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(data.palm_and_astrology_synthesis.four_lines_and_natal_houses_matrix || []).map(row => `
+                  <tr>
+                    <td><strong>${row.palm_line}</strong></td>
+                    <td><span class="badge" style="background:#ede9fe;color:#5b21b6;">${row.natal_chart_factors}</span></td>
+                    <td>${row.combined_palm_astrology_reading}</td>
+                    <td><small>${row.combined_remedy}</small></td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        ` : ""}
+
+        ${data.palm_and_vastu_synthesis && data.palm_and_vastu_synthesis.headline ? `
+        <div style="padding:16px;background:linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%);border:1.5px solid #4ade80;border-radius:10px;margin-bottom:12px;">
+          <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;">
+            <h3 style="margin:0;color:#14532d;">🏡 ${data.palm_and_vastu_synthesis.headline}</h3>
+            <a class="btn" style="background:#0f766e;color:#fff;padding:7px 14px;font-size:12.5px;font-weight:800;border-radius:6px;text-decoration:none;"
+               href="/vastu?date=${encodeURIComponent((birthMeta && birthMeta.date) || '1990-05-15')}&time=${encodeURIComponent(((birthMeta && birthMeta.time) || '10:30').slice(0,5))}&lat=${encodeURIComponent((birthMeta && birthMeta.lat) || 28.6139)}&lon=${encodeURIComponent((birthMeta && birthMeta.lon) || 77.2090)}&tz=${encodeURIComponent((birthMeta && birthMeta.tz) || 'Asia/Kolkata')}">
+              🏗️ Open Interactive Vastu &amp; Feng Shui Studio with This Palm + Birth Chart →
+            </a>
+          </div>
+          <p style="margin:0 0 12px 0;font-size:13px;line-height:1.55;color:#166534;">
+            ${data.palm_and_vastu_synthesis.summary || ""}
+          </p>
+          <h4 style="margin:0 0 6px 0;color:#15803d;">✋ Your Palm Lines &amp; Hand Element → Ideal Vastu &amp; Feng Shui Room Adjustments</h4>
+          <div class="table-wrap" style="margin-bottom:14px;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Detected Palm Feature</th>
+                  <th>Birth-Chart Link</th>
+                  <th>Personalized Vastu &amp; Feng Shui Prescription for Your Home</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(data.palm_and_vastu_synthesis.palm_line_vastu_room_prescriptions || []).map(pr => `
+                  <tr>
+                    <td><strong>${pr.palm_feature}</strong></td>
+                    <td><b>${pr.birth_chart_link}</b></td>
+                    <td>${pr.vastu_and_feng_shui_prescription}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+
+          <h4 style="margin:0 0 6px 0;color:#15803d;">🧭 9 Planetary Palm Mounts ↔ 9 Vastu Compass Zones &amp; Home Fixtures</h4>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Planet &amp; Palm Mount</th>
+                  <th>Natal Chart Placement</th>
+                  <th>Corresponding Vastu Compass Zone &amp; Rooms</th>
+                  <th>Combined Palm + Chart + Vastu Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(data.palm_and_vastu_synthesis.nine_palm_mounts_to_nine_vastu_zones || []).map(mz => `
+                  <tr>
+                    <td><strong>${mz.planet}</strong><br><small>${mz.palm_mount}</small></td>
+                    <td><span class="badge">${mz.natal_chart_placement}</span></td>
+                    <td><b>${mz.vastu_compass_zone}</b><br><small class="neutral">${mz.key_vastu_rooms_and_fixtures}</small></td>
+                    <td><small>${mz.palm_chart_vastu_action}</small></td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
         </div>
         ` : ""}
       `;

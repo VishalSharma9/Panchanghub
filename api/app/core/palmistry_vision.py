@@ -331,8 +331,17 @@ def analyze_palm_photo(
         },
     }[h_shape]
 
-    # Cross-link with Birth Chart & Lal Kitab Mounts if birth_date is available
+    # Cross-link with Birth Chart & Lal Kitab Mounts + Full Palm-Astrology & Palm-Vastu Synthesis
     chart_mount_correlations = []
+    palm_and_astrology_synthesis: Dict[str, Any] = {}
+    palm_and_vastu_synthesis: Dict[str, Any] = {}
+    dominant_mount_planet = {
+        "fire": "Sun & Mars (Mount of Apollo & Upper/Lower Mars)",
+        "earth": "Saturn & Venus (Mount of Saturn & Thumb Base)",
+        "air": "Mercury & Jupiter (Mount of Mercury & Index Base)",
+        "water": "Moon & Venus (Mount of Luna & Venus)",
+    }.get(h_shape, "Jupiter & Sun")
+
     try:
         from ..models import normalize_date_str
         clean_d = normalize_date_str(birth_date or "1990-05-15")
@@ -346,12 +355,38 @@ def analyze_palm_photo(
         pos = ephem.all_positions(jd, sidereal=True)
         _, asc_lon, _ = ephem.houses(jd, latitude, longitude, "W", sidereal=True)
         lagna_idx = int(asc_lon // 30) % 12
+        lagna_sign = SIGNS[lagna_idx]
+        lagna_lord = SIGN_LORDS[lagna_idx]
+        moon_idx = int(pos["Moon"]["longitude"] // 30) % 12
+        moon_sign = SIGNS[moon_idx]
+        fourth_lord = SIGN_LORDS[(lagna_idx + 3) % 12]
+        seventh_lord = SIGN_LORDS[(lagna_idx + 6) % 12]
+        ninth_lord = SIGN_LORDS[(lagna_idx + 8) % 12]
+        tenth_lord = SIGN_LORDS[(lagna_idx + 9) % 12]
 
+        sign_elements = ["Fire", "Earth", "Air", "Water"] * 3
+        lagna_elem = sign_elements[lagna_idx]
+        moon_elem = sign_elements[moon_idx]
+
+        vastu_zone_by_planet = {
+            "Jupiter": ("North-East (Ishanya)", "Temple / Prayer Hall, Meditation Hall, Medication Cabinet & Study"),
+            "Sun":     ("East (Surya)",         "Main Entrance, Living Room, Morning Windows & Kids Slide"),
+            "Venus":   ("South-East (Agni)",    "Kitchen, Kitchen Stove (facing East), Electrical Inverter & Gym"),
+            "Mars":    ("South (Yama)",         "Heavy Storage, Ancestors Photo (South Wall facing North) & Workout Area"),
+            "Rahu":    ("South-West (Nairutya)","Master Bedroom, Heavy Safe/Locker, Living Family Photo & Overhead Tank"),
+            "Saturn":  ("West (Varuna)",        "Dining Room, Grain Pantry, Study Room & Closed Compound Wall"),
+            "Moon":    ("North-West (Vayu)",    "Guest Room, Washer & Dryer, Bathroom & Sliding Driveway Gate"),
+            "Mercury": ("North (Kubera)",       "Cash Locker (opening North), Water Taps/Hose, Career Desk & Wall Mirror"),
+            "Ketu":    ("Center & Thresholds",  "Open Brahmasthan Courtyard, Spiritual Threshold & Tulsi Plant"),
+        }
+
+        nine_palm_mounts_to_vastu = []
         for p in ("Jupiter", "Saturn", "Sun", "Mercury", "Venus", "Mars", "Moon", "Rahu", "Ketu"):
             p_lon = pos[p]["longitude"]
             p_sign = int(p_lon // 30) % 12
             p_house = (p_sign - lagna_idx) % 12 + 1
             lk_meta = LAL_KITAB_PAKKA_GHAR[p]
+            v_zone, v_rooms = vastu_zone_by_planet[p]
             chart_mount_correlations.append({
                 "planet": p,
                 "palm_mount_and_line": lk_meta["palm_mount"],
@@ -362,14 +397,179 @@ def analyze_palm_photo(
                     f"To strengthen this mount's energy: {lk_meta['upaya_43_days']}"
                 ),
             })
+            nine_palm_mounts_to_vastu.append({
+                "planet": p,
+                "palm_mount": lk_meta["palm_mount"],
+                "natal_chart_placement": f"{SIGNS[p_sign]} (House {p_house})",
+                "vastu_compass_zone": v_zone,
+                "key_vastu_rooms_and_fixtures": v_rooms,
+                "palm_chart_vastu_action": (
+                    f"Because {p} is in House {p_house} ({SIGNS[p_sign]}) and rules your {lk_meta['palm_mount'].split('&')[0].strip()}, "
+                    f"keep the {v_zone} zone ({v_rooms}) clutter-free and energized. Remedy: {lk_meta['upaya_43_days']}"
+                ),
+            })
+
+        # 1. Combination of Palm + Birth Chart Astrology
+        elem_harmony = (
+            f"Your physical palm is a {h_shape.title()}-Element Hand ({dosha_hand_map['ayurvedic_hand_type']}), while your Vedic Birth Chart rises in "
+            f"{lagna_sign} ({lagna_elem} Ascendant, ruled by {lagna_lord}) with Moon in {moon_sign} ({moon_elem} Element). "
+        )
+        if h_shape.title() == lagna_elem or h_shape.title() == moon_elem:
+            elem_harmony += (
+                "Double Elemental Resonance! Your hand morphology and natal chart share the exact same elemental current, "
+                "giving you unmistakable authenticity, rapid execution power, and strong alignment between physical instincts and karmic destiny."
+            )
+        else:
+            elem_harmony += (
+                f"Complementary Elemental Bridge! Your {h_shape.title()} hand provides practical physical counterbalance to your "
+                f"{lagna_elem} Ascendant and {moon_elem} Moon, allowing you to blend {h_shape.title()} action with {lagna_elem} vision."
+            )
+
+        mars_h = (int(pos["Mars"]["longitude"] // 30) - lagna_idx) % 12 + 1
+        merc_h = (int(pos["Mercury"]["longitude"] // 30) - lagna_idx) % 12 + 1
+        venus_h = (int(pos["Venus"]["longitude"] // 30) - lagna_idx) % 12 + 1
+        sat_h = (int(pos["Saturn"]["longitude"] // 30) - lagna_idx) % 12 + 1
+
+        four_lines_natal_matrix = [
+            {
+                "palm_line": f"Life Line (Jeevana Rekha — {l_life.title()})",
+                "natal_chart_factors": f"Lagna ({lagna_sign}, Lord {lagna_lord}) + Mars in House {mars_h} + 8th House Longevity",
+                "combined_palm_astrology_reading": (
+                    f"Your {l_life} Life Line on the palm mirrors your Ascendant Lord {lagna_lord} and Mars in House {mars_h}. "
+                    + ("This strong arc confirms high physical vitality, strong immunity, and rapid recovery from life stresses."
+                       if l_life in ("deep", "wide", "double")
+                       else "Because the Life Line shows delicate sensitivity, pace your physical stamina and protect your nervous energy during Mars/Saturn transits.")
+                ),
+                "combined_remedy": "Practice Prithvi & Prana Mudra (thumb touching ring + little finger tips) for 10 minutes at sunrise facing East.",
+            },
+            {
+                "palm_line": f"Head Line (Mastishka Rekha — {l_head.title()})",
+                "natal_chart_factors": f"Mercury in House {merc_h} + Moon in {moon_sign} + 5th House Dhi (Intellect)",
+                "combined_palm_astrology_reading": (
+                    f"Your {l_head} Head Line works in tandem with natal Mercury (House {merc_h}) and Moon in {moon_sign}. "
+                    + ("Long/clear mental trajectory grants analytical mastery, strategic foresight, and strong memory."
+                       if l_head in ("long", "straight")
+                       else "Imaginative, intuitive mental current — channel creative ideas into structured written milestones so Moon/Mercury fluctuations never scatter focus.")
+                ),
+                "combined_remedy": "Practice Gyan Mudra (thumb + index finger tip) during morning meditation and keep your North/North-East study desk uncluttered.",
+            },
+            {
+                "palm_line": f"Heart Line (Hridaya Rekha — {l_heart.title()})",
+                "natal_chart_factors": f"4th Lord {fourth_lord} (Inner Peace) + 7th Lord {seventh_lord} (Spouse) + Venus in House {venus_h}",
+                "combined_palm_astrology_reading": (
+                    f"Your {l_heart} Heart Line combines with Venus in House {venus_h} and 7th Lord {seventh_lord} to shape your emotional and marital destiny. "
+                    + ("Warm, devoted emotional nature that attracts loyal partnership and domestic happiness."
+                       if l_heart in ("curved", "straight", "long")
+                       else "Deeply sensitive heart center — guard against over-giving and keep emotional communication transparent.")
+                ),
+                "combined_remedy": "Press the Mount of Venus & Jupiter gently with rose/sandalwood oil on Fridays; keep Living Family Photos on the SW or East wall.",
+            },
+            {
+                "palm_line": f"Fate / Saturn Line (Bhagya Rekha — {l_fate.title()})",
+                "natal_chart_factors": f"9th Luck Lord {ninth_lord} + 10th Karma Lord {tenth_lord} + Saturn in House {sat_h}",
+                "combined_palm_astrology_reading": (
+                    f"Your {l_fate} Fate Line rising toward the Mount of Saturn directly reflects Saturn in House {sat_h} and 10th Lord {tenth_lord}. "
+                    + ("Strong, self-made career authority with steady rise in status and wealth retention."
+                       if l_fate in ("clear", "present")
+                       else "Multi-path or evolving career — your biggest breakthroughs come through independent initiative, skill pivots, and 9th-lord ({ninth_lord}) dharma activation.")
+                ),
+                "combined_remedy": "Light a sesame oil lamp on Saturdays and face North or East while working to align your Fate Line with Kubera & Surya.",
+            },
+        ]
+
+        palm_and_astrology_synthesis = {
+            "headline": f"Hasta-Jyotish Synthesis: {h_shape.title()} Palm + {THUMBPRINT_ARCHETYPES[t_type]['name']} × {lagna_sign} Ascendant ({moon_sign} Moon)",
+            "elemental_chart_fusion": elem_harmony,
+            "dominant_palm_mount": dominant_mount_planet,
+            "thumbprint_and_natal_dharma_fusion": (
+                f"Your {THUMBPRINT_ARCHETYPES[t_type]['name']} thumbprint ({THUMBPRINT_ARCHETYPES[t_type]['deity_and_planet']}) "
+                f"combines with your {lagna_sign} Ascendant (ruled by {lagna_lord}) and 9th Dharma Lord {ninth_lord}: "
+                f"{THUMBPRINT_ARCHETYPES[t_type]['nadi_leaf_interpretation']} "
+                f"Remedy: {THUMBPRINT_ARCHETYPES[t_type]['nadi_remedy']}"
+            ),
+            "four_lines_and_natal_houses_matrix": four_lines_natal_matrix,
+        }
+
+        # 2. Combination of Palm + Birth Chart + Vastu & Feng Shui
+        palm_vastu_prescriptions = [
+            {
+                "palm_feature": f"{h_shape.title()} Hand ({dosha_hand_map['ayurvedic_hand_type']})",
+                "birth_chart_link": f"Lagna {lagna_sign} ({lagna_lord}) & 4th Home Lord {fourth_lord}",
+                "vastu_and_feng_shui_prescription": {
+                    "fire": "Because your palm carries strong Pitta/Fire energy, strictly keep your Kitchen Stove in South-East (facing East) separated from Water Taps, and keep North-East cool with a Temple/Meditation Hall and Medication Cabinet.",
+                    "earth": "Your Earth/Kapha-Prithvi palm thrives on structural stability: anchor your Master Bedroom and Heavy Storage in South-West, maintain a complete 360° Closed-Loop Perimeter Fence, and keep North-East light and open.",
+                    "air": "Your Air/Vata palm is highly kinetic: ground your nervous system by sleeping in the South-West Master Bedroom (head South), keep Washer/Dryer and Guest Room in North-West, and avoid TV or Mirror facing your bed.",
+                    "water": "Your Water/Luna palm is deeply intuitive: ensure all Outdoor Trenches/Drains slope toward North-East, place Water Taps & Garden Hose in North/North-East, and never allow stagnant water or open ditches in South-West.",
+                }.get(h_shape, "Align NE Water/Sacred zone and SW Master stability zone."),
+            },
+            {
+                "palm_feature": f"Life Line ({l_life.title()}) & Mars Mount",
+                "birth_chart_link": f"Mars in House {mars_h} & Lagna Lord {lagna_lord}",
+                "vastu_and_feng_shui_prescription": (
+                    "Place your Medication Cabinet in North-East or North (Dhanvantari healing zone — never in SW/SE), "
+                    "keep your Gym / Workout equipment in South or South-East, and let morning East sunlight enter unobstructed."
+                ),
+            },
+            {
+                "palm_feature": f"Head Line ({l_head.title()}) & Jupiter/Mercury Mounts",
+                "birth_chart_link": f"Mercury in House {merc_h} & Moon in {moon_sign}",
+                "vastu_and_feng_shui_prescription": (
+                    "Place your Study / Office Desk and Meditation Hall in North-East, North, or East, keep the central Brahmasthan "
+                    "free of cross-walls, and mount Wall Clocks on the North or East wall."
+                ),
+            },
+            {
+                "palm_feature": f"Heart Line ({l_heart.title()}) & Venus Mount",
+                "birth_chart_link": f"Venus in House {venus_h} & 7th Lord {seventh_lord}",
+                "vastu_and_feng_shui_prescription": (
+                    "Hang Living Family / Couple Photos on the South-West, East, or North wall; keep Deceased Ancestors' Photos strictly "
+                    "on the South wall facing North (never mixed with Gods' photos in NE); and avoid TV/Mirror reflecting the bed."
+                ),
+            },
+            {
+                "palm_feature": f"Fate Line ({l_fate.title()}) & Nadi Thumbprint ({THUMBPRINT_ARCHETYPES[t_type]['name']})",
+                "birth_chart_link": f"9th Lord {ninth_lord}, 10th Lord {tenth_lord} & Saturn in House {sat_h}",
+                "vastu_and_feng_shui_prescription": (
+                    "Ensure your Main Entrance & Compound Gate open inward clockwise (or slide toward North/East), place your Cash Safe/Locker "
+                    "against the South wall in the North or SW zone opening North, and keep Gods/Deities Photos in the NE Temple."
+                ),
+            },
+        ]
+
+        palm_and_vastu_synthesis = {
+            "headline": f"Palm + Birth Chart + Vastu & Feng Shui Tri-Synthesis ({h_shape.title()} Hand × {lagna_sign} Lagna)",
+            "summary": (
+                "In classical Samudrika Shastra and Vastu Vidya, the human palm is a microcosmic Vastu Mandala: "
+                "the Mount of Jupiter corresponds to Ishanya (NE), Sun to Surya (E), Venus to Agni (SE), Mars to Yama (S), "
+                "Rahu/Plain to Nairutya (SW), Saturn to Varuna (W), Moon to Vayu (NW), Mercury to Kubera (N), and the Center of the Palm to the Brahmasthan."
+            ),
+            "nine_palm_mounts_to_nine_vastu_zones": nine_palm_mounts_to_vastu,
+            "palm_line_vastu_room_prescriptions": palm_vastu_prescriptions,
+        }
     except Exception:
         pass
+
+    extracted_palm_profile = {
+        "has_uploaded_photo": bool(metrics.get("has_photo")),
+        "hand_side": hand_side,
+        "hand_shape": h_shape,
+        "ayurvedic_hand_type": dosha_hand_map["ayurvedic_hand_type"],
+        "heart_line": l_heart,
+        "head_line": l_head,
+        "life_line": l_life,
+        "fate_line": l_fate,
+        "thumbprint_type": t_type,
+        "thumbprint_name": THUMBPRINT_ARCHETYPES[t_type]["name"],
+        "dominant_mount": dominant_mount_planet,
+        "ridge_clarity_percent": metrics.get("ridge_clarity_percent", 91.0),
+    }
 
     return {
         "hand_side_analyzed": hand_side,
         "active_spectrum_mode": active_spectrum,
         "available_spectrum_modes": SPECTRUM_MODES,
         "vision_biometric_metrics": metrics,
+        "extracted_palm_profile": extracted_palm_profile,
         "core_palmistry_reading": base_palm,
         "hand_shape": {
             "element": h_shape.title(),
@@ -386,6 +586,8 @@ def analyze_palm_photo(
         "ayurvedic_tridosha_hand_signature": dosha_hand_map,
         "birth_chart_and_lal_kitab_mount_links": chart_mount_correlations,
         "planetary_mounts": chart_mount_correlations,
+        "palm_and_astrology_synthesis": palm_and_astrology_synthesis,
+        "palm_and_vastu_synthesis": palm_and_vastu_synthesis,
     }
 
 
