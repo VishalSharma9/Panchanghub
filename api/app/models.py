@@ -184,6 +184,80 @@ class PalmistryPhotoRequest(BaseModel):
     longitude: Optional[float] = Field(77.2090, description="Optional birth longitude")
     timezone: Optional[str] = Field("Asia/Kolkata", description="Optional birth timezone")
     utc_offset: Optional[float] = Field(None, description="Optional UTC offset")
+    gender: Optional[str] = Field("male", description="Optional gender ('male' or 'female') for Feng Shui Kua & Vastu synthesis")
+
+
+class VastuPlacedItemModel(BaseModel):
+    model_config = {"extra": "allow"}
+    id: Optional[int | str] = Field(None, description="Unique block ID")
+    type: str = Field("living_room", description="Item type key from /api/vastu/catalog (e.g. puja_room, meditation_hall, medication_cabinet, gym_room, storage, grain_pantry, washer_dryer, kitchen_stove, indoor_taps, water_hose, kids_slide, trench_ditch, gate, parking_gate, side_pedestrian_gate, photo_living, photo_deceased, photo_gods, tv_screen, wall_mirror, wall_clock)")
+    label: Optional[str] = Field(None, description="Custom label for the room or fixture")
+    x: float = Field(50.0, description="Left X coordinate percentage (0-100)")
+    y: float = Field(50.0, description="Top Y coordinate percentage (0-100)")
+    w: float = Field(12.0, description="Width percentage (1-100)")
+    h: float = Field(10.0, description="Height percentage (1-100)")
+    door_dir: Optional[str] = Field("", description="Door, gate, cook, photo, or TV facing direction ('N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW')")
+    gate_mech: Optional[str] = Field("", description="Gate/door opening or sliding mechanism ('swing_in_cw', 'swing_in_ccw', 'double_in', 'swing_out', 'slide_ne', 'slide_sw', 'rollup')")
+    wall_side: Optional[str] = Field("", description="Wall mounting side for photo frames, TV, mirror, clock ('N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW')")
+    flow_dir: Optional[str] = Field("", description="Drainage flow/slope direction for trenches/ditches ('NE', 'N', 'E', 'NW', 'SE', 'W', 'S', 'SW', 'stagnant')")
+    scope: Optional[str] = Field("indoor", description="Placement scope ('indoor', 'outdoor', 'outside_boundary')")
+
+
+class VastuWallLineModel(BaseModel):
+    model_config = {"extra": "allow"}
+    id: Optional[int | str] = None
+    label: Optional[str] = Field("Interior Wall Line", description="Wall label")
+    x1: float = Field(20.0, description="Start X coordinate (0-100)")
+    y1: float = Field(50.0, description="Start Y coordinate (0-100)")
+    x2: float = Field(80.0, description="End X coordinate (0-100)")
+    y2: float = Field(50.0, description="End Y coordinate (0-100)")
+    wall_type: Optional[str] = Field("partition", description="'partition' or 'load_bearing'")
+
+
+class VastuFenceLoopModel(BaseModel):
+    model_config = {"extra": "allow"}
+    id: Optional[int | str] = None
+    label: Optional[str] = Field("Perimeter Fence Loop", description="Fence loop label")
+    closed: bool = Field(True, description="True for a 360-degree closed fence loop, False for an open loop")
+    open_side: Optional[str] = Field("", description="If open loop, which compass side is open ('N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW')")
+    points: List[dict] = Field(default_factory=list, description="List of {'x': float, 'y': float} vertices in 0-100 coordinates")
+
+
+class VisualVastuLayoutRequest(BaseModel):
+    model_config = {"extra": "allow"}
+    house_shape: str = Field("square", description="'square', 'wide_rectangle', or 'deep_rectangle'")
+    has_outer_lot: bool = Field(True, description="Whether outer property lot/boundary items and perimeter fence are active")
+    compass_rotation: float = Field(0.0, description="Compass rotation degrees from True North at top (0, 45, 90, 135, 180, 225, 270, 315)")
+    items: Optional[List[VastuPlacedItemModel | dict]] = Field(None, description="Placed indoor/outdoor rooms, fixtures, photo frames, TV, gates, trenches, etc. If omitted or empty and use_chart_ideal_preset_if_empty=True, uses the native's Birth-Chart Ideal Preset.")
+    walls: Optional[List[VastuWallLineModel | dict]] = Field(None, description="Drawn interior/exterior wall lines")
+    fences: Optional[List[VastuFenceLoopModel | dict]] = Field(None, description="Perimeter fence loops (closed 360-degree loop or open loop)")
+    use_chart_ideal_preset_if_empty: bool = Field(False, description="If True and items is empty/omitted, automatically populates the Birth-Chart Ideal Vastu & Feng Shui arrangement")
+    # Birth chart calibration fields
+    date: Optional[str] = Field(None, description="Birth date YYYY-MM-DD for Astro-Vastu & Feng Shui Kua calibration")
+    birth_date: Optional[str] = Field(None, description="Alias for date")
+    time: Optional[str] = Field("10:30:00", description="Birth time HH:MM:SS")
+    birth_time: Optional[str] = Field(None, description="Alias for time")
+    latitude: Optional[float] = Field(None, description="Birth latitude")
+    lat: Optional[float] = Field(None, description="Alias for latitude")
+    birth_latitude: Optional[float] = Field(None, description="Alias for latitude")
+    longitude: Optional[float] = Field(None, description="Birth longitude")
+    lon: Optional[float] = Field(None, description="Alias for longitude")
+    birth_longitude: Optional[float] = Field(None, description="Alias for longitude")
+    timezone: Optional[str | float] = Field("Asia/Kolkata", description="Birth timezone IANA name or UTC offset")
+    tz: Optional[str | float] = Field(None, description="Alias for timezone")
+    birth_timezone: Optional[str | float] = Field(None, description="Alias for timezone")
+    gender: Optional[str] = Field("male", description="Gender ('male' or 'female') for Classical Feng Shui Kua & Eight Mansions")
+    # Optional Palmistry photo or profile to combine Palm + Birth Chart + Vastu in a single API call
+    palm_data: Optional[dict] = Field(None, description="Optional extracted palm profile (hand_shape, life_line, head_line, heart_line, fate_line, thumbprint_type) or dict containing image_base64")
+    palm_image_base64: Optional[str] = Field(None, description="Optional base64 palm photo to analyze via Computer Vision and combine directly with Birth Chart & Vastu")
+    thumb_image_base64: Optional[str] = Field(None, description="Optional base64 thumbprint close-up photo")
+    hand_shape: Optional[str] = Field(None, description="Optional direct palm hand shape override (fire, earth, air, water)")
+    life_line: Optional[str] = Field(None, description="Optional direct palm life line override (deep, wide, double, faint)")
+    head_line: Optional[str] = Field(None, description="Optional direct palm head line override (long, straight, sloping, short)")
+    heart_line: Optional[str] = Field(None, description="Optional direct palm heart line override (curved, straight, chained, broken)")
+    fate_line: Optional[str] = Field(None, description="Optional direct palm fate line override (clear, late, broken, absent)")
+    thumbprint_type: Optional[str] = Field(None, description="Optional direct Nadi thumbprint override (chakra_whorl, shankha_loop, padma_arch, simha_composite)")
+
 
 
 

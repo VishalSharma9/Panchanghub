@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from ...models import (
     KundliRequest, MatchRequest, VarshaphalaRequest, KPRequest,
     PrashnaRequest, DestinyRequest, TraditionsReportRequest, PalmistryPhotoRequest,
+    VisualVastuLayoutRequest,
 )
 from ...core import ephem
 from ...core.destiny_engine import compute_master_destiny_dossier
@@ -532,24 +533,90 @@ def astro_vastu_endpoint(req: DestinyRequest):
     }
 
 
-@router.post("/vastu/analyze-layout", summary="Evaluate Interactive Visual House (Square/Rectangle) & Outer-Lot Vastu & Feng Shui Layout with Birth-Chart Synergy")
+@router.get("/vastu/catalog", tags=["Vastu, Astro-Vastu & Feng Shui"], summary="Complete Catalog of 45+ Vastu & Feng Shui Items, Gate Sliding/Swing Mechanics, Photo/TV Wall Sides, Trench Flow & 9 Zones")
+def vastu_catalog_endpoint():
+    from ...core.astro_vastu_engine import (
+        ITEM_RULES, GATE_MECHANISM_RULES, WALL_SIDE_LABELS,
+        DIRECTION_META, FENG_SHUI_BAGUA_SECTORS,
+    )
+    return {
+        "total_items": len(ITEM_RULES),
+        "items_catalog": ITEM_RULES,
+        "gate_opening_and_sliding_mechanisms": GATE_MECHANISM_RULES,
+        "wall_mounting_sides": WALL_SIDE_LABELS,
+        "trench_drainage_directions": ["NE", "N", "E", "NW", "SE", "W", "S", "SW", "stagnant"],
+        "placement_scopes": ["indoor", "outdoor", "outside_boundary"],
+        "house_shapes": ["square", "wide_rectangle", "deep_rectangle"],
+        "vastu_nine_zones": DIRECTION_META,
+        "feng_shui_bagua_nine_sectors": FENG_SHUI_BAGUA_SECTORS,
+    }
+
+
+@router.post("/vastu/personalized-preset", tags=["Vastu, Astro-Vastu & Feng Shui"], summary="Generate Personalized Birth-Chart Ideal Vastu & Feng Shui Arrangement (Items, Walls, Fence Loop) + Baseline Evaluation")
+def vastu_personalized_preset_endpoint(req: TraditionsReportRequest):
+    from ...core.astro_vastu_engine import (
+        compute_personalized_astro_vastu, compute_classical_feng_shui,
+        evaluate_visual_vastu_layout,
+    )
+    ephem.set_ayanamsa_mode(req.ayanamsa)
+    jd = ephem.jd_from_utc(birth_utc(req))
+    pos = ephem.all_positions(jd, sidereal=True, true_node=req.true_node)
+    _, asc_lon, _ = ephem.houses(jd, req.latitude, req.longitude, HS[req.house_system], True)
+    av = compute_personalized_astro_vastu(pos, asc_lon)
+    fs = compute_classical_feng_shui(req.date.year, req.date.month, req.date.day, req.gender or "male", pos=pos, asc_lon=asc_lon)
+    preset = av["personalized_chart_preset"]
+    baseline_eval = evaluate_visual_vastu_layout(
+        items=preset["items"],
+        house_shape="square",
+        has_outer_lot=True,
+        compass_rotation=0.0,
+        pos=pos,
+        asc_lon=asc_lon,
+        walls=preset["walls"],
+        fences=preset["fences"],
+    )
+    return {
+        "personalized_chart_preset": preset,
+        "astro_vastu_guide": av,
+        "classical_feng_shui": fs,
+        "baseline_evaluation": baseline_eval,
+    }
+
+
+@router.post("/vastu/analyze-layout", tags=["Vastu, Astro-Vastu & Feng Shui"], summary="Evaluate Interactive Visual House & Outer-Lot Vastu + Feng Shui Layout with Birth-Chart & Uploaded Palm Synergy")
 @router.post("/vastu/evaluate", include_in_schema=False)
-def analyze_visual_vastu_layout_endpoint(payload: dict):
-    from ...core.astro_vastu_engine import evaluate_visual_vastu_layout
-    items = payload.get("items") or []
+def analyze_visual_vastu_layout_endpoint(req: VisualVastuLayoutRequest):
+    from ...core.astro_vastu_engine import (
+        evaluate_visual_vastu_layout, compute_personalized_astro_vastu,
+        compute_classical_feng_shui, build_personalized_chart_preset,
+    )
+    from ...core.palmistry_vision import analyze_palm_photo
+
+    payload = req.model_dump()
+    raw_items = payload.get("items") or []
+    items = [it if isinstance(it, dict) else dict(it) for it in raw_items]
+    raw_walls = payload.get("walls")
+    walls = [w if isinstance(w, dict) else dict(w) for w in raw_walls] if raw_walls is not None else None
+    raw_fences = payload.get("fences")
+    fences = [f if isinstance(f, dict) else dict(f) for f in raw_fences] if raw_fences is not None else None
+
     house_shape = payload.get("house_shape", "square")
     has_outer_lot = bool(payload.get("has_outer_lot", True))
     compass_rotation = float(payload.get("compass_rotation", 0.0))
 
     pos = None
     asc_lon = None
+    astro_vastu_guide = None
+    classical_feng_shui = None
     b_date = payload.get("date") or payload.get("birth_date")
-    b_lat = payload.get("latitude") if payload.get("latitude") is not None else payload.get("birth_latitude")
-    b_lon = payload.get("longitude") if payload.get("longitude") is not None else payload.get("birth_longitude")
+    b_lat = payload.get("latitude") if payload.get("latitude") is not None else (payload.get("lat") if payload.get("lat") is not None else payload.get("birth_latitude"))
+    b_lon = payload.get("longitude") if payload.get("longitude") is not None else (payload.get("lon") if payload.get("lon") is not None else payload.get("birth_longitude"))
+    b_time = payload.get("time") or payload.get("birth_time") or "10:30:00"
+    b_tz = payload.get("timezone") if payload.get("timezone") is not None else (payload.get("tz") if payload.get("tz") is not None else payload.get("birth_timezone", "Asia/Kolkata"))
+    b_gender = payload.get("gender") or "male"
+
     if b_date and b_lat is not None and b_lon is not None:
         try:
-            b_time = payload.get("time") or payload.get("birth_time") or "10:30:00"
-            b_tz = payload.get("timezone") if payload.get("timezone") is not None else payload.get("birth_timezone", "Asia/Kolkata")
             try:
                 tz_name, utc_off = None, float(b_tz)
             except (ValueError, TypeError):
@@ -566,20 +633,71 @@ def analyze_visual_vastu_layout_endpoint(payload: dict):
             jd = ephem.jd_from_utc(birth_utc(b_req))
             pos = ephem.all_positions(jd, sidereal=True, true_node=False)
             _, asc_lon, _ = ephem.houses(jd, b_req.latitude, b_req.longitude, "W", True)
+            astro_vastu_guide = compute_personalized_astro_vastu(pos, asc_lon)
+            classical_feng_shui = compute_classical_feng_shui(
+                b_req.date.year, b_req.date.month, b_req.date.day, b_gender, pos=pos, asc_lon=asc_lon
+            )
         except Exception:
             pass
 
-    return evaluate_visual_vastu_layout(
+    if not items and payload.get("use_chart_ideal_preset_if_empty"):
+        preset = build_personalized_chart_preset(pos, asc_lon)
+        items = preset["items"]
+        if walls is None:
+            walls = preset["walls"]
+        if fences is None:
+            fences = preset["fences"]
+
+    # Resolve optional palm photo or palm feature parameters via Computer-Vision Palmistry Engine
+    palm_data = payload.get("palm_data")
+    full_palm_report = None
+    palm_img = payload.get("palm_image_base64") or (palm_data.get("image_base64") if isinstance(palm_data, dict) else None)
+    has_direct_palm_overrides = any(payload.get(k) for k in ("hand_shape", "life_line", "head_line", "heart_line", "fate_line", "thumbprint_type"))
+    if palm_img or has_direct_palm_overrides:
+        try:
+            p_src = palm_data if isinstance(palm_data, dict) else {}
+            full_palm_report = analyze_palm_photo(
+                image_base64=palm_img,
+                thumb_image_base64=payload.get("thumb_image_base64") or p_src.get("thumb_image_base64"),
+                hand_side=p_src.get("hand_side") or "right",
+                hand_shape=payload.get("hand_shape") or p_src.get("hand_shape"),
+                heart_line=payload.get("heart_line") or p_src.get("heart_line"),
+                head_line=payload.get("head_line") or p_src.get("head_line"),
+                life_line=payload.get("life_line") or p_src.get("life_line"),
+                fate_line=payload.get("fate_line") or p_src.get("fate_line"),
+                thumbprint_type=payload.get("thumbprint_type") or p_src.get("thumbprint_type"),
+                birth_date=str(b_date or "1990-05-15"),
+                birth_time=str(b_time or "10:30:00"),
+                latitude=float(b_lat if b_lat is not None else 28.6139),
+                longitude=float(b_lon if b_lon is not None else 77.2090),
+                timezone_str=str(b_tz or "Asia/Kolkata"),
+            )
+            palm_data = full_palm_report["extracted_palm_profile"]
+        except Exception:
+            pass
+
+    res = evaluate_visual_vastu_layout(
         items=items,
         house_shape=house_shape,
         has_outer_lot=has_outer_lot,
         compass_rotation=compass_rotation,
         pos=pos,
         asc_lon=asc_lon,
-        walls=payload.get("walls"),
-        fences=payload.get("fences"),
-        palm_data=payload.get("palm_data"),
+        walls=walls,
+        fences=fences,
+        palm_data=palm_data,
     )
+    if astro_vastu_guide is not None:
+        res["astro_vastu_guide"] = astro_vastu_guide
+    if classical_feng_shui is not None:
+        res["classical_feng_shui"] = classical_feng_shui
+    if full_palm_report is not None:
+        res["full_palmistry_and_astrology_report"] = {
+            "extracted_palm_profile": full_palm_report["extracted_palm_profile"],
+            "palm_and_astrology_synthesis": full_palm_report["palm_and_astrology_synthesis"],
+            "palm_and_vastu_synthesis": full_palm_report["palm_and_vastu_synthesis"],
+        }
+    return res
 
 
 @router.post("/vastu/feng-shui", summary="Classical Feng Shui: Personal Kua (Ming Gua), Eight Mansions (Ba Zhai), Bagua 9-Grid & Period 9 Flying Stars")
@@ -715,7 +833,7 @@ def palmistry_spectrum_modes_endpoint():
     return get_spectrum_modes_catalog()
 
 
-@router.post("/palmistry/analyze-photo", tags=["Palmistry Vision"], summary="Analyze palm & thumbprint photo across 10 spectral modes + optional Vedic birth-chart mount & Lal Kitab calibration")
+@router.post("/palmistry/analyze-photo", tags=["Palmistry Vision"], summary="Analyze palm & thumbprint photo across 10 spectral modes + Vedic birth-chart mount, Lal Kitab & Vastu synthesis")
 def palmistry_analyze_photo_endpoint(req: PalmistryPhotoRequest):
     from ...core.palmistry_vision import analyze_palm_photo
     return analyze_palm_photo(
@@ -735,4 +853,45 @@ def palmistry_analyze_photo_endpoint(req: PalmistryPhotoRequest):
         longitude=req.longitude if req.longitude is not None else 77.2090,
         timezone_str=req.timezone or "Asia/Kolkata",
     )
+
+
+@router.post("/palmistry/combine-astrology", tags=["Palmistry Vision"], summary="Combine Uploaded Palm/Thumbprint Photo (or Palm Features) with Vedic Birth Chart, Lal Kitab & Nadi Astrology")
+def palmistry_combine_astrology_endpoint(req: PalmistryPhotoRequest):
+    from ...core.palmistry_vision import analyze_palm_photo
+    res = analyze_palm_photo(
+        image_base64=req.image_base64,
+        thumb_image_base64=req.thumb_image_base64,
+        hand_side=req.hand_side or "right",
+        active_spectrum=req.active_spectrum or "ridge_enhance",
+        hand_shape=req.hand_shape,
+        heart_line=req.heart_line,
+        head_line=req.head_line,
+        life_line=req.life_line,
+        fate_line=req.fate_line,
+        thumbprint_type=req.thumbprint_type,
+        birth_date=req.birth_date or req.date or "1990-05-15",
+        birth_time=req.birth_time or req.time or "10:30:00",
+        latitude=req.latitude if req.latitude is not None else 28.6139,
+        longitude=req.longitude if req.longitude is not None else 77.2090,
+        timezone_str=req.timezone or "Asia/Kolkata",
+    )
+    return {
+        "extracted_palm_profile": res["extracted_palm_profile"],
+        "nadi_thumbprint_analysis": res["nadi_thumbprint_analysis"],
+        "ayurvedic_tridosha_hand_signature": res["ayurvedic_tridosha_hand_signature"],
+        "birth_chart_and_lal_kitab_mount_links": res["birth_chart_and_lal_kitab_mount_links"],
+        "palm_and_astrology_synthesis": res["palm_and_astrology_synthesis"],
+        "palm_and_vastu_synthesis": res["palm_and_vastu_synthesis"],
+    }
+
+
+@router.post("/palmistry/combine-vastu", tags=["Palmistry Vision", "Vastu, Astro-Vastu & Feng Shui"], summary="Combine Uploaded Palm/Thumbprint Photo + Birth Chart + Vastu & Feng Shui Layout Evaluation")
+def palmistry_combine_vastu_endpoint(req: VisualVastuLayoutRequest):
+    # If caller didn't pass floorplan items, automatically evaluate against their Birth-Chart Ideal Vastu Preset
+    if not req.items:
+        req.use_chart_ideal_preset_if_empty = True
+    if not req.palm_image_base64 and not req.palm_data and not req.hand_shape:
+        req.hand_shape = "fire"
+    return analyze_visual_vastu_layout_endpoint(req)
+
 
