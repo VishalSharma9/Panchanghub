@@ -100,12 +100,13 @@
         <div style="font-size:18px;font-weight:700;color:var(--kumkum-d)">{{ cur_dasha.pratyantardasha.lord }}</div>
         <div style="font-size:12px;color:var(--muted)">{{ cur_dasha.pratyantardasha.start }} → {{ cur_dasha.pratyantardasha.end }}</div>
       </div>
-      {% if cur_dasha.sookshma %}
+      {% set sook = cur_dasha.sookshmadasha or cur_dasha.sookshma %}
+      {% if sook %}
       <div style="color:var(--haldi);font-weight:700">›</div>
       <div>
         <span style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700">Sookshmadasha</span>
-        <div style="font-size:18px;font-weight:700;color:var(--kumkum-d)">{{ cur_dasha.sookshma.lord }}</div>
-        <div style="font-size:12px;color:var(--muted)">{{ cur_dasha.sookshma.start }} → {{ cur_dasha.sookshma.end }}</div>
+        <div style="font-size:18px;font-weight:700;color:var(--kumkum-d)">{{ sook.lord }}</div>
+        <div style="font-size:12px;color:var(--muted)">{{ sook.start }} → {{ sook.end }}</div>
       </div>
       {% endif %}
     </div>

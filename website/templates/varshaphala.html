@@ -128,7 +128,7 @@
       {% for sinfo in vdata.sahams_full_24 %}
       <tr>
         <td>{{ loop.index }}</td>
-        <td><b>{{ sinfo.name }} Saham</b></td>
+        <td><b>{{ sinfo.name if 'Saham' in sinfo.name else sinfo.name ~ ' Saham' }}</b></td>
         <td>{{ sinfo.sign }}</td>
         <td>{{ sinfo.dms }}</td>
         <td>House {{ sinfo.house_from_lagna }}</td>

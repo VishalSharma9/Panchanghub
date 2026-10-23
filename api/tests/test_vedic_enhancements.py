@@ -402,7 +402,7 @@ def test_ephem_lru_cache():
 def test_master_destiny_and_ravana_endpoints():
     destiny_payload = {
         **SAMPLE_BIRTH,
-        'name': 'Ravana Mastery Tester',
+        'name': '9-Planet Mastery Tester',
         'current_latitude': 40.7128,
         'current_longitude': -74.0060,
         'current_timezone': -4.0,
@@ -451,7 +451,7 @@ def test_master_destiny_and_ravana_endpoints():
         '&cur_lat=40.7128&cur_lon=-74.0060&cur_tz=-4.0&cur_city=New+York&scan_days=15'
     )
     assert dweb.status_code == 200
-    assert 'Ravana Samhita 9-Planet Mastery' in dweb.text
+    assert 'Classical Samhita 9-Planet Mastery' in dweb.text
     assert 'Lottery, Speculation & Sudden Windfall Oracle' in dweb.text
     assert 'Grandchildren' in dweb.text
     assert 'D-60 Shashtiamsha' in dweb.text
@@ -575,7 +575,7 @@ def test_full_language_translation_preserving_shlokas():
     from app.core import i18n
 
     sample_html = (
-        '<h2>Ravana Samhita 9-Planet Mastery</h2>'
+        '<h2>Classical Samhita 9-Planet Mastery</h2>'
         '<p><strong>Maha Mrityunjaya Shloka:</strong> '
         '<code class="notranslate" translate="no">ॐ त्र्यम्बकं यजामहे सुगन्धिं पुष्टिवर्धनम्॥ (Om Tryambakam Yajamahe)</code>'
         '<br><span><b>Shloka Meaning:</b> We worship the Three-Eyed Lord Shiva who nourishes all beings.</span></p>'

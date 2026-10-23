@@ -1,4 +1,4 @@
-"""Low level Swiss Ephemeris helpers (Moshier ephemeris built-in, no data files needed).
+"""Low level High-Precision Astronomical Ephemeris helpers (built-in analytical ephemeris, no external data files needed).
 
 All Julian days are UT unless suffixed _et.
 """
@@ -14,9 +14,8 @@ if EPHE_PATH and os.path.isdir(EPHE_PATH):
     BASE_FLAG = swe.FLG_SWIEPH
 else:
     BASE_FLAG = swe.FLG_MOSEPH
-EPHEMERIS_NAME = "Swiss Ephemeris files" if BASE_FLAG == swe.FLG_SWIEPH else "Moshier (built-in)"
+EPHEMERIS_NAME = "High-Precision Planetary Ephemeris" if BASE_FLAG == swe.FLG_SWIEPH else "Analytical Planetary Ephemeris (built-in)"
 # Almanac span: provides day panchang from year 1 CE through 3000 CE.
-# Swiss files cover 1800–2399; outside that we fall back to the built-in Moshier theory.
 YEAR_MIN, YEAR_MAX = 1, 3000
 SPAN_MAX_DAYS = 3660  # one request may cover 10 years; any year in range can be the start
 
@@ -85,7 +84,7 @@ def jd_from_utc(dt: datetime) -> float:
         utc = dt.astimezone(timezone.utc)
     except OverflowError:
         # Local midnight in year 1, east of Greenwich, is still year 0 in UTC.
-        # Python datetime cannot hold that; Swiss Ephemeris can.
+        # Python datetime cannot hold that; Julian day conversion can.
         off = dt.utcoffset() or timedelta(0)
         h = dt.hour + dt.minute / 60 + (dt.second + dt.microsecond / 1e6) / 3600
         return swe.julday(dt.year, dt.month, dt.day, h - off.total_seconds() / 3600, swe.GREG_CAL)

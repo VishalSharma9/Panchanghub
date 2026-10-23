@@ -1,0 +1,932 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .trad-hero {
+    background: linear-gradient(135deg, #1b1035 0%, #2d1b4e 48%, #4c1d4b 100%);
+    color: #fdf4ff;
+    border-radius: 18px;
+    padding: 1.65rem 1.85rem;
+    margin-bottom: 1.35rem;
+    box-shadow: 0 14px 36px rgba(27, 16, 53, 0.25);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+  }
+  .trad-hero h1 {
+    color: #fef3c7;
+    margin: 0 0 0.45rem 0;
+    font-size: 1.8rem;
+  }
+  .trad-hero p {
+    color: #f3e8ff;
+    margin: 0;
+    font-size: 0.96rem;
+    line-height: 1.55;
+  }
+  .trad-pill-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 0.9rem;
+  }
+  .trad-pill {
+    background: rgba(251, 191, 36, 0.16);
+    border: 1px solid rgba(251, 191, 36, 0.45);
+    color: #fef3c7;
+    padding: 0.24rem 0.72rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+  .filter-panel {
+    background: linear-gradient(135deg, #fffdf9, #fef7ea);
+    border: 1px solid #e7d4b5;
+    border-radius: 16px;
+    padding: 1.25rem 1.4rem;
+    margin-bottom: 1.35rem;
+  }
+  .filter-group-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .filter-chip-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+  .filter-chip {
+    padding: 0.4rem 0.8rem;
+    border-radius: 999px;
+    border: 1px solid #d97706;
+    background: #fff;
+    color: #7c2d12;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .filter-chip.active, .filter-chip:hover {
+    background: linear-gradient(135deg, #d97706, #b45309);
+    color: #fff;
+    border-color: #92400e;
+  }
+  .trad-checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+    gap: 0.45rem;
+    margin-top: 0.65rem;
+  }
+  .trad-check-item {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: #fff;
+    border: 1px solid #ead8c3;
+    padding: 0.42rem 0.65rem;
+    border-radius: 9px;
+    font-size: 0.81rem;
+    font-weight: 600;
+    color: #1f2937;
+    cursor: pointer;
+  }
+  .trad-check-item input {
+    accent-color: #d97706;
+    width: 15px;
+    height: 15px;
+  }
+  .dosha-meter-wrap {
+    margin: 0.55rem 0;
+  }
+  .dosha-meter-head {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 0.22rem;
+  }
+  .dosha-meter-track {
+    height: 12px;
+    background: #f1e9dc;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .dosha-meter-fill {
+    height: 100%;
+    border-radius: 999px;
+  }
+  .trad-section-banner {
+    background: linear-gradient(90deg, #7c2d12, #b45309);
+    color: #fff;
+    padding: 0.65rem 1.15rem;
+    border-radius: 12px;
+    margin: 1.5rem 0 0.9rem 0;
+    font-size: 1.15rem;
+    font-weight: 800;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .bazi-pillars {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    margin: 0.75rem 0;
+  }
+  .bazi-card {
+    background: #fffbeb;
+    border: 1px solid #f59e0b;
+    border-radius: 12px;
+    padding: 0.85rem;
+    text-align: center;
+  }
+  .bazi-card .pillar-lbl {
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    color: #92400e;
+    font-weight: 700;
+  }
+  .bazi-card .pillar-stem {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #7c2d12;
+    margin: 0.25rem 0;
+  }
+  .bazi-card .pillar-branch {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #1f2937;
+  }
+  @media (max-width: 760px) {
+    .bazi-pillars { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+
+<div class="trad-hero">
+  <h1>🌍 Global &amp; Classical Astrological Traditions + Vata-Pitta-Kapha &amp; Five Elements Studio</h1>
+  <p>
+    Explore and filter <strong>14 complete Eastern/Vedic, Western, and Global astrological traditions</strong> from one birth chart:
+    <strong>Lal Kitab</strong> (Fixed Aries Ascendant &amp; 43-Day Upayas), <strong>Parashari</strong>, <strong>Jaimini</strong> (Chara Karakas, Arudha Padas &amp; Chara Dasha),
+    <strong>KP System</strong> (249 Sub-Lords), <strong>Nadi Astrology</strong> (150 Nadi Amshas &amp; Thumbprint Leaf Bundles),
+    <strong>Western Tropical</strong>, <strong>Hellenistic</strong> (Sect, Lots &amp; Profections), <strong>Modern Psychological &amp; Evolutionary</strong> (Jung &amp; Pluto Soul Axis),
+    <strong>Uranian / Hamburg School</strong> (8 Trans-Neptunians &amp; 90° Midpoint Dial), <strong>Chinese BaZi Four Pillars</strong>,
+    <strong>Classical Feng Shui</strong>, <strong>Mayan Tzolk'in Cross</strong>, and <strong>Celtic Ogham Tree Astrology</strong> —
+    cross-linked with your <strong>Ayurvedic Tridosha (Vata, Pitta, Kapha)</strong> &amp; <strong>Chinese Five Elements (Wood, Fire, Earth, Metal, Water)</strong> constitutional balance.
+  </p>
+  <div class="trad-pill-strip">
+    <span class="trad-pill">🌿 Ayurvedic Vata-Pitta-Kapha × Chinese 5-Element Balance</span>
+    <span class="trad-pill">📕 Lal Kitab Fixed-Aries Chart &amp; Sleeping Planets</span>
+    <span class="trad-pill">🏛️ Jaimini, KP, Nadi &amp; Parashari</span>
+    <span class="trad-pill">🏺 Hellenistic Sect, Evolutionary Pluto &amp; Uranian 90° Dial</span>
+    <span class="trad-pill">🐉 BaZi Four Pillars, Feng Shui, Mayan &amp; Celtic Tree</span>
+    <span class="trad-pill">🔌 REST API: POST /api/traditions/report</span>
+  </div>
+</div>
+
+<!-- Birth Chart & Custom Report Filter Form -->
+<section class="filter-panel">
+  <form method="get" action="/traditions" id="tradForm">
+    <div class="f" style="margin-bottom:1rem;">
+      <label>Name
+        <input name="name" value="{{ form.name }}" placeholder="Your Name">
+      </label>
+      <label>Birth Date
+        <input type="date" name="date" value="{{ form.date }}" min="1800-01-01" max="2100-12-31" required>
+      </label>
+      <label>Birth Time
+        <input type="time" name="time" value="{{ form.time }}" required>
+      </label>
+      <label style="min-width:210px;">Birth City
+        <input name="city" data-place="" value="{{ form.city }}" placeholder="Search birth city...">
+      </label>
+      <label>Gender (for Kua / Feng Shui)
+        <select name="gender">
+          <option value="male" {{ 'selected' if form.gender == 'male' }}>Male</option>
+          <option value="female" {{ 'selected' if form.gender == 'female' }}>Female</option>
+        </select>
+      </label>
+      <input type="hidden" name="lat" value="{{ form.lat }}">
+      <input type="hidden" name="lon" value="{{ form.lon }}">
+      <input type="hidden" name="tz" value="{{ form.tz }}">
+      <input type="hidden" name="goal" id="goalInput" value="{{ form.goal }}">
+      <input type="hidden" name="approach" id="approachInput" value="{{ form.approach }}">
+      <button class="btn" type="submit">Compute Custom Multi-Tradition Report</button>
+    </div>
+
+    <div class="filter-group-row">
+      <div>
+        <div style="font-size:0.8rem;font-weight:800;color:#7c2d12;margin-bottom:0.35rem;text-transform:uppercase;">
+          1. Are you looking for Personal Insight, Event Prediction, or Healing Remedies?
+        </div>
+        <div class="filter-chip-bar">
+          {% for g_id, g_lbl in [('all','All Goals'),('personal_insight','🧠 Personal Insight & Psyche'),('event_prediction','🎯 Predicting Specific Life Events'),('remedies_and_healing','🌿 Remedies, Dosha & Feng Shui')] %}
+          <button type="button" class="filter-chip {{ 'active' if form.goal == g_id }}" onclick="setTradGoal('{{ g_id }}')">{{ g_lbl }}</button>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:0.8rem;font-weight:800;color:#7c2d12;margin-bottom:0.35rem;text-transform:uppercase;">
+          2. Preferred Regional / Philosophical Approach
+        </div>
+        <div class="filter-chip-bar">
+          {% for a_id, a_lbl in [('all','All Traditions (14)'),('holistic_balance','⚖️ Dosha & 5-Element Balance'),('eastern_vedic','🕉️ Indian / Vedic (5)'),('western','🏛️ Western Systems (4)'),('global_cultural','🐉 Chinese, Feng Shui, Mayan & Celtic (4)')] %}
+          <button type="button" class="filter-chip {{ 'active' if form.approach == a_id }}" onclick="setTradApproach('{{ a_id }}')">{{ a_lbl }}</button>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <details style="margin-top:0.5rem;">
+      <summary style="cursor:pointer;font-weight:800;font-size:0.85rem;color:#7c2d12;">
+        🎛️ Customize Individual Traditions in Your Report ({{ report.selected_traditions|length if report else 14 }} active) — Click to toggle specific systems
+      </summary>
+      <div style="margin-top:0.55rem;display:flex;gap:0.5rem;">
+        <button type="button" class="btn alt" style="padding:0.25rem 0.65rem;font-size:0.76rem;" onclick="toggleAllTradChecks(true)">Select All 14</button>
+        <button type="button" class="btn alt" style="padding:0.25rem 0.65rem;font-size:0.76rem;" onclick="toggleAllTradChecks(false)">Clear All</button>
+      </div>
+      <div class="trad-checkbox-grid">
+        {% for item in catalog.traditions %}
+        <label class="trad-check-item">
+          <input type="checkbox" name="traditions" value="{{ item.id }}"
+                 {{ 'checked' if (not report) or (item.id in report.selected_traditions) }}
+                 onchange="filterVisibleTraditionCards()">
+          <span>{{ item.title }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    </details>
+  </form>
+</section>
+
+{% if report and report.traditions_dossier %}
+{% set T = report.traditions_dossier %}
+
+<!-- ====================================================================== -->
+<!-- 1. AYURVEDIC TRIDOSHA (VATA / PITTA / KAPHA) × CHINESE FIVE ELEMENTS    -->
+<!-- ====================================================================== -->
+{% if T.holistic_dosha_elements %}
+{% set DE = T.holistic_dosha_elements %}
+{% set AY = DE.ayurvedic_jyotish_tridosha_profile %}
+{% set WX = DE.chinese_five_elements_wu_xing_profile %}
+<div class="trad-card-block" data-trad-id="holistic_dosha_elements">
+  <div class="trad-section-banner">
+    <span>🌿 Holistic Constitutional Synthesis: Vedic Tridosha (Vata, Pitta, Kapha) × Chinese Five Elements (Wu Xing)</span>
+    <span style="font-size:0.8rem;opacity:0.9;">Prakriti &amp; Vikriti + BaZi Element Balance</span>
+  </div>
+
+  <div class="grid2">
+    <!-- Vedic Tridosha Card -->
+    <section class="card">
+      <h2>🕉️ Vedic Astro-Ayurveda (Tridosha Prakriti &amp; Dasha Vikriti)</h2>
+      <div class="body">
+        <p style="margin-top:0;">
+          <strong>Birth Prakriti Type:</strong> <span class="badge good" style="font-size:0.95rem;">{{ AY.natal_prakriti_type }}</span>
+          &nbsp;·&nbsp;
+          <strong>Active Dasha Push:</strong>
+          <span class="badge warn">{{ AY.current_dasha_vikriti.active_dasha_dosha_push }}</span>
+        </p>
+        <p class="neutral" style="font-size:0.85rem;">{{ AY.current_dasha_vikriti.explanation }}</p>
+
+        <h3 style="font-size:0.92rem;margin:0.8rem 0 0.4rem;">Natal Constitutional Balance (Prakriti %)</h3>
+        {% for d_name, d_col in [('Vata','#3b82f6'),('Pitta','#ef4444'),('Kapha','#10b981')] %}
+        {% set pct = AY.dosha_percentages[d_name] %}
+        <div class="dosha-meter-wrap">
+          <div class="dosha-meter-head">
+            <span>{{ d_name }} ({{ AY.all_three_dosha_reference[d_name].elements }})</span>
+            <span><strong>{{ pct }}%</strong></span>
+          </div>
+          <div class="dosha-meter-track">
+            <div class="dosha-meter-fill" style="width:{{ pct }}%;background:{{ d_col }};"></div>
+          </div>
+        </div>
+        {% endfor %}
+
+        <div style="margin-top:0.9rem;background:#fefce8;border:1px solid #fde047;border-radius:10px;padding:0.75rem;font-size:0.84rem;">
+          <strong>Primary Dosha to Balance ({{ AY.primary_dosha_to_pacify }}):</strong><br>
+          <strong>Qualities:</strong> {{ AY.primary_dosha_balancing_protocol.qualities }}<br>
+          <strong>When Balanced:</strong> {{ AY.primary_dosha_balancing_protocol.when_balanced }}<br>
+          <strong>Imbalance Signs:</strong> {{ AY.primary_dosha_balancing_protocol.when_imbalanced }}
+        </div>
+      </div>
+    </section>
+
+    <!-- Chinese Five Elements Card -->
+    <section class="card">
+      <h2>🐉 Chinese BaZi Five Elements (Wu Xing) &amp; Yin-Yang Dynamics</h2>
+      <div class="body">
+        <p style="margin-top:0;">
+          <strong>Day Master (Core Identity):</strong> <span class="badge good">{{ WX.day_master }}</span>
+          &nbsp;·&nbsp;
+          <strong>Dominant:</strong> <span class="badge warn">{{ WX.dominant_excess_element }}</span>
+          &nbsp;·&nbsp;
+          <strong>Deficient / Needed:</strong> <span class="badge bad">{{ WX.deficient_element_to_strengthen }}</span>
+        </p>
+        <p style="font-size:0.85rem;">
+          <strong>Yin / Yang Polarity:</strong> Yang {{ WX.yin_yang_balance.yang_percent }}% / Yin {{ WX.yin_yang_balance.yin_percent }}%
+        </p>
+
+        {% for el_name, el_col in [('Wood','#16a34a'),('Fire','#dc2626'),('Earth','#d97706'),('Metal','#64748b'),('Water','#2563eb')] %}
+        {% set epct = WX.element_percentages[el_name] %}
+        <div class="dosha-meter-wrap">
+          <div class="dosha-meter-head">
+            <span>{{ el_name }} — {{ WX.all_five_elements_reference[el_name].organ_meridian.split('—')[0] }}</span>
+            <span><strong>{{ epct }}%</strong></span>
+          </div>
+          <div class="dosha-meter-track">
+            <div class="dosha-meter-fill" style="width:{{ epct }}%;background:{{ el_col }};"></div>
+          </div>
+        </div>
+        {% endfor %}
+
+        <div style="margin-top:0.9rem;background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:0.75rem;font-size:0.84rem;">
+          <strong>Nourish Deficient {{ WX.deficient_element_to_strengthen }} Element:</strong><br>
+          {{ WX.deficient_element_guide.how_to_balance }}
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Cross-System Holistic Prescription -->
+  <section class="card">
+    <h2>⚕️ {{ DE.east_meets_east_unified_synthesis.headline }}</h2>
+    <div class="body">
+      <p style="background:#fff7ed;border-left:4px solid #ea580c;padding:0.75rem 1rem;border-radius:8px;font-weight:600;margin-top:0;">
+        {{ DE.east_meets_east_unified_synthesis.core_connection }}
+      </p>
+      <div class="grid2">
+        <table class="kv">
+          <tr><td><strong>Pacify Excess {{ AY.primary_dosha_to_pacify }} — Tastes to Favor</strong></td><td>{{ AY.primary_dosha_balancing_protocol.tastes_to_favor }}</td></tr>
+          <tr><td><strong>Foods to Favor</strong></td><td>{{ AY.primary_dosha_balancing_protocol.foods_to_favor }}</td></tr>
+          <tr><td><strong>Foods to Reduce</strong></td><td>{{ AY.primary_dosha_balancing_protocol.foods_to_reduce }}</td></tr>
+          <tr><td><strong>Ayurvedic Herbs &amp; Oils</strong></td><td>{{ AY.primary_dosha_balancing_protocol.herbs_and_oils }}</td></tr>
+          <tr><td><strong>Pranayama &amp; Lifestyle</strong></td><td>{{ AY.primary_dosha_balancing_protocol.pranayama_and_lifestyle }}</td></tr>
+        </table>
+        <table class="kv">
+          <tr><td><strong>Strengthen Chinese {{ WX.deficient_element_to_strengthen }} Meridian</strong></td><td>{{ WX.deficient_element_guide.organ_meridian }}</td></tr>
+          <tr><td><strong>Ayurvedic Bridge</strong></td><td>{{ WX.deficient_element_guide.ayurvedic_bridge }}</td></tr>
+          <tr><td><strong>When {{ WX.deficient_element_to_strengthen }} is Balanced</strong></td><td>{{ WX.deficient_element_guide.when_balanced }}</td></tr>
+          <tr><td><strong>How to Strengthen {{ WX.deficient_element_to_strengthen }}</strong></td><td>{{ WX.deficient_element_guide.how_to_balance }}</td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+{% endif %}
+
+<!-- ====================================================================== -->
+<!-- 2. INDIAN (VEDIC / JYOTISH) ASTROLOGY SYSTEMS                          -->
+<!-- ====================================================================== -->
+<div class="trad-section-banner">
+  <span>🕉️ Indian (Vedic / Jyotish) Astrological Traditions</span>
+  <span style="font-size:0.8rem;opacity:0.9;">Lal Kitab · Parashari · Jaimini · KP System · Nadi</span>
+</div>
+
+<!-- 2A. LAL KITAB -->
+{% if T.lal_kitab %}
+{% set LK = T.lal_kitab %}
+<section class="card trad-card-block" data-trad-id="lal_kitab">
+  <h2>📕 1. {{ LK.tradition_name }} — Fixed Aries Ascendant (Pakka Ghar), Sleeping Planets &amp; 43-Day Upayas</h2>
+  <div class="body">
+    <p class="neutral" style="margin-top:0;">{{ LK.methodology_explained }}</p>
+    <div class="grid2" style="align-items:start;">
+      <div style="text-align:center;background:#fffdf9;border:1px solid #ead8c3;border-radius:12px;padding:1rem;">
+        <h3 style="margin:0 0 0.5rem;font-size:0.95rem;color:#7c2d12;">Lal Kitab Kundli (House 1 Always Fixed as Aries / Mesha)</h3>
+        {{ LK.lal_kitab_fixed_aries_svg | safe }}
+        <p style="font-size:0.78rem;color:#6b7280;margin:0.4rem 0 0;">
+          Blind Chart Check: <strong>{{ LK.blind_chart_andhe_graha_check }}</strong>
+        </p>
+      </div>
+
+      <div>
+        <h3 style="margin-top:0;font-size:0.98rem;">🛌 Sleeping Planets (Soye Hue Graha) &amp; Awakening Actions</h3>
+        {% if LK.sleeping_planets_soye_hue_graha %}
+        <ul>
+          {% for sp in LK.sleeping_planets_soye_hue_graha %}
+          <li><strong>{{ sp.planet }} (House {{ sp.house }}):</strong> {{ sp.explanation }} → <em>{{ sp.how_to_awaken }}</em></li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="good">All occupied houses receive active Lal Kitab drishti; no planets are dormant.</p>
+        {% endif %}
+
+        <h3 style="font-size:0.98rem;">⚖️ Karmic Debts (Lal Kitab Rinas) &amp; Remedies</h3>
+        {% for rn in LK.karmic_rinas_and_remedies %}
+        <div style="background:#fef2f2;border-left:4px solid #dc2626;padding:0.6rem 0.85rem;border-radius:8px;margin-bottom:0.55rem;font-size:0.84rem;">
+          <strong>{{ rn.rina_name }}:</strong> {{ rn.cause_in_chart }} ({{ rn.life_effect }})<br>
+          <span style="color:#15803d;font-weight:600;">Upaya: {{ rn.lal_kitab_remedy }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <h3 style="margin-top:1.1rem;font-size:0.98rem;">🏠 9-Planet Pakka Ghar, Palmistry Mounts &amp; 43-Day Upaya Table</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Planet</th><th>Lal Kitab House</th><th>Pakka Ghar</th><th>Status</th><th>Palmistry Mount &amp; Line Link</th><th>43-Day Practical Upaya</th></tr>
+        </thead>
+        <tbody>
+          {% for row in LK.nine_planet_pakka_ghar_and_palmistry_table %}
+          <tr>
+            <td><strong>{{ row.planet }}</strong></td>
+            <td>House {{ row.lal_kitab_house }} ({{ row.kalpurush_fixed_sign }})</td>
+            <td>{{ row.pakka_ghar_permanent_home }}</td>
+            <td><span class="badge {{ 'good' if 'Nek' in row.lal_kitab_status else ('bad' if 'Mand' in row.lal_kitab_status else 'warn') }}">{{ row.lal_kitab_status }}</span></td>
+            <td>{{ row.palmistry_mount_and_line_link }}</td>
+            <td>{{ row.lal_kitab_43_day_upaya }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- 2B. PARASHARI ASTROLOGY -->
+{% if T.parashari %}
+{% set PA = T.parashari %}
+<section class="card trad-card-block" data-trad-id="parashari">
+  <h2>🕉️ 2. {{ PA.tradition_name }} — Sidereal Rashi, 27 Nakshatras, Vimshottari Dasha &amp; Vargas</h2>
+  <div class="body">
+    <p class="neutral" style="margin-top:0;">{{ PA.methodology_explained }}</p>
+    <div class="grid2">
+      <table class="kv">
+        <tr><td><strong>Sidereal Ascendant (Lagna)</strong></td><td><strong>{{ PA.sidereal_ascendant }}</strong></td></tr>
+        <tr><td><strong>Janma Rashi &amp; Nakshatra</strong></td><td>{{ PA.janma_rashi_and_nakshatra }}</td></tr>
+        <tr><td><strong>Functional Benefics</strong></td><td><span class="badge good">{{ PA.functional_benefics | join(', ') }}</span></td></tr>
+        <tr><td><strong>Functional Malefics</strong></td><td><span class="badge bad">{{ PA.functional_malefics | join(', ') }}</span></td></tr>
+        <tr><td><strong>Active Vimshottari Dasha</strong></td><td>{{ PA.current_vimshottari_dasha.summary }}</td></tr>
+      </table>
+      <div>
+        <h3 style="margin-top:0;font-size:0.95rem;">Navamsha (D9) Planetary Placements</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Planet</th><th>Navamsha (D9) Sign</th></tr></thead>
+            <tbody>
+              {% for pl_name, d9_sign in PA.navamsha_d9_positions.items() %}
+              <tr><td><strong>{{ pl_name }}</strong></td><td>{{ d9_sign }}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- 2C. JAIMINI ASTROLOGY -->
+{% if T.jaimini %}
+{% set JM = T.jaimini %}
+<section class="card trad-card-block" data-trad-id="jaimini">
+  <h2>🔱 3. {{ JM.tradition_name }} — 7 Chara Karakas, Karakamsha, Arudha Padas &amp; Sign-Based Chara Dasha</h2>
+  <div class="body">
+    <p class="neutral" style="margin-top:0;">{{ JM.methodology_explained }}</p>
+    <div class="grid2">
+      <div>
+        <h3 style="margin-top:0;font-size:0.98rem;">7 Jaimini Chara Karakas (Sorted by Degree in Sign)</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Karaka</th><th>Planet</th><th>Degree</th><th>Rashi</th><th>Navamsha</th><th>Signification</th></tr></thead>
+            <tbody>
+              {% for row in JM.seven_chara_karakas %}
+              <tr>
+                <td><strong>{{ row.karaka_rank }} ({{ row.karaka_name }})</strong></td>
+                <td><span class="badge {{ 'good' if row.karaka_rank == 'AK' else '' }}">{{ row.planet }}</span></td>
+                <td>{{ row.degree_in_sign }}°</td>
+                <td>{{ row.rashi_sign }}</td>
+                <td>{{ row.navamsha_d9_sign }}</td>
+                <td>{{ row.soul_signification }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <h3 style="margin-top:0;font-size:0.98rem;">Karakamsha, Arudha Padas &amp; Rashi Drishti</h3>
+        <table class="kv">
+          <tr><td><strong>Atmakaraka &amp; Karakamsha Lagna</strong></td><td><strong>{{ JM.karakamsha_lagna.atmakaraka_planet }} → {{ JM.karakamsha_lagna.karakamsha_sign }}</strong> (D1 House {{ JM.karakamsha_lagna.house_in_d1 }}): {{ JM.karakamsha_lagna.interpretation }}</td></tr>
+          <tr><td><strong>Arudha Lagna (AL)</strong></td><td><strong>{{ JM.arudha_padas.arudha_lagna_AL.sign }}</strong> (House {{ JM.arudha_padas.arudha_lagna_AL.house_from_lagna }}) — {{ JM.arudha_padas.arudha_lagna_AL.meaning }}</td></tr>
+          <tr><td><strong>Upapada Lagna (UL)</strong></td><td><strong>{{ JM.arudha_padas.upapada_lagna_UL.sign }}</strong> (House {{ JM.arudha_padas.upapada_lagna_UL.house_from_lagna }}) — {{ JM.arudha_padas.upapada_lagna_UL.meaning }}</td></tr>
+          <tr><td><strong>Darapada (A7) &amp; Rajyapada (A10)</strong></td><td>A7: <strong>{{ JM.arudha_padas.darapada_A7.sign }}</strong> · A10: <strong>{{ JM.arudha_padas.rajyapada_A10.sign }}</strong></td></tr>
+          <tr><td><strong>Jaimini Rashi Drishti from Lagna</strong></td><td>{{ JM.jaimini_rashi_drishti_from_lagna | join(', ') }}</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- 2D. KRISHNAMURTI PADDHATI (KP SYSTEM) -->
+{% if T.kp %}
+{% set KP = T.kp %}
+<section class="card trad-card-block" data-trad-id="kp">
+  <h2>📐 4. {{ KP.tradition_name }} — 249 Sub-Lords, Placidus Cusps &amp; Ruling Planets</h2>
+  <div class="body">
+    <p class="neutral" style="margin-top:0;">{{ KP.methodology_explained }}</p>
+    <p>
+      <strong>KP Ruling Planets:</strong>
+      Day Lord: <span class="badge">{{ KP.ruling_planets.day_lord }}</span> ·
+      Moon Sign Lord: <span class="badge">{{ KP.ruling_planets.moon_sign_lord }}</span> ·
+      Moon Star Lord: <span class="badge good">{{ KP.ruling_planets.moon_star_lord }}</span> ·
+      Lagna Sign Lord: <span class="badge">{{ KP.ruling_planets.lagna_sign_lord }}</span> ·
+      Lagna Star Lord: <span class="badge warn">{{ KP.ruling_planets.lagna_star_lord }}</span> ·
+      Lagna Sub Lord: <span class="badge good">{{ KP.ruling_planets.lagna_sub_lord }}</span>
+    </p>
+    <div class="grid2">
+      <div>
+        <h3 style="font-size:0.95rem;">Planetary Star, Sub &amp; Sub-Sub Lords</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Planet</th><th>Sign</th><th>Star Lord</th><th>Sub Lord</th><th>Sub-Sub</th></tr></thead>
+            <tbody>
+              {% for p in KP.planets_sign_star_sub_lords %}
+              <tr>
+                <td><strong>{{ p.name }}</strong></td>
+                <td>{{ p.sign }}</td>
+                <td>{{ p.star_lord }}</td>
+                <td><span class="badge good">{{ p.sub_lord }}</span></td>
+                <td>{{ p.sub_sub_lord }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <h3 style="font-size:0.95rem;">12 Placidus House Cusps &amp; Cuspal Sub-Lords</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Cusp</th><th>Sign</th><th>Sign Lord</th><th>Star Lord</th><th>Sub Lord</th></tr></thead>
+            <tbody>
+              {% for c in KP.cuspal_sub_lords %}
+              <tr>
+                <td><strong>House {{ c.house }}</strong></td>
+                <td>{{ c.sign }}</td>
+                <td>{{ c.sign_lord }}</td>
+                <td>{{ c.star_lord }}</td>
+                <td><span class="badge warn">{{ c.sub_lord }}</span></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- 2E. NADI ASTROLOGY -->
+{% if T.nadi %}
+{% set ND = T.nadi %}
+<section class="card trad-card-block" data-trad-id="nadi">
+  <h2>📜 5. {{ ND.tradition_name }} — 150 Nadi Amshas, Thumbprint Archetype &amp; Bhrigu Nandi Nadi Circuits</h2>
+  <div class="body">
+    <p class="neutral" style="margin-top:0;">{{ ND.methodology_explained }}</p>
+    <div class="grid2">
+      <table class="kv">
+        <tr><td><strong>Nadi Amsha (#1–150 = 0°12' Arc)</strong></td><td><strong>Amsha #{{ ND.nadi_amsha_signature.nadi_amsha_number_1_to_150 }} ({{ ND.nadi_amsha_signature.nadi_name }})</strong> at {{ ND.nadi_amsha_signature.ascendant_degree }}°</td></tr>
+        <tr><td><strong>Thumbprint Classification</strong></td><td><span class="badge good">{{ ND.thumbprint_palm_leaf_classification.sanskrit_class }} ({{ ND.thumbprint_palm_leaf_classification.english_type }})</span> — {{ ND.thumbprint_palm_leaf_classification.meaning }}</td></tr>
+        <tr><td><strong>Jeeva Karaka (Jupiter Circuit)</strong></td><td>{{ ND.bhrigu_nandi_nadi_circuits.jeeva_karaka_jupiter_circuit }}</td></tr>
+        <tr><td><strong>Karma Karaka (Saturn Circuit)</strong></td><td>{{ ND.bhrigu_nandi_nadi_circuits.karma_karaka_saturn_circuit }}</td></tr>
+      </table>
+      <div>
+        <h3 style="margin-top:0;font-size:0.95rem;">Palm-Leaf Kandams (Chapters) Reading</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Kandam</th><th>Palm-Leaf Decree</th></tr></thead>
+            <tbody>
+              {% for kd in ND.palm_leaf_kandams_reading %}
+              <tr>
+                <td><strong>{{ kd.kandam }}</strong></td>
+                <td>{{ kd.reading }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ====================================================================== -->
+<!-- 3. WESTERN ASTROLOGY SYSTEMS                                           -->
+<!-- ====================================================================== -->
+<div class="trad-section-banner">
+  <span>🏛️ Western Astrological Traditions</span>
+  <span style="font-size:0.8rem;opacity:0.9;">Western Tropical · Hellenistic · Psychological &amp; Evolutionary · Uranian 90° Dial</span>
+</div>
+
+<!-- 3A. WESTERN TROPICAL -->
+{% if T.western_tropical %}
+{% set WT = T.western_tropical %}
+<section class="card trad-card-block" data-trad-id="western_tropical">
+  <h2>☀️ 6. {{ WT.tradition_name }} — Seasonal Equinox Zodiac, Tropical Planets &amp; Aspects</h2>
+  <div class="body">
+    <p class="neutral" style="margin-top:0;">{{ WT.methodology_explained }}</p>
+    <p>
+      <strong>Tropical Ascendant (Rising):</strong> <span class="badge good">{{ WT.tropical_ascendant.sign }} ({{ WT.tropical_ascendant.dms }})</span>
+      &nbsp;·&nbsp;
+      <strong>Midheaven (MC):</strong> <span class="badge warn">{{ WT.tropical_midheaven_mc.sign }} ({{ WT.tropical_midheaven_mc.dms }})</span>
+    </p>
+    <div class="grid2">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Planet</th><th>Tropical Sign</th><th>Degree</th><th>House</th></tr></thead>
+          <tbody>
+            {% for p in WT.tropical_planets %}
+            <tr>
+              <td><strong>{{ p.name }}</strong></td>
+              <td>{{ p.sign }}</td>
+              <td>{{ p.dms }}</td>
+              <td>House {{ p.house }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Aspect</th><th>Planets</th><th>Angle &amp; Orb</th></tr></thead>
+          <tbody>
+            {% for a in WT.major_aspects %}
+            <tr>
+              <td><strong>{{ a.aspect }}</strong></td>
+              <td>{{ a.planet1 }} – {{ a.planet2 }}</td>
+              <td>{{ a.angle }}° (orb {{ a.orb }}°)</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- 3B. HELLENISTIC ASTROLOGY -->
+{% if T.hellenistic %}
+{% set HL = T.hellenistic %}
+<section class="card trad-card-block" data-trad-id="hellenistic">
+  <h2>🏺 7. {{ HL.tradition_name }} — Sect (Day/Night), Whole-Sign Houses, Hermetic Lots &amp; Annual Profections</h2>
+  <div class="body">
+    <p class="neutral" style="margin-top:0;">{{ HL.methodology_explained }}</p>
+    <div class="grid2">
+      <table class="kv">
+        <tr><td><strong>Chart Sect (Hairesis)</strong></td><td><span class="badge good">{{ HL.sect_analysis.sect }}</span> (Sect Light: {{ HL.sect_analysis.sect_light }})</td></tr>
+        <tr><td><strong>Most Constructive Benefic (In Sect)</strong></td><td><span class="badge good">{{ HL.sect_analysis.most_constructive_benefic_of_sect }}</span></td></tr>
+        <tr><td><strong>Contrary-to-Sect Malefic</strong></td><td><span class="badge bad">{{ HL.sect_analysis.contrary_to_sect_malefic }}</span></td></tr>
+        <tr><td><strong>Whole-Sign Ascendant (Horoskopos)</strong></td><td><strong>{{ HL.whole_sign_ascendant }}</strong></td></tr>
+        <tr><td><strong>Lot of Fortune (Pars Fortunae)</strong></td><td><strong>{{ HL.hellenistic_lots.lot_of_fortune_pars_fortunae.sign }}</strong> (House {{ HL.hellenistic_lots.lot_of_fortune_pars_fortunae.whole_sign_house }}): {{ HL.hellenistic_lots.lot_of_fortune_pars_fortunae.meaning }}</td></tr>
+        <tr><td><strong>Lot of Spirit (Pars Spiritus)</strong></td><td><strong>{{ HL.hellenistic_lots.lot_of_spirit_pars_spiritus.sign }}</strong> (House {{ HL.hellenistic_lots.lot_of_spirit_pars_spiritus.whole_sign_house }}): {{ HL.hellenistic_lots.lot_of_spirit_pars_spiritus.meaning }}</td></tr>
+      </table>
+      <table class="kv">
+        <tr><td><strong>Current Age</strong></td><td>{{ HL.annual_profection_current_year.current_age }} years</td></tr>
+        <tr><td><strong>Activated Profection House</strong></td><td><span class="badge warn">Whole-Sign House {{ HL.annual_profection_current_year.activated_whole_sign_house }} ({{ HL.annual_profection_current_year.profected_sign }})</span></td></tr>
+        <tr><td><strong>Lord of the Year (Chronocrator)</strong></td><td><span class="badge good">{{ HL.annual_profection_current_year.lord_of_the_year_chronocrator }}</span></td></tr>
+        <tr><td><strong>Annual Profection Forecast</strong></td><td>{{ HL.annual_profection_current_year.yearly_forecast }}</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- 3C. MODERN PSYCHOLOGICAL & EVOLUTIONARY -->
+{% if T.psychological_evolutionary %}
+{% set PE = T.psychological_evolutionary %}
+<section class="card trad-card-block" data-trad-id="psychological_evolutionary">
+  <h2>🦋 8. {{ PE.tradition_name }} — Jungian Archetypes, Pluto Soul Evolution &amp; Nodal Axis</h2>
+  <div class="body">
+    <p class="neutral" style="margin-top:0;">{{ PE.methodology_explained }}</p>
+    <div class="grid2">
+      <table class="kv">
+        <tr><td><strong>Natal Pluto Soul Memory</strong></td><td><strong>{{ PE.evolutionary_pluto_axis.natal_pluto_soul_memory }}</strong> — {{ PE.evolutionary_pluto_axis.past_life_compulsion_and_security }}</td></tr>
+        <tr><td><strong>Pluto Polarity Point (PPP Growth Edge)</strong></td><td><span class="badge good">{{ PE.evolutionary_pluto_axis.pluto_polarity_point_PPP_growth_edge }}</span> — {{ PE.evolutionary_pluto_axis.present_life_evolutionary_intention }}</td></tr>
+        <tr><td><strong>South Node Karmic Habit</strong></td><td>{{ PE.evolutionary_pluto_axis.south_node_karmic_habit }}</td></tr>
+        <tr><td><strong>North Node Destiny Compass</strong></td><td><span class="badge warn">{{ PE.evolutionary_pluto_axis.north_node_destiny_compass }}</span></td></tr>
+      </table>
+      <div>
+        <h3 style="margin-top:0;font-size:0.95rem;">Jungian Psyche Archetypes</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Jungian Archetype</th><th>Chart Placement</th><th>Psychological Dynamic</th></tr></thead>
+            <tbody>
+              {% for ja in PE.jungian_psyche_archetypes %}
+              <tr>
+                <td><strong>{{ ja.archetype }}</strong></td>
+                <td>{{ ja.placement }}</td>
+                <td>{{ ja.psychological_dynamic }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- 3D. URANIAN / HAMBURG SCHOOL -->
+{% if T.uranian %}
+{% set UR = T.uranian %}
+<section class="card trad-card-block" data-trad-id="uranian">
+  <h2>🧭 9. {{ UR.tradition_name }} — 8 Trans-Neptunian Planets (TNPs), 90° Cosmobiology Dial &amp; Midpoints</h2>
+  <div class="body">
+    <p class="neutral" style="margin-top:0;">{{ UR.methodology_explained }}</p>
+    <div class="grid2">
+      <div>
+        <h3 style="font-size:0.95rem;">8 Hamburg Trans-Neptunian Planets (Hypotheticals)</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>TNP</th><th>Sign Position</th><th>90° Dial</th><th>Hamburg Signification</th></tr></thead>
+            <tbody>
+              {% for tnp in UR.trans_neptunian_planets_8 %}
+              <tr>
+                <td><strong>{{ tnp.tnp_name }}</strong></td>
+                <td>{{ tnp.sign_position }}</td>
+                <td><span class="badge">{{ tnp.dial_90_modulus }}°</span></td>
+                <td>{{ tnp.witte_signification }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <h3 style="font-size:0.95rem;">Active Planetary Pictures (Midpoints A/B = C on 90° Dial)</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Midpoint Formula</th><th>90° Dial</th><th>Activated By</th><th>Planetary Picture Meaning</th></tr></thead>
+            <tbody>
+              {% for mp in UR.planetary_midpoints_90_dial %}
+              <tr>
+                <td><strong>{{ mp.midpoint_formula }}</strong></td>
+                <td>{{ mp.dial_90_degree }}°</td>
+                <td><span class="badge warn">{{ mp.activated_by_planets_or_tnps | join(', ') }}</span></td>
+                <td>{{ mp.planetary_picture_meaning }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ====================================================================== -->
+<!-- 4. GLOBAL & CULTURAL ASTROLOGICAL SYSTEMS                              -->
+<!-- ====================================================================== -->
+<div class="trad-section-banner">
+  <span>🐉 Global &amp; Cultural Astrological Traditions</span>
+  <span style="font-size:0.8rem;opacity:0.9;">Chinese BaZi Four Pillars · Classical Feng Shui · Mayan Tzolk'in · Celtic Tree</span>
+</div>
+
+<!-- 4A. CHINESE ASTROLOGY (BAZI & SHENG XIAO) -->
+{% if T.chinese_bazi %}
+{% set CN = T.chinese_bazi %}
+<section class="card trad-card-block" data-trad-id="chinese_bazi">
+  <h2>🐉 10. {{ CN.tradition_name }} — 12 Animal Signs, Five Elements &amp; BaZi Four Pillars</h2>
+  <div class="body">
+    <p class="neutral" style="margin-top:0;">{{ CN.methodology_explained }}</p>
+    <p>
+      <strong>Lunar-Solar Year Animal:</strong>
+      <span class="badge good" style="font-size:0.95rem;">{{ CN.year_animal_profile.yin_yang }} {{ CN.year_animal_profile.element }} {{ CN.year_animal_profile.animal }} ({{ CN.year_animal_profile.stem }}-{{ CN.year_animal_profile.branch }})</span>
+      &nbsp;·&nbsp;
+      <strong>Day Master (Core Self):</strong>
+      <span class="badge warn">{{ CN.day_master_core_identity }}</span>
+    </p>
+    <div class="bazi-pillars">
+      {% for pil in CN.four_pillars_of_destiny_bazi %}
+      <div class="bazi-card">
+        <div class="pillar-lbl">{{ pil.pillar }}</div>
+        <div class="pillar-stem">{{ pil.heavenly_stem }}</div>
+        <div class="pillar-branch">{{ pil.earthly_branch }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- 4B. CLASSICAL FENG SHUI -->
+{% if T.feng_shui %}
+{% set FS = T.feng_shui %}
+<section class="card trad-card-block" data-trad-id="feng_shui">
+  <h2>🏡 11. Classical Feng Shui (Ming Gua Kua #{{ FS.kua_number }}, Eight Mansions &amp; Period 9 Flying Stars)</h2>
+  <div class="body">
+    <p class="neutral" style="margin-top:0;">{{ FS.period_9_fire_era_summary }}</p>
+    <div class="grid2">
+      <div>
+        <h3 style="margin-top:0;font-size:0.95rem;">Personal Kua #{{ FS.kua_number }} ({{ FS.trigram }} · {{ FS.eight_mansions_group }}) — 4 Auspicious Directions</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Auspicious Star</th><th>Best Compass Direction</th></tr></thead>
+            <tbody>
+              {% for k, v in FS.four_auspicious_directions.items() %}
+              <tr>
+                <td><strong>{{ k }}</strong></td>
+                <td><span class="badge good">{{ v }}</span></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <h3 style="margin-top:0;font-size:0.95rem;">4 Inauspicious Directions (Suppress with Bathroom / Storage / Cures)</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Inauspicious Star</th><th>Direction</th></tr></thead>
+            <tbody>
+              {% for k, v in FS.four_inauspicious_directions.items() %}
+              <tr>
+                <td><strong>{{ k }}</strong></td>
+                <td><span class="badge bad">{{ v }}</span></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <p style="margin-top:0.75rem;font-size:0.86rem;">
+      💡 Design your floorplan &amp; outer property lot interactively with both <strong>Vedic Vastu + Classical Feng Shui Bagua</strong> in the
+      <a href="/vastu" style="font-weight:800;color:#b45309;text-decoration:underline;">Interactive Vastu &amp; Feng Shui Architect Studio →</a>
+    </p>
+  </div>
+</section>
+{% endif %}
+
+<!-- 4C. MAYAN ASTROLOGY -->
+{% if T.mayan %}
+{% set MY = T.mayan %}
+<section class="card trad-card-block" data-trad-id="mayan">
+  <h2>🌽 12. {{ MY.tradition_name }} — Sacred 260-Day Tzolk'in &amp; 5-Point Mayan Cross</h2>
+  <div class="body">
+    <p class="neutral" style="margin-top:0;">{{ MY.methodology_explained }}</p>
+    <div class="grid2">
+      <table class="kv">
+        <tr><td><strong>Galactic Signature (Kin #1–260)</strong></td><td><span class="badge good" style="font-size:0.95rem;">Kin {{ MY.core_galactic_signature.kin }}: Tone {{ MY.core_galactic_signature.tone }} ({{ MY.core_galactic_signature.tone_name }}) · {{ MY.core_galactic_signature.day_sign }}</span></td></tr>
+        <tr><td><strong>Day Sign Meaning</strong></td><td>{{ MY.core_galactic_signature.meaning }}</td></tr>
+        <tr><td><strong>Haab Solar Date</strong></td><td>{{ MY.core_galactic_signature.haab }}</td></tr>
+      </table>
+      <table class="kv">
+        {% for k, v in MY.mayan_tree_of_life_cross.items() %}
+        <tr><td><strong>{{ k.replace('_',' ')|title }}</strong></td><td>{{ v }}</td></tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- 4D. CELTIC (DRUIDIC) TREE ASTROLOGY -->
+{% if T.celtic_tree %}
+{% set CT = T.celtic_tree %}
+<section class="card trad-card-block" data-trad-id="celtic_tree">
+  <h2>🌳 13. {{ CT.tradition_name }} — 13-Moon Ogham Tree Sign &amp; Druidic Archetype</h2>
+  <div class="body">
+    <p class="neutral" style="margin-top:0;">{{ CT.methodology_explained }}</p>
+    <table class="kv">
+      <tr><td><strong>Sacred Tree Sign</strong></td><td><span class="badge good" style="font-size:0.95rem;">{{ CT.celtic_tree_sign }}</span></td></tr>
+      <tr><td><strong>Ogham Alphabet Letter &amp; Stave</strong></td><td><strong>{{ CT.ogham_letter_and_stave }}</strong></td></tr>
+      <tr><td><strong>Planetary Correspondence</strong></td><td>{{ CT.planetary_correspondence }}</td></tr>
+      <tr><td><strong>Sacred Animal Guides &amp; Gemstone</strong></td><td>{{ CT.sacred_animal_guides }} · Gemstone: {{ CT.druidic_gemstone }}</td></tr>
+      <tr><td><strong>Archetypal Personality &amp; Gift</strong></td><td>{{ CT.archetypal_personality_and_gift }}</td></tr>
+    </table>
+  </div>
+</section>
+{% endif %}
+
+{% endif %}
+
+<script>
+function setTradGoal(goalId) {
+  document.getElementById('goalInput').value = goalId;
+  document.getElementById('tradForm').submit();
+}
+function setTradApproach(appId) {
+  document.getElementById('approachInput').value = appId;
+  document.getElementById('tradForm').submit();
+}
+function toggleAllTradChecks(state) {
+  document.querySelectorAll('input[name="traditions"]').forEach(cb => { cb.checked = state; });
+  filterVisibleTraditionCards();
+}
+function filterVisibleTraditionCards() {
+  const checked = new Set(Array.from(document.querySelectorAll('input[name="traditions"]:checked')).map(cb => cb.value));
+  document.querySelectorAll('.trad-card-block').forEach(el => {
+    const id = el.getAttribute('data-trad-id');
+    el.style.display = checked.has(id) ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

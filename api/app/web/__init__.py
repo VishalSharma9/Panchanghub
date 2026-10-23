@@ -9,7 +9,7 @@ from fastapi.responses import HTMLResponse, PlainTextResponse, Response, Redirec
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from ..models import BirthData, KundliRequest, MatchRequest, ChartRequest, VarshaphalaRequest, KPRequest, PrashnaRequest
+from ..models import BirthData, KundliRequest, MatchRequest, ChartRequest, VarshaphalaRequest, KPRequest, PrashnaRequest, normalize_date_str
 from ..api.routers import panchang as RP, vedic as RV, calendar as RC, core as RCore, extras as RX
 from ..core import ephem, i18n
 from ..api.routers import more as RM
@@ -93,7 +93,7 @@ def L(loc):
     return {"lat": loc["lat"], "lon": loc["lon"], "tz": loc["tz"], "utc_offset": None}
 
 def qdate(request, key="date"):
-    v = request.query_params.get(key)
+    v = normalize_date_str(request.query_params.get(key))
     try:
         d = Date.fromisoformat(v) if v else Date.today()
     except ValueError:
@@ -214,12 +214,12 @@ def page(request, tpl, title, desc, path, **ctx):
 NAV = [("/", "Home"), ("/mine", "For You"), ("/week", "This Week"), ("/compare", "Two Cities"),
        ("/names", "Names"), ("/sade-sati", "Sade Sati"), ("/panchang", "Daily Panchang"),
        ("/calendar", "Calendar"), ("/festivals", "Festivals"), ("/choghadiya", "Choghadiya"),
-       ("/kundli", "Kundli"), ("/destiny", "Destiny & Ravana Mastery"), ("/vargas", "Shodashavargas"), ("/varshaphala", "Varshaphala"), ("/kp", "KP System"),
+       ("/kundli", "Kundli"), ("/destiny", "Destiny & 9-Planet Control"), ("/traditions", "Traditions & Doshas"), ("/vargas", "Shodashavargas"), ("/varshaphala", "Varshaphala"), ("/kp", "KP System"),
        ("/prashna", "Prashna"), ("/yogas", "Classical Yogas"), ("/reading", "Vedic Reading"),
        ("/matching", "Matching"), ("/muhurat", "Muhurat"),
        ("/hora", "Hora"), ("/rahu-kaal", "Rahu Kaal"), ("/lagna-table", "Lagna & Gowri"), ("/transits", "Transits"),
        ("/western", "Western Chart"), ("/horoscope", "Horoscope"), ("/numerology", "Numerology"), ("/tarot", "Tarot"),
-       ("/human-design", "Human Design"), ("/vastu", "Vastu"), ("/iching", "I-Ching"), ("/palmistry", "Palmistry"), ("/tools", "More Tools"), ("/regional", "Regional Calendars")]
+       ("/human-design", "Human Design"), ("/vastu", "Vastu & Feng Shui"), ("/iching", "I-Ching"), ("/palmistry", "Palmistry"), ("/tools", "More Tools"), ("/regional", "Regional Calendars")]
 templates.env.globals["NAV"] = NAV
 
 def _resolve_city_coords(city_str: str, lat: float, lon: float, tz: str):
@@ -249,8 +249,9 @@ def birth_from_query(request, prefix=""):
         city_s, lat_f, lon_f, tz_s = _resolve_city_coords(
             g("city", "New Delhi, India"), raw_lat, raw_lon, g("tz", "Asia/Kolkata")
         )
+        clean_date = normalize_date_str(g("date")) or "1990-05-15"
         res = dict(
-            date=g("date"),
+            date=clean_date,
             time=tm if len(tm) > 5 else tm + ":00",
             latitude=lat_f,
             longitude=lon_f,
@@ -272,6 +273,13 @@ def birth_from_query(request, prefix=""):
                 raw = unquote(c) if ("%" in c) else c
                 v = json.loads(raw)
                 if v.get("date") and v.get("latitude") is not None:
+                    fixed_date = normalize_date_str(v["date"])
+                    if fixed_date != v["date"]:
+                        v["date"] = fixed_date
+                        try:
+                            request.state.ph_birth_to_save = v
+                        except Exception:
+                            pass
                     return v
             except Exception:
                 pass
@@ -836,7 +844,7 @@ def register(app: FastAPI):
         q = request.query_params; n = None
         b = birth_from_query(request)
         name = q.get("name") or (b.get("name") if b else "") or "Soul Seeker"
-        dob_str = q.get("dob") or (b.get("date") if b else "") or "1990-05-15"
+        dob_str = normalize_date_str(q.get("dob") or (b.get("date") if b else "") or "1990-05-15")
         system = q.get("system", "pythagorean")
         lat = float(q["lat"]) if q.get("lat") else (b.get("latitude") if b else None)
         lon = float(q["lon"]) if q.get("lon") else (b.get("longitude") if b else None)
@@ -860,7 +868,7 @@ def register(app: FastAPI):
         loc = loc_from(request)
         b = birth_from_query(request)
         name = q.get("name") or (b.get("name") if b else "") or "Aryabhata"
-        dob_str = q.get("date") or q.get("dob") or (b.get("date") if b else "") or "1990-05-15"
+        dob_str = normalize_date_str(q.get("date") or q.get("dob") or (b.get("date") if b else "") or "1990-05-15")
         tm_str = q.get("time") or (b.get("time") if b else "08:30:00")
         if len(tm_str) == 5:
             tm_str += ":00"
@@ -902,8 +910,8 @@ def register(app: FastAPI):
             pass
         return page(
             request, "destiny.html",
-            f"Master Destiny, Ravana Planetary Control, Lottery, Longevity & Past/Future Life – {BRAND}",
-            "Cross-linked Vedic astrology oracle: diseases, longevity, accident dates & hours, lottery luck, marriage count, children & grandchildren, past/future life, and Ravana Samhita 9-planet control.",
+            f"Master Destiny, 9-Planet Control, Lottery, Longevity & Past/Future Life – {BRAND}",
+            "Cross-linked Vedic astrology oracle: diseases, longevity, accident dates & hours, lottery luck, marriage count, children & grandchildren, past/future life, and Samhita 9-planet mastery.",
             "/destiny", dossier=dossier, q=q, b=b, cur_city=c_city,
             form={"name": name, "date": dob_str, "time": tm_str[:5], "lat": b_lat, "lon": b_lon, "tz": b_tz, "city": b_city,
                   "cur_lat": c_lat, "cur_lon": c_lon, "cur_tz": c_tz, "cur_city": c_city, "scan_days": scan_days}
@@ -924,13 +932,14 @@ def register(app: FastAPI):
 
     @app.get("/vastu", response_class=HTMLResponse, include_in_schema=False)
     def vastu(request: Request):
-        from ..core.astro_vastu_engine import compute_personalized_astro_vastu, PLAIN_ENGLISH_GLOSSARY
+        from ..core.astro_vastu_engine import compute_personalized_astro_vastu, compute_classical_feng_shui, PLAIN_ENGLISH_GLOSSARY
         q = request.query_params
         b = birth_from_query(request)
-        dob_str = q.get("date") or q.get("dob") or (b.get("date") if b else "") or "1990-05-15"
+        dob_str = normalize_date_str(q.get("date") or q.get("dob") or (b.get("date") if b else "") or "1990-05-15")
         tm_str = q.get("time") or (b.get("time") if b else "08:30:00")
         if len(tm_str) == 5:
             tm_str += ":00"
+        gender = q.get("gender", "male") if q.get("gender") in ("male", "female") else "male"
         b_lat = float(q["lat"]) if q.get("lat") else (b.get("latitude") if b else 28.6139)
         b_lon = float(q["lon"]) if q.get("lon") else (b.get("longitude") if b else 77.2090)
         b_tz = q.get("tz") or (b.get("timezone") if b else "Asia/Kolkata")
@@ -938,27 +947,81 @@ def register(app: FastAPI):
         b_city, b_lat, b_lon, b_tz = _resolve_city_coords(b_city, b_lat, b_lon, b_tz)
 
         astro_vastu = None
+        feng_shui = None
         try:
             try:
                 tz_b = ephem.make_tz(None, float(b_tz))
             except (ValueError, TypeError):
                 tz_b = ephem.make_tz(str(b_tz), None)
-            dt_utc = datetime.combine(Date.fromisoformat(dob_str), datetime.strptime(tm_str, "%H:%M:%S").time()).replace(tzinfo=tz_b).astimezone(timezone.utc)
+            d_obj = Date.fromisoformat(dob_str)
+            dt_utc = datetime.combine(d_obj, datetime.strptime(tm_str, "%H:%M:%S").time()).replace(tzinfo=tz_b).astimezone(timezone.utc)
             jd = ephem.jd_from_utc(dt_utc)
             pos = ephem.all_positions(jd, sidereal=True)
             _, asc_lon, _ = ephem.houses(jd, b_lat, b_lon, "P", sidereal=True)
             astro_vastu = compute_personalized_astro_vastu(pos, asc_lon)
+            feng_shui = compute_classical_feng_shui(d_obj.year, gender, pos=pos, asc_lon=asc_lon)
         except Exception:
             astro_vastu = None
+            try:
+                feng_shui = compute_classical_feng_shui(1990, gender)
+            except Exception:
+                feng_shui = None
 
         layout = {r: q.get("room_" + r.replace(" ", "_")) for r in ESO.ROOM_BEST if q.get("room_" + r.replace(" ", "_"))}
         v = ESO.vastu(layout or None, q.get("facing"))
         return page(
-            request, "vastu.html", f"Interactive Visual Vastu Studio & Astro-Vastu Guide – {BRAND}",
-            "Interactive Visual House (Square/Rectangle) & Outer-Lot Vastu Architect with Birth-Chart Astro-Vastu synthesis, Do's/Don'ts, and zero-demolition remedies.",
+            request, "vastu.html", f"Interactive Vastu & Classical Feng Shui Architect Studio – {BRAND}",
+            "Interactive Visual House (Square/Rectangle) & Outer-Lot Vastu + Classical Feng Shui (Kua, Eight Mansions, Bagua & Flying Stars) Architect Studio.",
             "/vastu", v=v, q=q, rooms=list(ESO.ROOM_BEST), dirs=list(ESO.VASTU),
-            astro_vastu=astro_vastu, glossary=PLAIN_ENGLISH_GLOSSARY,
-            b_form={"date": dob_str, "time": tm_str[:5], "lat": b_lat, "lon": b_lon, "tz": b_tz, "city": b_city}
+            astro_vastu=astro_vastu, feng_shui=feng_shui, glossary=PLAIN_ENGLISH_GLOSSARY,
+            b_form={"date": dob_str, "time": tm_str[:5], "lat": b_lat, "lon": b_lon, "tz": b_tz, "city": b_city, "gender": gender}
+        )
+
+    @app.get("/traditions", response_class=HTMLResponse, include_in_schema=False)
+    def traditions_page(request: Request):
+        from ..core.traditions_engine import compute_traditions_report, get_traditions_catalog
+        q = request.query_params
+        b = birth_from_query(request)
+        name = q.get("name") or (b.get("name") if b else "") or "Aryabhata"
+        dob_str = normalize_date_str(q.get("date") or q.get("dob") or (b.get("date") if b else "") or "1990-05-15")
+        tm_str = q.get("time") or (b.get("time") if b else "10:30:00")
+        if len(tm_str) == 5:
+            tm_str += ":00"
+        gender = q.get("gender", "male") if q.get("gender") in ("male", "female") else "male"
+        goal = q.get("goal", "all")
+        approach = q.get("approach", "all")
+        selected_list = q.getlist("traditions") if hasattr(q, "getlist") else []
+        b_lat = float(q["lat"]) if q.get("lat") else (b.get("latitude") if b else 28.6139)
+        b_lon = float(q["lon"]) if q.get("lon") else (b.get("longitude") if b else 77.2090)
+        b_tz = q.get("tz") or (b.get("timezone") if b else "Asia/Kolkata")
+        b_city = q.get("city") or (b.get("city") if b else "New Delhi, India")
+        b_city, b_lat, b_lon, b_tz = _resolve_city_coords(b_city, b_lat, b_lon, b_tz)
+
+        catalog = get_traditions_catalog()
+        report = None
+        try:
+            try:
+                tz_b = ephem.make_tz(None, float(b_tz))
+            except (ValueError, TypeError):
+                tz_b = ephem.make_tz(str(b_tz), None)
+            d_obj = Date.fromisoformat(dob_str)
+            dt_utc = datetime.combine(d_obj, datetime.strptime(tm_str, "%H:%M:%S").time()).replace(tzinfo=tz_b).astimezone(timezone.utc)
+            report = compute_traditions_report(
+                dt_utc, b_lat, b_lon, tz_b, name=name, gender=gender,
+                selected_traditions=selected_list or None,
+                goal_filter=goal,
+                approach_filter=approach,
+            )
+        except Exception:
+            report = None
+
+        return page(
+            request, "traditions.html",
+            f"Global Astrological Traditions & Vata-Pitta-Kapha / Five-Element Studio – {BRAND}",
+            "Explore 14 Eastern/Vedic, Western, and Global astrological traditions (Lal Kitab, Parashari, Jaimini, KP, Nadi, Western Tropical, Hellenistic, Evolutionary, Uranian, Chinese BaZi, Feng Shui, Mayan, Celtic Tree) + Vata-Pitta-Kapha & Chinese Five Elements balance.",
+            "/traditions", catalog=catalog, report=report, b=b,
+            form={"name": name, "date": dob_str, "time": tm_str[:5], "lat": b_lat, "lon": b_lon, "tz": b_tz, "city": b_city,
+                  "gender": gender, "goal": goal, "approach": approach}
         )
 
     @app.get("/iching", response_class=HTMLResponse, include_in_schema=False)
@@ -971,6 +1034,7 @@ def register(app: FastAPI):
     @app.get("/palmistry", response_class=HTMLResponse, include_in_schema=False)
     def palmistry(request: Request):
         q = request.query_params
+        b = birth_from_query(request)
         r = ESO.palmistry(
             q.get("hand_shape") or "fire",
             q.get("heart") or "curved",
@@ -978,8 +1042,9 @@ def register(app: FastAPI):
             q.get("life") or "deep",
             q.get("fate") or "clear",
         )
-        return page(request, "palmistry.html", f"Palmistry Guide – {BRAND}", "Hand shapes, palm lines and mounts explained, with a reading from your features.",
-                    "/palmistry", r=r, q=q)
+        return page(request, "palmistry.html", f"Multi-Spectrum Vision Palmistry & Nadi Thumbprint Studio – {BRAND}",
+                    "Upload a palm or thumbprint photo and switch across 10 color and spectral imaging modes to inspect palm lines, planetary mounts, and Nadi thumbprint whorls.",
+                    "/palmistry", r=r, q=q, b=b)
 
     @app.get("/tools", response_class=HTMLResponse, include_in_schema=False)
     def tools(request: Request):

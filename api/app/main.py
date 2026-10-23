@@ -10,8 +10,8 @@ BRAND = "PanchangHub"
 app = FastAPI(
     title=f"{BRAND} Astrology API",
     version="1.0.0",
-    description=("Vedic-first astrology & panchang REST API powered by the Swiss Ephemeris. "
-                 "Sidereal Lahiri (calibrated to canonical Drik astronomical standards) by default, tropical Western charts too. "
+    description=("Vedic, Western & Global Multi-Tradition Astrology, Panchang, Vastu, Feng Shui & Vision Palmistry REST API powered by our High-Precision Astronomical Engine. "
+                 "Sidereal Lahiri (calibrated to canonical Drik astronomical standards) by default, tropical Western charts, Chinese BaZi, Mayan, Celtic, and Ayurvedic Dosha balance included. "
                  "Add `?lang=hi|mr|gu|bn|ta|te|kn|ml` to any endpoint for localized names. Website: https://panchanghub.com"),
     docs_url="/api/docs", redoc_url="/api/redoc", openapi_url="/api/openapi.json",
 )

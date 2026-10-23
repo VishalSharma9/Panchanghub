@@ -1,10 +1,10 @@
 """Comprehensive Cross-Linked Vedic Destiny, Medical/Longevity, Accident & Safety,
 Lottery/Windfall, Marriage/Union, Progeny & Grandchildren (D-7), Past/Future Life (D-60),
-and Ravana Samhita 9-Planet Mastery Engine.
+and Classical Samhita 9-Planet Mastery Engine.
 
 Derived from authentic classical treatises:
 - Brihat Parashara Hora Shastra (BPHS: Ayurdaya, Roga, Vivaha, Santana Saptamsha, Shashtiamsha, Graha Shanti)
-- Ravana Samhita & Lal Kitab (Graha Prabandhana / 9-Planet Control, Tantric/Vedic Beej, Keep-Close vs Avoid, Rinas)
+- Classical Samhita & Lal Kitab (Graha Prabandhana / 9-Planet Control, Tantric/Vedic Beej, Keep-Close vs Avoid, Rinas)
 - Jaimini Upadesha Sutras (Upapada Lagna, Darakaraka, Atmakaraka, Karakamsha, Rudra, Shoola)
 - Prashna Marga & Phaladeepika (Beeja/Kshetra Sphuta, Santana, Mrityu Bhaga, Durghatana)
 - Sarvartha Chintamani & Bhrigu Samhita (Destiny Turning Ages, Indu Lagna Windfalls, Purva/Uttara Janma)
@@ -276,7 +276,7 @@ RAVANA_GRAHA_MASTERY: Dict[str, Dict[str, Any]] = {
         "finger": "Middle Finger (Madhyama) of Right Hand",
         "wearing_day_hora": "Saturday evening just before Sunset during Shani Hora in Shukla Paksha",
         "prana_pratishtha_shloka": "ॐ प्रां प्रीं प्रौं सः शनैश्चराय नमः (Om Praam Preem Proum Sah Shanaishcharaaya Namah) — 108 times",
-        "ravana_tantra_secret": "Ravana famously kept Shani under the throne's gaze: to command Saturn, practice absolute justice toward workers/servants, look at your own reflection in a bowl of mustard oil on Saturday morning and donate it (Chhaya Dana), and light a sesame oil lamp under a Peepal tree at Saturday sunset.",
+        "ravana_tantra_secret": "To command Saturn (Shani), practice absolute justice toward workers/servants, look at your own reflection in a bowl of mustard oil on Saturday morning and donate it (Chhaya Dana), and light a sesame oil lamp under a Peepal tree at Saturday sunset.",
         "deity_to_worship": "Lord Shani Deva, Lord Hanuman (Whom Shani promised never to afflict), & Lord Kalabhairava / Lord Kurma",
         "worship_duration": "27 minutes every Saturday evening at Sunset (Dasharatha Krit Shani Stotra + Hanuman Chalisa)",
         "keep_close_objects": ["Black horse-shoe iron ring (from a boat nail or horse shoe, forged without fire) on middle finger", "7-Mukhi or 14-Mukhi Rudraksha", "Black sesame seeds in a small pouch during travel"],
@@ -402,39 +402,51 @@ KETU_PAST_LIFE_SIGN: Dict[str, Dict[str, str]] = {
 PAST_LIFE_RINAS: Dict[str, Dict[str, str]] = {
     "Pitru Rina (Ancestral / Paternal Debt)": {
         "trigger": "Affliction to Sun, 9th house, or 5th house by Rahu/Ketu/Saturn",
+        "planetary_trigger": "Affliction to Sun, 9th house, or 5th house by Rahu/Ketu/Saturn",
         "past_life_cause": "Neglect of ancestral lineage traditions, disrespect toward elders/mentors, or unfulfilled family vows in a prior incarnation.",
         "symptoms_in_this_life": "Unexplained delays in career promotion, obstacles in progeny, sudden reputation setbacks at the moment of success.",
         "how_to_counter_and_fix": "Perform Pitru Tarpan on Amavasya (especially Mahalaya Pitru Paksha), offer water to Peepal tree on Saturdays, donate food in ancestors' name on their Tithi, and recite Aditya Hridaya Stotram.",
+        "exact_remedy_to_clear": "Perform Pitru Tarpan on Amavasya (especially Mahalaya Pitru Paksha), offer water to Peepal tree on Saturdays, donate food in ancestors' name on their Tithi, and recite Aditya Hridaya Stotram.",
     },
     "Matru Rina (Maternal / Nurturing Debt)": {
         "trigger": "Affliction to Moon or 4th house by Ketu/Rahu/Saturn",
+        "planetary_trigger": "Affliction to Moon or 4th house by Ketu/Rahu/Saturn",
         "past_life_cause": "Emotional abandonment of mother/homeland, polluting water bodies, or breaking domestic sanctuary trust in a past life.",
         "symptoms_in_this_life": "Lack of mental peace despite wealth, property disputes, troubled sleep, or feeling emotionally unsupported.",
         "how_to_counter_and_fix": "Serve your mother and elderly women unconditionally, offer silver coins in flowing clean water, sponsor clean drinking water (Pyaau) for travelers, and worship Goddess Parvati/Gauri.",
+        "exact_remedy_to_clear": "Serve your mother and elderly women unconditionally, offer silver coins in flowing clean water, sponsor clean drinking water (Pyaau) for travelers, and worship Goddess Parvati/Gauri.",
     },
     "Deva / Guru Rina (Divine & Spiritual Preceptor Debt)": {
         "trigger": "Affliction to Jupiter, 5th/9th/12th house, or Brahmana/Guru Shrapa",
+        "planetary_trigger": "Affliction to Jupiter, 5th/9th/12th house, or Brahmana/Guru Shrapa",
         "past_life_cause": "Misusing sacred mantras/spiritual authority for ego, abandoning a spiritual vow, or disrespecting a Guru/temple in the past life.",
         "symptoms_in_this_life": "Wisdom failing at critical moments (Buddhi Bhrama), betrayal by trusted advisors, liver/metabolic issues, or children facing hurdles.",
         "how_to_counter_and_fix": "Rebuild or clean a temple sanctum, plant a Peepal or Banana tree at a shrine, donate religious books and yellow garments to scholars on Thursdays, and chant Guru Gayatri.",
+        "exact_remedy_to_clear": "Rebuild or clean a temple sanctum, plant a Peepal or Banana tree at a shrine, donate religious books and yellow garments to scholars on Thursdays, and chant Guru Gayatri.",
     },
     "Stri / Kalatra Rina (Spousal & Sacred Union Debt)": {
         "trigger": "Affliction to Venus, 7th house, or Upapada Lagna by Mars/Rahu/Saturn/Sun",
+        "planetary_trigger": "Affliction to Venus, 7th house, or Upapada Lagna by Mars/Rahu/Saturn/Sun",
         "past_life_cause": "Breaking marriage vows, causing emotional heartache to a devoted partner, or misusing sensual/financial privilege in a prior life.",
         "symptoms_in_this_life": "Delayed marriage, misunderstandings in relationships, reproductive/renal sensitivities, or sudden luxury/cash-flow drains.",
         "how_to_counter_and_fix": "Practice absolute fidelity and gentle speech with partner, sponsor the wedding of an underprivileged bride (Kanyadaan support), feed white cows on Fridays, and recite Sri Suktam.",
+        "exact_remedy_to_clear": "Practice absolute fidelity and gentle speech with partner, sponsor the wedding of an underprivileged bride (Kanyadaan support), feed white cows on Fridays, and recite Sri Suktam.",
     },
     "Bhratru /Bandhu Rina (Sibling & Comrade Debt)": {
         "trigger": "Affliction to Mars, Mercury, or 3rd/11th house",
+        "planetary_trigger": "Affliction to Mars, Mercury, or 3rd/11th house",
         "past_life_cause": "Unfair division of ancestral land/wealth among siblings or betraying a comrade-in-arms in a previous birth.",
         "symptoms_in_this_life": "Blood/inflammatory issues, litigation over property, friends turning into rivals, or sudden courage depletion.",
         "how_to_counter_and_fix": "Be generous with siblings and colleagues even when you have the upper hand, donate blood voluntarily, distribute sweet boondi/jaggery on Tuesdays, and recite Sundarkand.",
+        "exact_remedy_to_clear": "Be generous with siblings and colleagues even when you have the upper hand, donate blood voluntarily, distribute sweet boondi/jaggery on Tuesdays, and recite Sundarkand.",
     },
     "Jeeva / Bhuta Rina (Nature & Living Beings Debt)": {
         "trigger": "Affliction to Saturn, 6th/8th house, or Sarpa Dosha (Rahu-Ketu axis)",
+        "planetary_trigger": "Affliction to Saturn, 6th/8th house, or Sarpa Dosha (Rahu-Ketu axis)",
         "past_life_cause": "Harming innocent creatures, cutting down ancient trees/groves containing serpent habitats, or harshness toward servants.",
         "symptoms_in_this_life": "Chronic enigmatic ailments, sudden accidents, skin/nerve flares, or prolonged legal/financial entanglements.",
         "how_to_counter_and_fix": "Perform Naga Pratishtha / Sarpa Samskara or Abhishekam to Nagadevata on Nag Panchami / Shashthi, feed birds, dogs, and ants daily (Pancha Maha Yajna), and never harm reptiles.",
+        "exact_remedy_to_clear": "Perform Naga Pratishtha / Sarpa Samskara or Abhishekam to Nagadevata on Nag Panchami / Shashthi, feed birds, dogs, and ants daily (Pancha Maha Yajna), and never harm reptiles.",
     },
 }
 
@@ -1650,7 +1662,7 @@ def analyze_ravana_planetary_mastery(
                 "why_avoid": f"{mp} rules dusthana/malefic houses for {SIGNS[lagna_idx]} Lagna; wearing its gem amplifies obstacles. Pacify it via Dana (charity) & Beej Mantra instead!",
             })
 
-    # 2. All 9 Planets Command & Management Matrix (Ravana Samhita Protocol)
+    # 2. All 9 Planets Command & Management Matrix (Classical Samhita Protocol)
     nine_planet_command = []
     for p in VEDIC_PLANETS:
         p_lon = pos[p]["longitude"]
@@ -1766,7 +1778,7 @@ def compute_master_destiny_dossier(
 ) -> Dict[str, Any]:
     """Compute the complete cross-linked Destiny, Medical/Longevity, Accident,
     Lottery/Windfall, Marriage, Progeny/Grandchildren, Past/Future Life, and
-    Ravana Samhita 9-Planet Mastery Dossier calibrated to the native's current location."""
+    Classical Samhita 9-Planet Mastery Dossier calibrated to the native's current location."""
     ephem.set_ayanamsa_mode(ayanamsa)
     birth_jd = ephem.jd_from_utc(birth_dt_utc)
     pos = ephem.all_positions(birth_jd, sidereal=True, true_node=False)

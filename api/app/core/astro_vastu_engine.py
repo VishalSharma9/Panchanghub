@@ -351,14 +351,71 @@ def compute_personalized_astro_vastu(
         "personalized_nine_zone_astro_vastu_map": personalized_zone_guide,
         "astro_vastu_dos_to_double_positive_effect": dos_list,
         "astro_vastu_donts_to_prevent_bad_luck": donts_list,
+        "personalized_chart_preset": build_personalized_chart_preset(pos, asc_lon),
     }
 
 
 # ---------------------------------------------------------------------------
-# 4. INTERACTIVE VISUAL HOUSE (SQUARE/RECTANGLE) & OUTER-LOT VASTU EVALUATOR
+# 4. INTERACTIVE VISUAL HOUSE (SQUARE/RECTANGLE) & OUTER-LOT VASTU + FENG SHUI EVALUATOR
 # ---------------------------------------------------------------------------
+GATE_MECHANISM_RULES: Dict[str, Dict[str, Any]] = {
+    "swing_in_cw": {
+        "label": "Swings Inward — Clockwise (Pradakshina)",
+        "score_delta": 1,
+        "verdict": "SUPREME IDEAL: Door/Gate swings inward clockwise (Pradakshina), smoothly drawing auspicious Prana & Sheng Qi into the property.",
+        "remedy": "Keep hinges well-oiled so the gate/door never creaks (creaking hinges cause Swara Vedha).",
+    },
+    "double_in": {
+        "label": "Double-Leaf Gate — Swings Inward from Center",
+        "score_delta": 1,
+        "verdict": "ROYAL SIMHADWARA: Double-leaf inward-opening gate/door welcomes balanced bilateral Qi and dignity.",
+        "remedy": "Ensure both leaves open symmetrically without obstruction.",
+    },
+    "swing_in_ccw": {
+        "label": "Swings Inward — Counter-Clockwise (Left-Hand)",
+        "score_delta": 0,
+        "verdict": "ACCEPTABLE: Opens inward (good), though counter-clockwise (Vama) flow is slightly less auspicious than clockwise.",
+        "remedy": "Place a small brass or copper pyramid on the hinge-side lintel to harmonize inward vortex flow.",
+    },
+    "swing_out": {
+        "label": "Swings Outward (Toward Street / Outside)",
+        "score_delta": -2,
+        "verdict": "VASTU & FENG SHUI WARNING: Outward-swinging gate/door pushes incoming Lakshmi / Sheng Qi away from the house.",
+        "remedy": "Zero-demolition fix: Place two inward-curving planters or pillar lamps flanking the gate and install a brass/copper threshold strip.",
+    },
+    "slide_ne": {
+        "label": "Sliding Gate / Door — Slides Open Toward North or East",
+        "score_delta": 1,
+        "verdict": "AUSPICIOUS SLIDING MECHANISM: Sliding gate opens toward the positive Solar/Magnetic pole (North/East), inviting unobstructed flow.",
+        "remedy": "Keep the sliding track clean and smooth so it never jams.",
+    },
+    "slide_sw": {
+        "label": "Sliding Gate / Door — Slides Open Toward South or West",
+        "score_delta": -1,
+        "verdict": "CAUTION (SLIDING TOWARD S/W): Gate slides toward the heavy South/West sector, pulling kinetic motion toward Nirriti/Yama.",
+        "remedy": "Attach a copper Vastu strip along the track and place a heavy yellow stone or brass pyramid at the South/West stopper post.",
+    },
+    "rollup": {
+        "label": "Overhead Roll-Up / Vertical Lift Gate",
+        "score_delta": 0,
+        "verdict": "NEUTRAL / MODERN: Vertical roll-up gate is neutral in Vastu & Feng Shui provided it is well-lit and silent.",
+        "remedy": "Keep a warm overhead light above the gate lintel.",
+    },
+}
+
+WALL_SIDE_LABELS: Dict[str, str] = {
+    "N": "North Wall (Facing South)",
+    "E": "East Wall (Facing West)",
+    "S": "South Wall (Facing North)",
+    "W": "West Wall (Facing East)",
+    "NE": "North-East Wall",
+    "SE": "South-East Wall",
+    "SW": "South-West Wall",
+    "NW": "North-West Wall",
+}
+
 ITEM_RULES: Dict[str, Dict[str, Any]] = {
-    # ---------------- INDOOR HOUSE ITEMS ----------------
+    # ---------------- INDOOR ROOMS, DOORS & SACRED SPACES ----------------
     "entrance": {
         "label": "Main Entrance Door",
         "category": "indoor",
@@ -366,18 +423,112 @@ ITEM_RULES: Dict[str, Dict[str, Any]] = {
         "acceptable_zones": ["W", "NW"],
         "bad_zones": ["SW", "S", "SE", "Center"],
         "ideal_door_facing": ["NE", "E", "N"],
-        "why_simple": "The Main Entrance (Simhadwara) is the mouth of the house where cosmic energy (Prana) and luck enter. North-East (Jupiter), East (Sun), and North (Mercury/Kubera) bring health, fame, and steady wealth.",
-        "fix_if_wrong": "If your entrance is in South, South-West, or South-East, place a bright warm light above the door, install a copper Vastu strip along the threshold, place two auspicious plants on either side, and hang a Panchamukhi Hanuman or Ganesha emblem above the lintel.",
+        "why_simple": "The Main Entrance (Simhadwara / Mouth of Qi) is where cosmic energy (Prana) and wealth enter. North-East (Jupiter), East (Sun), and North (Mercury/Kubera) bring health, fame, and steady prosperity. It should ideally swing inward clockwise.",
+        "fix_if_wrong": "If your entrance is in South, South-West, or South-East, place a bright warm light above the door, install a copper/lead Vastu strip along the threshold, place two auspicious plants on either side, and hang a Panchamukhi Hanuman or Ganesha emblem above the lintel.",
     },
     "back_door": {
-        "label": "Back Door / Patio Exit",
+        "label": "Back Door / Patio Sliding Exit",
         "category": "indoor",
         "ideal_zones": ["NW", "W", "E", "N"],
         "acceptable_zones": ["SE", "NE"],
         "bad_zones": ["SW", "S", "Center"],
         "ideal_door_facing": ["N", "E", "NW", "W"],
-        "why_simple": "The Back Door should allow air circulation without draining the stored wealth of the house. Keeping the Back Door slightly smaller than the Main Entrance and avoiding the South-West prevents money leakage.",
-        "fix_if_wrong": "Keep a South-West or South back door closed when not in use, place a heavy earth-toned doormat inside, and ensure the Main Entrance is larger and brighter than the back door.",
+        "why_simple": "The Back Door or Patio Sliding Door allows air circulation without draining stored wealth. Avoid placing the back door in a direct straight line with the Main Entrance (Feng Shui 'Chuan Tang Sha' wealth-tunnel drain) and avoid South-West.",
+        "fix_if_wrong": "Keep a South-West or South back door closed when not in use, place a heavy earth-toned rug inside, and if it aligns straight with the front door, place a screen, plant, or table between them.",
+    },
+    "puja_room": {
+        "label": "Temple / Prayer Hall / Puja Altar",
+        "category": "indoor",
+        "ideal_zones": ["NE", "E", "N"],
+        "acceptable_zones": ["W", "Center"],
+        "bad_zones": ["S", "SW", "SE", "NW"],
+        "ideal_door_facing": ["E", "N", "NE", "W"],
+        "why_simple": "The North-East (Ishanya) is the supreme spiritual receptor of the home (Jupiter & Shiva), and in Feng Shui it is the Gen (Mountain/Wisdom) sector. Worshippers should face East or North; idols should face West or East.",
+        "fix_if_wrong": "Never place the Temple/Prayer Hall under a staircase or sharing a wall with a bathroom/toilet. Keep a copper Kalash of clean water in the NE corner of the altar, light a ghee lamp daily, and never mix deceased ancestors' photos on the Puja altar.",
+    },
+    "meditation_hall": {
+        "label": "Meditation / Yoga / Dhyana Space",
+        "category": "indoor",
+        "ideal_zones": ["NE", "E", "N"],
+        "acceptable_zones": ["Center", "W"],
+        "bad_zones": ["SE", "S", "SW", "NW"],
+        "ideal_door_facing": ["E", "NE", "N"],
+        "why_simple": "Meditation and Pranayama require calm Sattvic Ether/Water vibration in the North-East or rising Solar Prana in the East. Facing East or North-East aligns the pineal gland with Earth's magnetic field.",
+        "fix_if_wrong": "Use a natural Kusha grass, wool, or cotton mat, face North-East or East while meditating, and burn pure sandalwood or loban incense.",
+    },
+    "medication_cabinet": {
+        "label": "Medicine / Medication & First-Aid Storage",
+        "category": "indoor",
+        "ideal_zones": ["NE", "N", "E"],
+        "acceptable_zones": ["NW", "W"],
+        "bad_zones": ["SW", "S", "SE", "Center"],
+        "why_simple": "Per Vastu Shastra, medicines kept in the North-East (Dhanvantari / Divine Healer zone) or North (Soma) infuse remedies with rapid healing energy so illness resolves quickly. Keeping medicines in the South-West (stability/permanence) or South-East (Fire/Kitchen) makes diseases drag on chronically!",
+        "fix_if_wrong": "Immediately move daily medicines and pill boxes out of the Kitchen (SE), South, or Master Bedroom (SW) into a clean white/wooden box in the North-East or North-East-North (NNE) zone, and discard expired medications every Amavasya.",
+    },
+    "gym_room": {
+        "label": "Gym / Workout / Fitness Equipment",
+        "category": "indoor",
+        "ideal_zones": ["SW", "S", "W", "SE"],
+        "acceptable_zones": ["NW", "E"],
+        "bad_zones": ["NE", "Center", "N"],
+        "ideal_door_facing": ["E", "N"],
+        "why_simple": "Gym dumbbells, treadmills, and weight racks are heavy physical masses governed by Mars (South/SE strength & sweat) and Saturn/Rahu (West/SW Earth stability). Placing heavy gym weights in the North-East crushes the sacred head of the Vastu Purusha!",
+        "fix_if_wrong": "If your workout area is in the North-East or North, move all heavy iron dumbbells/machines to the South or West corner of that room, place rubber shock-absorbing mats underneath, and face East while exercising.",
+    },
+    "storage": {
+        "label": "Heavy Storage / Store Room / Closet",
+        "category": "indoor",
+        "ideal_zones": ["SW", "S", "W", "NW"],
+        "acceptable_zones": ["SE"],
+        "bad_zones": ["NE", "E", "N", "Center"],
+        "why_simple": "Heavy storage, trunks, tools, and seasonal boxes add dense Earth mass — ideal in South-West, South, or West to anchor the home, but harmful in North-East, North, East, or Center where they block financial & mental clarity.",
+        "fix_if_wrong": "Declutter North/East/NE storage immediately, keep the top shelf lighter than the bottom shelf, paint the inside white, and keep a bright LED light inside.",
+    },
+    "grain_pantry": {
+        "label": "Food & Grain Pantry (Anna Bhandar)",
+        "category": "indoor",
+        "ideal_zones": ["NW", "SW", "W", "S"],
+        "acceptable_zones": ["SE"],
+        "bad_zones": ["NE", "Center", "N"],
+        "why_simple": "Classical Vastu places the granary/pantry (Anna Bhandar) in the North-West (Vayavya — continuous replenishment of food) or South-West (Earth abundance) so the household never experiences food scarcity.",
+        "fix_if_wrong": "Keep a small silver coin or turmeric root inside the rice/grain container to invoke Maa Annapurna's blessings.",
+    },
+    "washer_dryer": {
+        "label": "Washer & Dryer / Laundry Machine",
+        "category": "indoor",
+        "ideal_zones": ["NW", "SE", "W"],
+        "acceptable_zones": ["E", "S"],
+        "bad_zones": ["NE", "SW", "Center", "N"],
+        "why_simple": "A Washer & Dryer combines vigorous mechanical churning (Vayu/Air), dirty water drainage, and high electrical heat (Dryer = Agni). North-West (Vayavya movement), East-South-East (churning), and South-East (Agni) are ideal. Placing a washer/dryer in North-East churns the mind with anxiety; in South-West it destabilizes career/marriage.",
+        "fix_if_wrong": "Place a thick anti-vibration rubber pad under the washer/dryer, keep the laundry lid/door closed when not running, and place a green plant or wooden board nearby if located in NE/SW.",
+    },
+    "kitchen": {
+        "label": "Kitchen Room",
+        "category": "indoor",
+        "ideal_zones": ["SE", "NW"],
+        "acceptable_zones": ["E", "S"],
+        "bad_zones": ["NE", "SW", "N", "W", "Center"],
+        "why_simple": "The Kitchen is governed by Agni (Fire) and belongs in the South-East (Agneya) or secondarily North-West (Vayavya). A kitchen in North-East clashes with sacred Water, and in South-West destabilizes family health and savings.",
+        "fix_if_wrong": "Keep the cooking stove in the South-East corner of the kitchen so the cook faces East, place a yellow Jaisalmer stone or green marble slab under the stove if in NE/SW, and separate the stove from the sink.",
+    },
+    "kitchen_stove": {
+        "label": "Kitchen Stove / Cooktop / Range (Agni)",
+        "category": "indoor",
+        "ideal_zones": ["SE", "S", "E"],
+        "acceptable_zones": ["NW"],
+        "bad_zones": ["NE", "N", "SW", "W", "Center"],
+        "ideal_door_facing": ["E", "N"],
+        "why_simple": "The Kitchen Stove (Chulha / Range) is the primary Fire altar of the home and Feng Shui's #1 wealth generator (Zao Jun). It belongs in the South-East with the cook facing East. In both Vastu and Feng Shui, the stove must NEVER touch or directly face the kitchen sink/taps (Fire-Water clash) or sit directly in line with the kitchen/bathroom door.",
+        "fix_if_wrong": "Orient the stove or your standing position toward East; if the stove is close to the water sink/taps, place a vertical wooden chopping board, green herb pot (basil/mint), or green tape strip between the stove and sink to bridge Water-Fire.",
+    },
+    "indoor_taps": {
+        "label": "Indoor Water Taps / Kitchen Sink / Faucets",
+        "category": "indoor",
+        "ideal_zones": ["NE", "N", "E"],
+        "acceptable_zones": ["NW", "W"],
+        "bad_zones": ["SW", "S", "SE", "Center"],
+        "why_simple": "Water taps, kitchen sinks, and drinking water filters belong in the North-East, North, or East (Jala/Water zones). Taps in the South-West or South weaken Earth stability, and taps right next to the SE stove create Fire-Water friction. A dripping tap anywhere drains liquid wealth!",
+        "fix_if_wrong": "Repair any dripping tap immediately; if taps are in the South-East or South-West, place a green plant or wooden coaster beside the sink and ensure drain pipes exit toward North or East.",
     },
     "master_bedroom": {
         "label": "Master Bedroom",
@@ -385,8 +536,9 @@ ITEM_RULES: Dict[str, Dict[str, Any]] = {
         "ideal_zones": ["SW", "S"],
         "acceptable_zones": ["W"],
         "bad_zones": ["NE", "SE", "NW", "Center", "E", "N"],
-        "why_simple": "The Master Bedroom belongs in the South-West (Earth element) or South so the head of the family enjoys grounded stability, deep sleep, command, and lasting marriage harmony.",
-        "fix_if_wrong": "If the Master Bedroom is in North-East (causes health/clarity drain), South-East (Fire zone — causes couple arguments), or North-West (Air zone — causes restlessness), place the bed in the South-West corner of that room, sleep with your head South, use earthy beige bedsheets, and keep a pair of rose quartz or brass elephants on the side table.",
+        "ideal_door_facing": ["S", "E", "W"],
+        "why_simple": "The Master Bedroom belongs in the South-West (Nairutya Earth element / Feng Shui Kun Marriage sector) or South so the head of the household enjoys deep sleep, authority, and marital harmony. Sleep with the bed head toward South or East (never North).",
+        "fix_if_wrong": "Place the bed in the South-West corner of the room with the headboard against a solid South or West wall, use earthy beige/terracotta tones, and keep a pair of rose quartz crystals on the nightstand.",
     },
     "bedroom": {
         "label": "Bedroom (Family / Children)",
@@ -394,18 +546,18 @@ ITEM_RULES: Dict[str, Dict[str, Any]] = {
         "ideal_zones": ["W", "S", "E", "NW"],
         "acceptable_zones": ["N", "SW"],
         "bad_zones": ["NE", "SE", "Center"],
-        "why_simple": "West, South, East, and North-West provide restful sleep, study focus, and growth for family members and children.",
-        "fix_if_wrong": "Position the bed so the sleeper's head points South or East (never North), avoid placing the bed directly under a beam, and use calming pastel colors.",
+        "ideal_door_facing": ["S", "E", "W"],
+        "why_simple": "West (Feng Shui Dui Children sector), East (rising Sun growth), South, and North-West provide restful sleep, study focus, and vitality for children and family members.",
+        "fix_if_wrong": "Ensure the sleeper's head points South or East (never North), avoid overhead ceiling beams above the bed, and keep electronics/TV covered at night.",
     },
     "guest_room": {
         "label": "Guest Bedroom",
-        "category_type": "indoor",
         "category": "indoor",
         "ideal_zones": ["NW", "E", "N"],
         "acceptable_zones": ["W", "SE"],
         "bad_zones": ["SW", "Center", "NE"],
-        "why_simple": "North-West is ruled by Vayu (Air/Movement) — it ensures guests feel warmly welcomed and comfortable, while never usurping the house owner's authority (which happens if guests sleep in the South-West).",
-        "fix_if_wrong": "If the Guest Room is in the South-West, the house owner should occasionally use or store heavy personal items in that room so the owner retains primary Earth-zone authority.",
+        "why_simple": "North-West (Vayavya Air / Feng Shui Qian Helpful People) is ideal for guests — welcoming and supportive without letting guests dominate the homeowner's South-West authority.",
+        "fix_if_wrong": "If the Guest Room is in the South-West, keep heavy owner wardrobes or a locked owner safe in that room so the homeowner retains primary Earth-zone command.",
     },
     "living_room": {
         "label": "Living Room / Family Lounge",
@@ -413,44 +565,8 @@ ITEM_RULES: Dict[str, Dict[str, Any]] = {
         "ideal_zones": ["NE", "E", "N", "NW", "Center"],
         "acceptable_zones": ["W", "S"],
         "bad_zones": ["SW", "SE"],
-        "why_simple": "The Living Room thrives in the bright, open, social zones (North, East, North-East, or North-West) where welcoming energy and conversation flow naturally.",
-        "fix_if_wrong": "Place heavy sofas and entertainment cabinets against the South or West walls of the living room, leaving the North and East sides of the room more open, bright, and airy.",
-    },
-    "kitchen": {
-        "label": "Kitchen",
-        "category": "indoor",
-        "ideal_zones": ["SE", "NW"],
-        "acceptable_zones": ["E", "S"],
-        "bad_zones": ["NE", "SW", "N", "W", "Center"],
-        "why_simple": "The Kitchen is governed by Agni (Fire) and belongs in the South-East (Agneya) or secondarily the North-West (Vayavya). A kitchen in North-East clashes with Water, and in South-West destabilizes family health/finances.",
-        "fix_if_wrong": "Without moving the kitchen: place the cooking stove in the South-East corner of the kitchen so the cook faces East; place a green marble slab or yellow stone under the stove if the kitchen is in NE/SW; and keep the kitchen sink (Water) as far from the stove (Fire) as possible.",
-    },
-    "bathroom": {
-        "label": "Bathroom / Toilet",
-        "category": "indoor",
-        "ideal_zones": ["NW", "W", "S"],
-        "acceptable_zones": ["SE", "E"],
-        "bad_zones": ["NE", "SW", "Center", "N"],
-        "why_simple": "Bathrooms and toilets handle waste disposal and belong in the North-West (Air/elimination) or West/South. A toilet in the North-East (Sacred Water/Jupiter) or Center (Brahmasthan) or South-West is a major Vastu defect.",
-        "fix_if_wrong": "Zero-demolition fix: Keep the bathroom door shut at all times, keep a glass or ceramic bowl filled with natural crushed sea salt / rock salt on the tank or shelf (replace every Saturday), use an exhaust fan + green spider plant inside, and place a brass/copper Vastu strip outside the bathroom threshold.",
-    },
-    "storage": {
-        "label": "Storage / Closet / Pantry",
-        "category": "indoor",
-        "ideal_zones": ["SW", "S", "W", "NW"],
-        "acceptable_zones": ["SE"],
-        "bad_zones": ["NE", "E", "N", "Center"],
-        "why_simple": "Heavy storage, closets, and pantries add physical weight — in Vastu, weight in the South-West, South, or West anchors stability, whereas clutter/weight in the North-East, North, or Center chokes prosperity.",
-        "fix_if_wrong": "If a storage room is in the North, East, or North-East, keep the shelves light and neatly organized, remove all broken/unused items, and install a bright white LED light inside.",
-    },
-    "balcony": {
-        "label": "Balcony / Veranda / Deck",
-        "category": "indoor",
-        "ideal_zones": ["NE", "N", "E"],
-        "acceptable_zones": ["NW"],
-        "bad_zones": ["SW", "S", "W", "SE", "Center"],
-        "why_simple": "Balconies create open space and light. Having balconies in the North, East, or North-East invites morning solar prana and Kubera wealth energy.",
-        "fix_if_wrong": "If your balcony is in the South or South-West, place heavy terracotta plant pots, bamboo blinds, or glass enclosures there to add weight and filter harsh afternoon rays.",
+        "why_simple": "The Living Room thrives in the bright, open, social sectors (North, East, North-East, or North-West) where welcoming Qi and family harmony circulate freely.",
+        "fix_if_wrong": "Anchor heavy sofas and cabinets against the South and West walls of the living room while keeping the North and East sides bright and open.",
     },
     "dining_room": {
         "label": "Dining Room",
@@ -458,26 +574,36 @@ ITEM_RULES: Dict[str, Dict[str, Any]] = {
         "ideal_zones": ["W", "E", "S", "N"],
         "acceptable_zones": ["SE", "NW"],
         "bad_zones": ["SW", "NE", "Center"],
-        "why_simple": "The West zone (ruled by Varuna/Saturn) and East zone promote nourishment, digestion, and family bonding over meals.",
-        "fix_if_wrong": "Face East, North, or West while eating (avoid facing South while dining), and place a bowl of fresh fruit on the dining table to symbolize abundance.",
-    },
-    "puja_room": {
-        "label": "Puja / Meditation / Sacred Altar",
-        "category": "indoor",
-        "ideal_zones": ["NE", "E", "N"],
-        "acceptable_zones": ["W", "Center"],
-        "bad_zones": ["S", "SW", "SE", "NW"],
-        "why_simple": "The North-East (Ishanya) is the supreme spiritual receptor of the home, ruled by Jupiter and Lord Shiva.",
-        "fix_if_wrong": "Ensure you face East or North while praying, never place the altar against a shared bathroom wall, and keep a small copper kalash of water on the NE side of the altar.",
+        "why_simple": "West (Varuna/Saturn nourishment) and East promote healthy digestion, gratitude, and family bonding over meals.",
+        "fix_if_wrong": "Face East, North, or West while eating (avoid facing South during meals), and keep a bowl of fresh fruit on the table.",
     },
     "study_room": {
-        "label": "Study / Home Office",
+        "label": "Study / Home Office Desk",
         "category": "indoor",
         "ideal_zones": ["NE", "E", "N", "W"],
         "acceptable_zones": ["SW", "NW"],
         "bad_zones": ["SE", "Center"],
-        "why_simple": "East (Sun), North (Mercury), North-East (Jupiter), and West (focused Saturn) sharpen memory, concentration, and career output.",
-        "fix_if_wrong": "Position the desk so you face East, North, or North-East while working, with a solid wall behind your chair for support.",
+        "ideal_door_facing": ["NE", "E", "N"],
+        "why_simple": "East (Sun), North (Mercury intellect), North-East (Jupiter wisdom), and West (Saturn focus) sharpen concentration and career output. Always sit with a solid wall behind your back (Feng Shui Black Tortoise support).",
+        "fix_if_wrong": "Orient your chair so you face East, North, or North-East while working, and place a clear quartz crystal or globe on the North-East corner of the desk.",
+    },
+    "bathroom": {
+        "label": "Bathroom / Toilet / WC",
+        "category": "indoor",
+        "ideal_zones": ["NW", "W", "S"],
+        "acceptable_zones": ["SE", "E"],
+        "bad_zones": ["NE", "SW", "Center", "N"],
+        "why_simple": "Bathrooms and toilets handle waste elimination and belong in North-West (Vayavya), West, or South-South-West. A toilet in North-East, Center (Brahmasthan), or South-West is a severe Vastu & Feng Shui drain.",
+        "fix_if_wrong": "Keep the toilet lid down and bathroom door closed at all times, place a glass bowl of crushed sea salt / rock salt inside (replace weekly), install a copper strip outside the door threshold, and keep an air-purifying plant inside.",
+    },
+    "balcony": {
+        "label": "Balcony / Veranda / Deck",
+        "category": "indoor",
+        "ideal_zones": ["NE", "N", "E"],
+        "acceptable_zones": ["NW"],
+        "bad_zones": ["SW", "S", "W", "SE", "Center"],
+        "why_simple": "Balconies open the home to light and air — ideal in North, East, and North-East to invite morning solar Prana and Kubera wealth.",
+        "fix_if_wrong": "If your balcony is in South or South-West, add heavy terracotta planters, thick curtains/blinds, or glass enclosures to increase weight in the SW.",
     },
     "staircase": {
         "label": "Staircase",
@@ -485,57 +611,207 @@ ITEM_RULES: Dict[str, Dict[str, Any]] = {
         "ideal_zones": ["SW", "S", "W"],
         "acceptable_zones": ["NW", "SE"],
         "bad_zones": ["NE", "Center", "N", "E"],
-        "why_simple": "A staircase is a heavy structural element that belongs in the heavy Earth/West/South zones and should ideally ascend clockwise.",
-        "fix_if_wrong": "Keep the area under the stairs clean (never put a toilet, kitchen, or altar under a staircase) and place a pair of copper pyramids at the base and top step.",
+        "why_simple": "A staircase is a heavy vertical mass that belongs in South-West, South, or West and should ascend clockwise (turning right as you go up).",
+        "fix_if_wrong": "Never put a Puja altar, kitchen stove, or cash safe directly under a staircase; place a pair of copper pyramids under the first and last step.",
     },
     "safe_locker": {
-        "label": "Safe / Cash Locker / Treasury",
+        "label": "Safe / Cash Locker / Tijori",
         "category": "indoor",
         "ideal_zones": ["SW", "S", "N"],
         "acceptable_zones": ["W"],
         "bad_zones": ["SE", "NW", "NE", "Center", "E"],
-        "why_simple": "A safe placed in the South-West (against the South wall so its door opens toward the North — Kubera's direction) locks in wealth and prevents unplanned expenses.",
-        "fix_if_wrong": "Place a red cloth and a energized Shree Yantra / Gomti Chakra inside the safe, and place a small mirror inside so it reflects the cash/valuables.",
+        "ideal_door_facing": ["N", "NE", "E"],
+        "why_simple": "Place the Cash Safe in the South-West or South against the South wall so its door opens toward the North (the direction of Lord Kubera, Treasurer of the Gods) or North-East.",
+        "fix_if_wrong": "Line the inside of the safe with red/yellow cloth, keep a Shree Yantra and Citrine/Pyrite crystal inside, and ensure the safe never opens toward a bathroom or main exit door.",
+    },
+    "shoe_rack": {
+        "label": "Shoe Rack / Footwear Stand",
+        "category": "indoor",
+        "ideal_zones": ["W", "NW", "SW", "S"],
+        "acceptable_zones": ["SE"],
+        "bad_zones": ["NE", "N", "E", "Center"],
+        "why_simple": "Shoes carry outside dust and Saturn/Rahu Tamasic energy. Keep shoe racks in a closed cabinet in the West, North-West, or South-West foyer — never in the sacred North-East, Puja room, or Kitchen, and never piled loosely across the main threshold.",
+        "fix_if_wrong": "Use a closed-door shoe cabinet (so shoes are not visible), keep it slightly off the main door threshold, and wipe it clean weekly.",
+    },
+    "electrical_inverter": {
+        "label": "Electrical Panel / Inverter / Water Heater",
+        "category": "indoor",
+        "ideal_zones": ["SE", "S", "NW"],
+        "acceptable_zones": ["W", "E"],
+        "bad_zones": ["NE", "Center", "SW", "N"],
+        "why_simple": "Main electrical panels, inverters, boilers, and furnaces generate intense electromagnetic heat (Agni) and belong in the South-East (Agneya).",
+        "fix_if_wrong": "Keep electrical meters/inverters enclosed in a non-conductive cabinet and never place a bed headboard directly on the opposite side of a high-voltage panel wall.",
+    },
+    "aquarium_indoor_water": {
+        "label": "Indoor Aquarium / Tabletop Fountain",
+        "category": "indoor",
+        "ideal_zones": ["NE", "N", "E"],
+        "acceptable_zones": ["SE"],
+        "bad_zones": ["SW", "S", "W", "NW", "Center"],
+        "why_simple": "Moving water indoors (aquariums, tabletop fountains) activates Kubera wealth (North), Ishanya clarity (North-East), and Feng Shui Sheng Qi. Never place an aquarium or water fountain inside a Bedroom or in the South Fire sector!",
+        "fix_if_wrong": "Ensure water is always aerated, crystal-clear, and flowing inward toward the center of the house (never pointing out the door).",
+    },
+    "indoor_plants_tulsi": {
+        "label": "Tulsi Vrindavan / Sacred Indoor Plants",
+        "category": "indoor",
+        "ideal_zones": ["NE", "E", "N"],
+        "acceptable_zones": ["NW", "SE"],
+        "bad_zones": ["SW", "S", "Center"],
+        "why_simple": "Holy Basil (Tulsi), Lucky Bamboo, Money Plant, and oxygenating green plants belong in the North-East, East, or North where they purify Prana and strengthen Mercury & Jupiter.",
+        "fix_if_wrong": "Avoid thorny cacti, bonsai (stunted growth), or artificial dusty plastic plants inside the house; water Tulsi daily except Sundays/Ekadashi.",
     },
 
-    # ---------------- OUTDOOR LOT / YARD ITEMS ----------------
-    "fence": {
-        "label": "Outer Fence / Boundary Wall",
-        "category": "outdoor",
-        "ideal_zones": ["SW", "S", "W", "N", "E", "NE", "NW", "SE"],
-        "acceptable_zones": ["Center"],
-        "bad_zones": [],
-        "why_simple": "A boundary fence protects the lot's energy field (Kshetra). In Vastu, the South and West boundary walls/fences should be slightly thicker, higher, or more solid, while the North, East, and North-East fences should allow more light and air.",
-        "fix_if_wrong": "Keep the North-East and East fence clean, painted in light colors, or slightly more open/see-through, while making the South-West and South fence sturdy and privacy-shielded.",
+    # ---------------- WALL HANGINGS: PHOTO FRAMES, TV, MIRROR & CLOCK ----------------
+    "photo_living": {
+        "label": "Photo Frame: Living Family / Couple / Kids",
+        "category": "indoor",
+        "ideal_zones": ["SW", "W", "E", "N", "NE"],
+        "acceptable_zones": ["NW", "Center"],
+        "bad_zones": ["S", "SE"],
+        "ideal_wall_sides": ["SW", "W", "E", "N"],
+        "why_simple": "Photos of living family members, married couples, and children belong in the South-West (bonds marriage stability & family unity), West (Feng Shui Dui Children/Joy sector), East (family health), or North. NEVER hang living family members' photos on the South Pitru Wall alongside deceased ancestors!",
+        "fix_if_wrong": "Use wooden or gold/brass frames in SW/E/N; keep couple photos in the SW of the bedroom/living room, and never hang living family photos next to deceased ancestors or facing a toilet door.",
     },
+    "photo_deceased": {
+        "label": "Photo Frame: Deceased Ancestors (Pitru / Late Members)",
+        "category": "indoor",
+        "ideal_zones": ["S", "SW"],
+        "acceptable_zones": ["W"],
+        "bad_zones": ["NE", "N", "E", "SE", "NW", "Center"],
+        "ideal_wall_sides": ["S", "SW"],
+        "ideal_door_facing": ["N"],
+        "why_simple": "STRICT CLASSICAL VASTU RULE: Photos of deceased ancestors / late family members (Pitru) MUST be hung ONLY on the South Wall (so the photo faces North) or in the South / South-West zone. NEVER place deceased ancestors' photos inside the Temple / Puja Room (NE) or mix them with Gods' photos (causes Pitru-Deva Dosha), and NEVER hang them in a Bedroom, Kitchen, or directly facing the Main Entrance!",
+        "fix_if_wrong": "Respectfully move all photos of deceased family members out of the Puja Room / NE / Bedroom and hang them exclusively on a clean South wall in the living/dining hall (facing North), adorned with a sandalwood garland.",
+    },
+    "photo_gods": {
+        "label": "Photo Frame: Gods / Deities / Sacred Yantras",
+        "category": "indoor",
+        "ideal_zones": ["NE", "E", "N"],
+        "acceptable_zones": ["W", "Center"],
+        "bad_zones": ["S", "SW", "SE", "NW"],
+        "ideal_wall_sides": ["E", "N", "NE"],
+        "ideal_door_facing": ["W", "S", "E"],
+        "why_simple": "Sacred photos of Gods, Deities, and Yantras belong on the North-East, East, or North walls (so the Deity faces West or South, and the person viewing/praying faces East or North). Never hang Gods' photos on a wall shared with a Bathroom/Toilet, at the foot of a bed, under stairs, or on the South wall facing North (and never mix with deceased ancestor photos).",
+        "fix_if_wrong": "Relocate Deity frames to the East or North-East wall, choose serene sitting/blessing postures (Shanta Swarupa) for the home, and never hang them on a bathroom wall.",
+    },
+    "tv_screen": {
+        "label": "TV / Television / Home Theater Wall",
+        "category": "indoor",
+        "ideal_zones": ["SE", "E", "N", "NW"],
+        "acceptable_zones": ["S", "W"],
+        "bad_zones": ["NE", "SW", "Center"],
+        "ideal_wall_sides": ["S", "E", "N"],
+        "ideal_door_facing": ["N", "W", "S", "E"],
+        "why_simple": "Televisions and large monitors are Fire/Electronic emitters (Agni + Rahu media). They work best in the South-East, East, North, or North-West, mounted on the South or East wall so viewers face South, East, or North. In a Bedroom, a TV screen directly facing the bed acts as a dark Feng Shui mirror reflecting sleeping bodies — causing insomnia, restless dreams, and marital arguments!",
+        "fix_if_wrong": "If a TV is in the North-East, keep it switched off when not watching and avoid loud aggressive media; if a TV is in a Bedroom facing the bed, drape a clean fabric cover/runner over the screen before going to sleep.",
+    },
+    "wall_mirror": {
+        "label": "Wall Mirror / Dressing Table Mirror",
+        "category": "indoor",
+        "ideal_zones": ["N", "E", "NE"],
+        "acceptable_zones": ["NW", "W"],
+        "bad_zones": ["S", "SW", "SE", "Center"],
+        "ideal_wall_sides": ["N", "E"],
+        "ideal_door_facing": ["S", "W", "E", "N"],
+        "why_simple": "Mirrors represent the Water element and optical expansion. Hanging mirrors on the North or East wall expands Kubera/Surya light, whereas mirrors on the South or South-West wall reflect heavy Mars/Rahu energy back into the room. Never place a mirror directly facing the Bed or directly facing the Main Entrance Door!",
+        "fix_if_wrong": "Move mirrors to the North or East wall; if a wardrobe mirror faces the bed and cannot be moved, cover it with an opaque curtain or frosted film at night.",
+    },
+    "wall_clock": {
+        "label": "Wall Clock / Pendulum Clock",
+        "category": "indoor",
+        "ideal_zones": ["N", "E", "NE"],
+        "acceptable_zones": ["W", "NW"],
+        "bad_zones": ["S", "SW", "SE"],
+        "ideal_wall_sides": ["N", "E", "NE"],
+        "why_simple": "Clocks govern the flow of Kaala (Time) and momentum. Hang wall clocks on the North, East, or North-East wall so you look North or East when checking the time. Never hang a clock on the South wall (Yama's direction — stagnates progress), above a doorway, or let a stopped/broken clock remain on any wall!",
+        "fix_if_wrong": "Replace batteries immediately if a clock stops, move South-wall clocks to the North or East wall, and favor round or octagonal metallic/wooden frames.",
+    },
+
+    # ---------------- OUTDOOR LOT, PERIMETER, DRAINAGE, PLAY & GATES ----------------
     "gate": {
-        "label": "Main Lot Gate (Compound Entrance)",
+        "label": "Main Property Gate (Compound Entrance)",
         "category": "outdoor",
         "ideal_zones": ["NE", "E", "N"],
         "acceptable_zones": ["NW", "W"],
         "bad_zones": ["SW", "S", "SE", "Center"],
         "ideal_door_facing": ["NE", "E", "N"],
-        "why_simple": "The Main Compound Gate determines how external opportunities enter the entire property lot. Gates in the North-East, East, or North bring prosperity and protection.",
-        "fix_if_wrong": "If the lot gate is in the South or South-West, paint it in an earthy metallic or bronze tone, install two bright pillar lamps on both gateposts (lit every evening at sunset), and embed a copper rod/wire beneath the gate threshold.",
+        "why_simple": "The Main Compound Gate governs how cosmic and financial Qi enters the entire land parcel. Gates in North-East, East, or North that swing inward clockwise (or slide open toward North/East) bring protection and prosperity.",
+        "fix_if_wrong": "If the property gate is in South or South-West, or swings outward, install bright lamps on both gate pillars, embed a copper rod/strip under the gate sill, and keep the NE gate/corner well-lit.",
     },
     "parking_gate": {
-        "label": "Parking Gate / Driveway / Garage",
+        "label": "Parking / Driveway Gate / Garage Door",
         "category": "outdoor",
         "ideal_zones": ["NW", "SE", "E", "N"],
         "acceptable_zones": ["W"],
-        "bad_zones": ["SW", "NE", "Center"],
+        "bad_zones": ["SW", "NE", "Center", "S"],
         "ideal_door_facing": ["N", "E", "NW", "W"],
-        "why_simple": "Vehicles represent movement (Vayu/Air) and heat/engine energy (Agni/Fire). North-West and South-East are the two best Vastu zones for a parking gate, driveway, or garage.",
-        "fix_if_wrong": "If parking is in the North-East, keep the porch roof light/open so it doesn't block morning sunlight to the house; if in the South-West, park vehicles facing East or North and keep the driveway spotless.",
+        "why_simple": "Vehicles represent movement (Vayu/Air) and engine heat (Agni). North-West and South-East are the prime Vastu zones for a driveway gate or garage. If using a sliding gate, sliding open toward North or East is most auspicious.",
+        "fix_if_wrong": "Park vehicles facing East or North whenever possible, keep the driveway free of oil stains, and ensure the gate slides/swings smoothly without grinding noise.",
+    },
+    "side_pedestrian_gate": {
+        "label": "Side / Back Yard Gate (Wicket Gate)",
+        "category": "outdoor",
+        "ideal_zones": ["N", "E", "NE", "NW"],
+        "acceptable_zones": ["W", "SE"],
+        "bad_zones": ["SW", "S", "Center"],
+        "ideal_door_facing": ["N", "E", "NE", "NW"],
+        "why_simple": "Secondary pedestrian or garden gates work best on the North, East, North-East, or North-West sides and should always be smaller than the Main Gate and swing inward.",
+        "fix_if_wrong": "Keep a South or South-West side gate locked when not in active use and plant dense shrubs inside to prevent Qi leakage.",
+    },
+    "fence": {
+        "label": "Outer Fence / Compound Boundary Wall",
+        "category": "outdoor",
+        "ideal_zones": ["SW", "S", "W", "N", "E", "NE", "NW", "SE"],
+        "acceptable_zones": ["Center"],
+        "bad_zones": [],
+        "why_simple": "A boundary fence (Prakara) defines and protects the property's energy field (Kshetra). In Vastu & Form School Feng Shui, the South, South-West (Black Tortoise), and West (White Tiger) fences should be solid, slightly higher, and unbroken, while the North, North-East, and East fences should be slightly lower or allow light/air.",
+        "fix_if_wrong": "Ensure there are no broken gaps or missing fence panels in the South-West or South; keep the North-East fence clean and painted in a bright tone.",
+    },
+    "trench_ditch": {
+        "label": "Trench / Ditch / Drainage Channel / Pit",
+        "category": "outdoor",
+        "ideal_zones": ["NE", "N", "E"],
+        "acceptable_zones": ["NW"],
+        "bad_zones": ["SW", "S", "W", "SE", "Center"],
+        "why_simple": "CLASSICAL VASTU & FENG SHUI TOPOGRAPHY RULE: A trench, ditch, canal, drainage channel, or ground depression (inside OR outside the property boundary) lowers the earth level of that sector. In North, North-East, or East, a clean trench draining toward NE/E is AUSPICIOUS (Uttara/Ishanya Nimna — attracts wealth). In South, South-West, West, or South-East, a trench or ditch is a SEVERE DEFECT (Nairutya/Dakshina Pallam) that drains wealth, health, and stability!",
+        "fix_if_wrong": "Zero-demolition fix for a South, South-West, or West trench/ditch: (1) Cover the trench with heavy concrete/stone slabs so it is not an open pit; (2) Build a solid, slightly taller boundary wall/curb between your house and the SW/S trench; (3) Place 3 heavy yellow earth boulders or a lead/brass Vastu helix along the SW boundary; and (4) Ensure water inside the trench flows toward North or East (never stagnating in SW).",
+    },
+    "water_hose": {
+        "label": "Water Hose / Outdoor Garden Tap / Spigot",
+        "category": "outdoor",
+        "ideal_zones": ["NE", "N", "E"],
+        "acceptable_zones": ["NW", "W"],
+        "bad_zones": ["SW", "S", "SE", "Center"],
+        "why_simple": "Outdoor water hoses, garden taps, and sprinkler valves represent active Jala (Water element). They belong in the North-East, North, or East of the yard/exterior wall. A leaking water hose or outdoor tap in the South-West softens the Earth foundation and drains savings; in the South-East it clashes with Agni.",
+        "fix_if_wrong": "Keep the outdoor hose neatly coiled on a wall reel (never tangled on the ground like a serpent), fix any dripping spigot washer immediately, and if the tap is in SW/SE, place a terracotta or yellow stone slab beneath the spigot.",
+    },
+    "kids_slide": {
+        "label": "Kids Slide / Swing / Outdoor Play Set",
+        "category": "outdoor",
+        "ideal_zones": ["W", "NW", "N", "E"],
+        "acceptable_zones": ["NE", "SE"],
+        "bad_zones": ["SW", "S", "Center"],
+        "ideal_door_facing": ["N", "E", "NE"],
+        "why_simple": "In Classical Feng Shui, West (Dui Trigram) is the supreme sector of Children & Joy, while in Vastu, North-West (Vayu movement), East (vitality), and West are ideal for children's play equipment. Orient the kids' slide so children slide down facing North or East! Avoid placing tall play structures in the South-West (where kids either get minor falls or become overly stubborn toward parents) or South-East.",
+        "fix_if_wrong": "Point the slide chute toward North or East, place soft green turf or rubber safety mats underneath, and keep play sets out of the extreme South-West corner.",
+    },
+    "overhead_tank": {
+        "label": "Overhead Water Tank (Elevated Heavy Tank)",
+        "category": "outdoor",
+        "ideal_zones": ["SW", "W", "S"],
+        "acceptable_zones": ["NW"],
+        "bad_zones": ["NE", "N", "E", "SE", "Center"],
+        "why_simple": "Unlike underground water (which belongs in NE), an Overhead Water Tank represents massive elevated weight (Earth element) and belongs on the West or South-West roof/tower — never in the North-East or Center!",
+        "fix_if_wrong": "Raise the tank on a 1–2 foot platform so there is air space beneath it, paint it white or light beige, and avoid plastic black tanks in the NE.",
     },
     "trees": {
-        "label": "Tall / Heavy Trees",
+        "label": "Tall / Heavy Shade Trees",
         "category": "outdoor",
         "ideal_zones": ["SW", "S", "W"],
         "acceptable_zones": ["NW", "SE"],
         "bad_zones": ["NE", "N", "E", "Center"],
-        "why_simple": "Per Brihat Samhita (Vrikshayurveda), tall, dense, heavy-trunk trees belong in the South-West, South, and West of the lot where they block harsh afternoon heat and anchor Earth stability. Tall trees in the North-East or East block sacred morning sunlight!",
-        "fix_if_wrong": "If you have tall trees in the North-East, East, or North of the lot, trim their lower/overhanging branches regularly so morning sunlight reaches the house unobstructed, and plant at least 2 heavier trees or tall bamboo/fencing in the South-West to balance the weight.",
+        "why_simple": "Per Brihat Samhita (Vrikshayurveda), tall, dense trees belong in the South-West, South, and West of the lot where they block harsh afternoon heat and anchor Earth stability. Tall trees in the North-East or East block sacred morning sunlight!",
+        "fix_if_wrong": "Trim lower/overhanging branches of any NE/E/N trees so morning sunlight reaches the house unobstructed, and never allow a tree trunk to stand directly in front of the Main Entrance (Vriksha Vedha).",
     },
     "flowers": {
         "label": "Flower Beds / Flowering Plants",
@@ -543,7 +819,7 @@ ITEM_RULES: Dict[str, Dict[str, Any]] = {
         "ideal_zones": ["NE", "E", "N", "NW", "SE"],
         "acceptable_zones": ["W", "S", "SW"],
         "bad_zones": ["Center"],
-        "why_simple": "Fragrant and vibrant flowers activate Venus, Mercury, and Jupiter energies. Placing flower beds in the North, East, North-East, or North-West uplifts mental peace, social charm, and positive prana.",
+        "why_simple": "Fragrant and vibrant flowers activate Venus, Mercury, and Jupiter energies. Placing flower beds in the North, East, North-East, or North-West uplifts mental peace, social charm, and positive Prana.",
         "fix_if_wrong": "Remove wilted flowers promptly; use white/yellow/jasmine flowers in NE/E/NW and red/rose/hibiscus flowers in SE/S.",
     },
     "bushes": {
@@ -603,6 +879,90 @@ ITEM_RULES: Dict[str, Dict[str, Any]] = {
 }
 
 
+def build_personalized_chart_preset(
+    pos: Optional[Dict[str, Any]] = None,
+    asc_lon: Optional[float] = None,
+) -> Dict[str, Any]:
+    """Builds a complete, chart-calibrated Ideal Vastu & Feng Shui layout preset
+    including rooms, temple, meditation, medication, gym, storage, washer/dryer,
+    kitchen stove, taps, water hose, kids slide, NE drainage trench, gates with
+    clockwise/sliding mechanics, photo frames (living, deceased, gods), TV wall,
+    interior walls, and a perimeter fence loop."""
+    lagna_idx = int(asc_lon // 30) % 12 if asc_lon is not None else 0
+    lagna_sign = SIGNS[lagna_idx]
+    lagna_lord = SIGN_LORDS[lagna_idx]
+    h4_lord = SIGN_LORDS[(lagna_idx + 3) % 12]
+    h9_lord = SIGN_LORDS[(lagna_idx + 8) % 12]
+
+    # Calibrate primary entrance / gate facing based on Lagna/9th/4th auspiciousness
+    best_door = "NE" if lagna_lord in ("Jupiter", "Sun", "Mars") else ("N" if lagna_lord in ("Mercury", "Venus", "Saturn") else "E")
+
+    items = [
+        # Sacred, Entrance & Healing (NE / N / E)
+        {"id": 1,  "type": "entrance",           "label": f"Main Entrance ({best_door} Simhadwara)", "x": 66, "y": 16, "w": 13, "h": 6,  "door_dir": best_door, "gate_mech": "swing_in_cw", "wall_side": "NE", "scope": "indoor"},
+        {"id": 2,  "type": "puja_room",          "label": "Temple / Prayer Hall (Ishanya)",          "x": 70, "y": 23, "w": 12, "h": 10, "door_dir": "E",       "gate_mech": "double_in",   "wall_side": "NE", "scope": "indoor"},
+        {"id": 3,  "type": "photo_gods",         "label": "Gods / Deities Frame (NE East Wall)",     "x": 73, "y": 34, "w": 9,  "h": 6,  "door_dir": "W",       "gate_mech": "",            "wall_side": "E",  "scope": "indoor"},
+        {"id": 4,  "type": "meditation_hall",    "label": "Meditation & Yoga Space",                 "x": 57, "y": 23, "w": 12, "h": 10, "door_dir": "NE",      "gate_mech": "",            "wall_side": "NE", "scope": "indoor"},
+        {"id": 5,  "type": "medication_cabinet", "label": "Medication / First-Aid (NNE Dhanvantari)","x": 56, "y": 16, "w": 9,  "h": 6,  "door_dir": "N",       "gate_mech": "",            "wall_side": "N",  "scope": "indoor"},
+        {"id": 6,  "type": "living_room",        "label": f"Living Room ({lagna_sign} Lagna Lounge)","x": 38, "y": 17, "w": 17, "h": 15, "door_dir": "N",       "gate_mech": "",            "wall_side": "N",  "scope": "indoor"},
+        {"id": 7,  "type": "tv_screen",          "label": "TV Wall (Living East Wall)",              "x": 72, "y": 42, "w": 10, "h": 6,  "door_dir": "W",       "gate_mech": "",            "wall_side": "E",  "scope": "indoor"},
+        {"id": 8,  "type": "indoor_taps",        "label": "Kitchen Sink & Water Taps (NE/E)",        "x": 73, "y": 55, "w": 9,  "h": 6,  "door_dir": "N",       "gate_mech": "",            "wall_side": "E",  "scope": "indoor"},
+        # Fire / Kitchen / Appliances (SE)
+        {"id": 9,  "type": "kitchen",            "label": "Kitchen (SE Agneya)",                     "x": 63, "y": 62, "w": 19, "h": 18, "door_dir": "N",       "gate_mech": "swing_in_cw", "wall_side": "SE", "scope": "indoor"},
+        {"id": 10, "type": "kitchen_stove",      "label": "Kitchen Stove (SE — Cook Faces East)",    "x": 71, "y": 71, "w": 10, "h": 7,  "door_dir": "E",       "gate_mech": "",            "wall_side": "E",  "scope": "indoor"},
+        # Master Stability, Safe, Storage, Gym & Ancestor Frame (SW / S / W)
+        {"id": 11, "type": "master_bedroom",     "label": f"Master Bedroom (SW — {h4_lord} Peace)",  "x": 18, "y": 62, "w": 21, "h": 19, "door_dir": "N",       "gate_mech": "swing_in_cw", "wall_side": "SW", "scope": "indoor"},
+        {"id": 12, "type": "photo_living",       "label": "Living Family / Couple Frame (SW)",       "x": 20, "y": 74, "w": 10, "h": 5,  "door_dir": "N",       "gate_mech": "",            "wall_side": "SW", "scope": "indoor"},
+        {"id": 13, "type": "safe_locker",        "label": f"Cash Safe / Tijori (Opens North)",       "x": 40, "y": 72, "w": 9,  "h": 8,  "door_dir": "N",       "gate_mech": "swing_in_cw", "wall_side": "S",  "scope": "indoor"},
+        {"id": 14, "type": "photo_deceased",     "label": "Deceased Ancestors Frame (South Wall → N)","x": 50, "y": 74, "w": 11, "h": 6, "door_dir": "N",       "gate_mech": "",            "wall_side": "S",  "scope": "indoor"},
+        {"id": 15, "type": "gym_room",           "label": "Home Gym & Weights (South Mars Zone)",    "x": 46, "y": 61, "w": 15, "h": 11, "door_dir": "N",       "gate_mech": "",            "wall_side": "S",  "scope": "indoor"},
+        {"id": 16, "type": "storage",            "label": "Heavy Storage Room (West Saturn)",        "x": 18, "y": 48, "w": 12, "h": 12, "door_dir": "E",       "gate_mech": "",            "wall_side": "W",  "scope": "indoor"},
+        {"id": 17, "type": "dining_room",        "label": "Dining Hall (West Nourishment)",          "x": 31, "y": 46, "w": 14, "h": 13, "door_dir": "E",       "gate_mech": "",            "wall_side": "W",  "scope": "indoor"},
+        {"id": 18, "type": "study_room",         "label": f"Study / Office ({h9_lord} Focus)",       "x": 60, "y": 43, "w": 11, "h": 11, "door_dir": "NE",      "gate_mech": "",            "wall_side": "E",  "scope": "indoor"},
+        # Air / Movement / Laundry / Bathroom / Guest (NW)
+        {"id": 19, "type": "washer_dryer",       "label": "Washer & Dryer (NW Vayavya)",             "x": 18, "y": 33, "w": 11, "h": 9,  "door_dir": "E",       "gate_mech": "",            "wall_side": "NW", "scope": "indoor"},
+        {"id": 20, "type": "bathroom",           "label": "Bathroom / WC (NW)",                      "x": 30, "y": 33, "w": 10, "h": 10, "door_dir": "E",       "gate_mech": "swing_in_cw", "wall_side": "NW", "scope": "indoor"},
+        {"id": 21, "type": "guest_room",         "label": "Guest Bedroom (NW)",                      "x": 18, "y": 17, "w": 15, "h": 14, "door_dir": "E",       "gate_mech": "swing_in_cw", "wall_side": "NW", "scope": "indoor"},
+        # Outdoor Lot, Gates, Sliding Gate, Water Hose, Kids Slide, Trench & Trees
+        {"id": 22, "type": "gate",               "label": "Main Compound Gate (Inward Clockwise)",   "x": 65, "y": 2,  "w": 15, "h": 6,  "door_dir": best_door, "gate_mech": "swing_in_cw", "wall_side": "N",  "scope": "outdoor"},
+        {"id": 23, "type": "parking_gate",       "label": "Driveway Sliding Gate (Slides → East)",   "x": 16, "y": 2,  "w": 18, "h": 6,  "door_dir": "N",       "gate_mech": "slide_ne",    "wall_side": "NW", "scope": "outdoor"},
+        {"id": 24, "type": "water_hose",         "label": "Garden Water Hose & Tap (NE)",            "x": 85, "y": 14, "w": 11, "h": 7,  "door_dir": "NE",      "gate_mech": "",            "wall_side": "NE", "scope": "outdoor"},
+        {"id": 25, "type": "trench_ditch",       "label": "NE Drainage Trench (Flows W→NE)",         "x": 83, "y": 3,  "w": 14, "h": 6,  "door_dir": "NE",      "flow_dir": "NE",           "wall_side": "NE", "scope": "outdoor"},
+        {"id": 26, "type": "kids_slide",         "label": "Kids Slide & Play Set (Chute → N)",       "x": 3,  "y": 42, "w": 11, "h": 14, "door_dir": "N",       "gate_mech": "",            "wall_side": "W",  "scope": "outdoor"},
+        {"id": 27, "type": "trees",              "label": "SW Heavy Shade Trees",                    "x": 3,  "y": 78, "w": 12, "h": 16, "door_dir": "",        "gate_mech": "",            "wall_side": "SW", "scope": "outdoor"},
+        {"id": 28, "type": "garden",             "label": "North Herbal & Tulsi Garden",             "x": 38, "y": 3,  "w": 22, "h": 7,  "door_dir": "N",       "gate_mech": "",            "wall_side": "N",  "scope": "outdoor"},
+        {"id": 29, "type": "fireplace",          "label": "SE Outdoor Fire Pit / BBQ",               "x": 85, "y": 78, "w": 11, "h": 12, "door_dir": "E",       "gate_mech": "",            "wall_side": "SE", "scope": "outdoor"},
+    ]
+
+    walls = [
+        {"id": 201, "x1": 16, "y1": 45, "x2": 39, "y2": 45, "wall_type": "partition", "label": "West Interior Partition Wall"},
+        {"id": 202, "x1": 39, "y1": 60, "x2": 84, "y2": 60, "wall_type": "load_bearing", "label": "South-West / South-East Thick Wall"},
+        {"id": 203, "x1": 62, "y1": 60, "x2": 62, "y2": 84, "wall_type": "partition", "label": "Kitchen Partition Wall"},
+    ]
+
+    fences = [
+        {
+            "id": 301,
+            "label": "Property Perimeter Fence (Closed Loop with NE/NW Gate Openings)",
+            "closed": True,
+            "open_side": "NONE",
+            "points": [
+                {"x": 2, "y": 2},
+                {"x": 98, "y": 2},
+                {"x": 98, "y": 98},
+                {"x": 2, "y": 98},
+            ],
+        }
+    ]
+
+    return {
+        "preset_title": f"Personalized Ideal Layout for {lagna_sign} Ascendant ({lagna_lord}) & Home Lord {h4_lord}",
+        "items": items,
+        "walls": walls,
+        "fences": fences,
+    }
+
+
 def _coord_to_zone(cx: float, cy: float, compass_deg: float = 0.0) -> str:
     """Given normalized center coordinates (cx, cy) in [0..100] where (50, 50) is
     the center of the house/lot and top (y=0) is North when compass_deg=0,
@@ -613,17 +973,21 @@ def _coord_to_zone(cx: float, cy: float, compass_deg: float = 0.0) -> str:
     if dist < 11.5:
         return "Center"
 
-    # Angle clockwise from Top (0° = top = North before rotation)
     angle_cw_from_top = (math.degrees(math.atan2(dx, -dy)) + 360.0) % 360.0
-    # Adjust for compass rotation (if North is rotated by compass_deg clockwise)
     rel_angle = (angle_cw_from_top - compass_deg + 360.0) % 360.0
-
-    # 8 compass sectors of 45° each:
-    # N: 337.5..22.5, NE: 22.5..67.5, E: 67.5..112.5, SE: 112.5..157.5,
-    # S: 157.5..202.5, SW: 202.5..247.5, W: 247.5..292.5, NW: 292.5..337.5
     sectors = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
     idx = int(((rel_angle + 22.5) % 360.0) // 45.0)
     return sectors[idx]
+
+
+def _point_to_segment_dist(px: float, py: float, x1: float, y1: float, x2: float, y2: float) -> float:
+    dx, dy = x2 - x1, y2 - y1
+    if dx == 0 and dy == 0:
+        return math.hypot(px - x1, py - y1)
+    t = max(0.0, min(1.0, ((px - x1) * dx + (py - y1) * dy) / (dx * dx + dy * dy)))
+    proj_x = x1 + t * dx
+    proj_y = y1 + t * dy
+    return math.hypot(px - proj_x, py - proj_y)
 
 
 def evaluate_visual_vastu_layout(
@@ -633,10 +997,17 @@ def evaluate_visual_vastu_layout(
     compass_rotation: float = 0.0,
     pos: Optional[Dict[str, Any]] = None,
     asc_lon: Optional[float] = None,
+    walls: Optional[List[Dict[str, Any]]] = None,
+    fences: Optional[List[Dict[str, Any]]] = None,
 ) -> Dict[str, Any]:
-    """Evaluates a complete visual House + Outer-Lot Vastu diagram with any number
-    of indoor rooms and outdoor yard items, returning a detailed Vastu score,
-    shape analysis, item-by-item diagnostics, birth-chart synergy, and remedies."""
+    """Evaluates a complete visual House + Outer-Lot Vastu & Feng Shui diagram with:
+    - All 45+ indoor rooms, appliances (washer/dryer, stove, taps), sacred spaces (temple, meditation, medication),
+      photo frames (living, deceased, gods), TV wall, and outdoor features (trench, water hose, kids slide, gates)
+    - Gate & door opening mechanisms (swing inward clockwise/counter-clockwise, outward, double-leaf, sliding N/E vs S/W)
+    - Trench / ditch inside vs outside property & water flow slope direction
+    - Custom drawn wall lines (checking Brahmasthan center cut & SW vs NE wall density)
+    - Continuous perimeter fence loops (closed loop vs open loop directionality)
+    - Cross-item relational Vastu & Feng Shui diagnostics."""
     shape_info = {
         "square": {
             "name": "Square Footprint (Chaturasra — Classical 1:1 Proportion)",
@@ -659,7 +1030,6 @@ def evaluate_visual_vastu_layout(
         "explanation": "Maintain clean 90° corners and keep the center (Brahmasthan) clutter-free.",
     })
 
-    # Optional birth chart cross-link
     lagna_idx = int(asc_lon // 30) % 12 if asc_lon is not None else None
     lagna_lord = SIGN_LORDS[lagna_idx] if lagna_idx is not None else None
     h9_lord = SIGN_LORDS[(lagna_idx + 8) % 12] if lagna_idx is not None else None
@@ -670,20 +1040,32 @@ def evaluate_visual_vastu_layout(
     critical_doshas: List[str] = []
     auspicious_highlights: List[str] = []
 
+    # Track placed items by type for relational cross-checks
+    by_type: Dict[str, List[Dict[str, Any]]] = {}
+
     for idx, raw in enumerate(items, start=1):
         itype = str(raw.get("type", "living_room")).lower()
         rule = ITEM_RULES.get(itype, ITEM_RULES["living_room"])
         custom_label = raw.get("label") or rule["label"]
         cx = float(raw.get("x", 50.0)) + float(raw.get("w", 12.0)) / 2.0
         cy = float(raw.get("y", 50.0)) + float(raw.get("h", 12.0)) / 2.0
-        door_dir = raw.get("door_dir") or ""
-        area_scope = raw.get("scope") or rule["category"]  # 'indoor' or 'outdoor'
+        door_dir = str(raw.get("door_dir") or "").upper()
+        gate_mech = str(raw.get("gate_mech") or "").lower()
+        wall_side = str(raw.get("wall_side") or "").upper()
+        flow_dir = str(raw.get("flow_dir") or "").upper()
+        area_scope = raw.get("scope") or rule["category"]  # 'indoor', 'outdoor', or 'outside_boundary'
 
         zone = _coord_to_zone(cx, cy, compass_rotation)
         zone_meta = DIRECTION_META[zone]
         zone_planet = zone_meta["planet"]
 
-        # Score the placement (out of 10)
+        by_type.setdefault(itype, []).append({
+            "label": custom_label, "zone": zone, "cx": cx, "cy": cy,
+            "door_dir": door_dir, "wall_side": wall_side, "gate_mech": gate_mech,
+            "flow_dir": flow_dir, "scope": area_scope,
+        })
+
+        # 1. Base Zone Score (out of 10)
         if zone in rule["ideal_zones"]:
             pts = 10
             status = "IDEAL / AUSPICIOUS"
@@ -703,20 +1085,67 @@ def evaluate_visual_vastu_layout(
                 f"whereas it belongs in {', '.join(rule['ideal_zones'])}."
             )
 
-        # Check Door / Gate Facing Direction if applicable
-        door_note = ""
+        # 2. Door / Facing Direction Check
+        extra_notes: List[str] = []
         if door_dir and "ideal_door_facing" in rule:
             if door_dir in rule["ideal_door_facing"]:
                 pts = min(10, pts + 1)
-                door_note = f" Door/Gate facing {door_dir} is highly auspicious (invites positive Prana)."
-            elif door_dir in ("SW", "S"):
+                extra_notes.append(f"Facing {door_dir} is highly auspicious.")
+            elif door_dir in ("SW", "S") and itype not in ("photo_deceased", "wall_mirror"):
                 pts = max(2, pts - 2)
                 if status == "IDEAL / AUSPICIOUS":
-                    status = "ACCEPTABLE (CHECK DOOR DIRECTION)"
+                    status = "ACCEPTABLE (CHECK FACING DIRECTION)"
                     badge_color = "neutral"
-                door_note = f" Note: Door/Gate facing {door_dir} needs a threshold copper strip and bright overhead lamp."
+                extra_notes.append(f"Facing {door_dir} needs a threshold copper strip / bright lamp.")
             else:
-                door_note = f" Door/Gate facing {door_dir} is moderate/balanced."
+                extra_notes.append(f"Facing {door_dir} is balanced.")
+
+        # 3. Gate / Door Swing & Sliding Mechanism Check
+        mech_label = ""
+        if gate_mech and gate_mech in GATE_MECHANISM_RULES:
+            m_rule = GATE_MECHANISM_RULES[gate_mech]
+            mech_label = m_rule["label"]
+            pts = max(1, min(10, pts + m_rule["score_delta"]))
+            extra_notes.append(m_rule["verdict"])
+            if m_rule["score_delta"] < 0:
+                if badge_color == "good":
+                    badge_color = "neutral"
+                    status = "CHECK GATE/DOOR OPENING MECHANISM"
+                critical_doshas.append(f"{custom_label} ({m_rule['label']}): {m_rule['remedy']}")
+
+        # 4. Wall Side Check (for Photo Frames, TV, Mirror, Clock, Taps)
+        if wall_side:
+            w_lbl = WALL_SIDE_LABELS.get(wall_side, f"{wall_side} Wall")
+            if "ideal_wall_sides" in rule:
+                if wall_side in rule["ideal_wall_sides"]:
+                    extra_notes.append(f"Mounted on {w_lbl} — ideal wall alignment!")
+                else:
+                    pts = max(2, pts - 2)
+                    if badge_color == "good":
+                        badge_color = "neutral"
+                        status = "WALL ORIENTATION NEEDS ADJUSTMENT"
+                    extra_notes.append(
+                        f"Mounted on {w_lbl}, whereas classical Vastu recommends mounting on {', '.join(rule['ideal_wall_sides'])} wall."
+                    )
+            else:
+                extra_notes.append(f"Wall: {w_lbl}.")
+
+        # 5. Special Trench / Ditch Inside vs Outside Property & Flow Check
+        if itype == "trench_ditch":
+            loc_str = "Outside Property Boundary" if area_scope == "outside_boundary" else ("Inside House" if area_scope == "indoor" else "Inside Property Yard")
+            extra_notes.append(f"Trench Location: {loc_str}.")
+            if flow_dir:
+                if flow_dir in ("NE", "E", "N"):
+                    pts = min(10, pts + 1)
+                    extra_notes.append(f"Drainage/Slope flows toward {flow_dir} (Auspicious Pradakshina water flow!).")
+                elif flow_dir in ("SW", "S", "W", "STAGNANT"):
+                    pts = max(1, pts - 3)
+                    badge_color = "bad"
+                    status = "TRENCH DRAINAGE DOSHA"
+                    extra_notes.append(f"WARNING: Trench water drains/stagnates toward {flow_dir}, which drains wealth and stability!")
+                    critical_doshas.append(
+                        f"{custom_label} ({loc_str} in {zone} draining toward {flow_dir}): Re-grade or channel drainage toward North-East/East and cover SW/S trench segments with heavy stone slabs."
+                    )
 
         # Birth Chart Synergy Note
         chart_synergy = ""
@@ -734,36 +1163,225 @@ def evaluate_visual_vastu_layout(
                     f"Birth-Chart Link: {zone} is governed by {zone_planet} (placed in House {p_house} of your birth chart)."
                 )
 
+        detail_suffix = (" " + " ".join(extra_notes)) if extra_notes else ""
         if pts >= 9:
-            auspicious_highlights.append(f"{custom_label} in {zone} ({zone_meta['name']}){door_note}")
+            auspicious_highlights.append(f"{custom_label} in {zone} ({zone_meta['name']}){detail_suffix}")
         elif pts <= 4:
             critical_doshas.append(f"{custom_label} in {zone}: {rule['fix_if_wrong']}")
 
         total_pts += pts
         max_pts += 10
 
+        fs_bagua = FENG_SHUI_BAGUA_SECTORS.get(zone, FENG_SHUI_BAGUA_SECTORS["Center"])
+        fs_note = (
+            f"Feng Shui Bagua ({fs_bagua['trigram']} · {fs_bagua['life_area']} · {fs_bagua['element']}): "
+            f"{fs_bagua['enhancer']}"
+        )
+
+        scope_display = (
+            "Outside Property Boundary" if area_scope == "outside_boundary"
+            else ("Outer Lot / Yard" if area_scope == "outdoor" else "Inside House")
+        )
+        door_display_parts = []
+        if door_dir:
+            door_display_parts.append(f"Faces {door_dir}")
+        if mech_label:
+            door_display_parts.append(mech_label)
+        if wall_side:
+            door_display_parts.append(f"On {wall_side} Wall")
+        if flow_dir:
+            door_display_parts.append(f"Flows → {flow_dir}")
+        door_display = " · ".join(door_display_parts) if door_display_parts else "N/A"
+
         evaluated_items.append({
             "index": idx,
             "type": itype,
             "label": custom_label,
-            "scope": "Outer Lot / Yard" if area_scope == "outdoor" else "Inside House",
+            "scope": scope_display,
             "detected_zone": zone,
             "zone_full_name": zone_meta["name"],
-            "zone_planet_and_element": f"{zone_planet} | {zone_meta['element']}",
-            "door_or_gate_facing": door_dir or "N/A",
+            "zone_planet_and_element": f"{zone_planet} | {zone_meta['element']} | Feng Shui: {fs_bagua['element']} ({fs_bagua['life_area']})",
+            "door_or_gate_facing": door_display,
             "score_out_of_10": pts,
             "status": status,
             "badge_color": badge_color,
-            "verdict_in_simple_words": verdict_summary + door_note,
+            "verdict_in_simple_words": verdict_summary + detail_suffix,
             "why_this_rule_exists": rule["why_simple"],
             "ideal_zones_for_this_item": rule["ideal_zones"],
             "birth_chart_synergy": chart_synergy,
+            "feng_shui_bagua_harmony": fs_note,
             "zero_demolition_remedy": "No remedy needed — keep clean, bright, and clutter-free!" if pts >= 9 else rule["fix_if_wrong"],
+        })
+
+    # -----------------------------------------------------------------------
+    # 6. RELATIONAL CROSS-ITEM CHECKS (Stove vs Taps, Photos, TV in Bedroom)
+    # -----------------------------------------------------------------------
+    relational_findings: List[Dict[str, str]] = []
+
+    # Check 6A: Kitchen Stove vs Indoor Taps / Sink proximity (Fire-Water Sha Qi)
+    for st in by_type.get("kitchen_stove", []):
+        for tp in by_type.get("indoor_taps", []):
+            dist = math.hypot(st["cx"] - tp["cx"], st["cy"] - tp["cy"])
+            if dist < 14.0:
+                msg = (
+                    f"🔥💧 Fire-Water Clash Detected: '{st['label']}' and '{tp['label']}' are placed very close together ({round(dist, 1)}% span). "
+                    "In both Vastu and Classical Feng Shui, a stove touching or facing a water sink causes digestive & marital friction. "
+                    "Fix: Place a green herb plant, wooden cutting board, or green crystal between the stove and taps."
+                )
+                critical_doshas.append(msg)
+                relational_findings.append({"type": "warning", "title": "Stove vs. Water Taps Clash", "detail": msg})
+
+    # Check 6B: Deceased Ancestors Photo mixed with Gods Photo or Puja Room
+    for dec in by_type.get("photo_deceased", []):
+        for sacred in (by_type.get("puja_room", []) + by_type.get("photo_gods", [])):
+            if dec["zone"] == sacred["zone"] or math.hypot(dec["cx"] - sacred["cx"], dec["cy"] - sacred["cy"]) < 18.0:
+                msg = (
+                    f"🖼️⚠️ Pitru-Deva Photo Clash: '{dec['label']}' is placed in the same zone ({dec['zone']}) or near '{sacred['label']}'. "
+                    "Classical Vastu strictly forbids keeping deceased ancestors' photos in the Puja altar or alongside Gods' photos. "
+                    "Fix: Hang deceased ancestors' photos exclusively on the South wall (facing North) in the living/dining hall."
+                )
+                critical_doshas.append(msg)
+                relational_findings.append({"type": "warning", "title": "Deceased Ancestors vs. Gods Photo Clash", "detail": msg})
+
+    # Check 6C: Living Family Photo alongside Deceased Ancestors Photo
+    for liv in by_type.get("photo_living", []):
+        for dec in by_type.get("photo_deceased", []):
+            if liv["zone"] == dec["zone"] and (not liv["wall_side"] or liv["wall_side"] == dec["wall_side"]):
+                msg = (
+                    f"🖼️⚠️ Living vs. Deceased Photo Rule: '{liv['label']}' and '{dec['label']}' are in the same {liv['zone']} sector/wall. "
+                    "Never hang photos of living family members on the same wall alongside deceased ancestors. "
+                    "Fix: Move living family photos to the South-West, West, East, or North wall."
+                )
+                critical_doshas.append(msg)
+                relational_findings.append({"type": "warning", "title": "Living vs. Deceased Family Photo Separation", "detail": msg})
+
+    # Check 6D: TV Screen or Wall Mirror inside Bedroom facing Bed
+    for bed in (by_type.get("master_bedroom", []) + by_type.get("bedroom", [])):
+        for refl in (by_type.get("tv_screen", []) + by_type.get("wall_mirror", [])):
+            if math.hypot(bed["cx"] - refl["cx"], bed["cy"] - refl["cy"]) < 18.0:
+                msg = (
+                    f"📺🛏️ Bedroom Dark-Mirror Warning: '{refl['label']}' is inside or adjacent to '{bed['label']}'. "
+                    "In Vastu & Feng Shui, a TV screen or mirror reflecting the sleeping body drains vitality and disturbs marital harmony. "
+                    "Fix: Cover the TV screen or mirror with a cloth runner before sleeping, or mount it on a side wall that does not reflect the bed."
+                )
+                relational_findings.append({"type": "caution", "title": "TV / Mirror Near Bed Check", "detail": msg})
+
+    # -----------------------------------------------------------------------
+    # 7. DRAWN WALL LINES EVALUATION (Brahmasthan Cut & SW vs NE Density)
+    # -----------------------------------------------------------------------
+    wall_evaluations: List[Dict[str, Any]] = []
+    sw_wall_len = 0.0
+    ne_wall_len = 0.0
+    for w_idx, w in enumerate(walls or [], start=1):
+        x1, y1 = float(w.get("x1", 20)), float(w.get("y1", 20))
+        x2, y2 = float(w.get("x2", 40)), float(w.get("y2", 20))
+        w_type = str(w.get("wall_type") or "partition")
+        w_label = w.get("label") or f"Wall Line #{w_idx}"
+        seg_len = round(math.hypot(x2 - x1, y2 - y1), 1)
+        mid_zone = _coord_to_zone((x1 + x2) / 2.0, (y1 + y2) / 2.0, compass_rotation)
+        dist_center = _point_to_segment_dist(50.0, 50.0, x1, y1, x2, y2)
+
+        if mid_zone in ("SW", "S", "W"):
+            sw_wall_len += seg_len * (1.5 if w_type == "load_bearing" else 1.0)
+        elif mid_zone in ("NE", "N", "E"):
+            ne_wall_len += seg_len
+
+        if dist_center < 8.5:
+            w_status = "BRAHMASTHAN WALL DOSHA"
+            w_badge = "bad"
+            w_advice = (
+                f"{w_label} cuts directly through the central Brahmasthan / Tai Qi heart of the house! "
+                "A wall bisecting the exact center blocks pranic circulation and causes spine/digestive pressure. "
+                "Zero-demolition fix: Paint this central wall pure white/ivory, hang a bright warm light or nature tapestry on it, "
+                "and place 2 brass Vastu pyramids at the base of the wall."
+            )
+            critical_doshas.append(w_advice)
+            total_pts += 3
+        else:
+            w_status = "HARMONIOUS PARTITION"
+            w_badge = "good"
+            w_advice = (
+                f"{w_label} ({w_type.replace('_', ' ')}, length {seg_len}%) in {mid_zone} zone respects the open Brahmasthan center."
+            )
+            total_pts += 9
+        max_pts += 10
+
+        wall_evaluations.append({
+            "index": w_idx,
+            "label": w_label,
+            "wall_type": w_type,
+            "zone": mid_zone,
+            "length_percent": seg_len,
+            "cuts_brahmasthan": dist_center < 8.5,
+            "status": w_status,
+            "badge_color": w_badge,
+            "advice": w_advice,
+        })
+
+    # -----------------------------------------------------------------------
+    # 8. PERIMETER FENCE LOOPS EVALUATION (Closed vs Open Loop)
+    # -----------------------------------------------------------------------
+    fence_evaluations: List[Dict[str, Any]] = []
+    for f_idx, fn in enumerate(fences or [], start=1):
+        pts_list = fn.get("points") or []
+        is_closed = bool(fn.get("closed", True))
+        open_side = str(fn.get("open_side") or ("NONE" if is_closed else "NE")).upper()
+        f_label = fn.get("label") or f"Perimeter Fence #{f_idx}"
+
+        if is_closed:
+            f_status = "CLOSED LOOP PERIMETER (PROTECTED KSHETRA)"
+            f_badge = "good"
+            f_advice = (
+                f"{f_label}: Complete Closed-Loop Fence around the property creates a sealed, auspicious Vastu Kshetra & Feng Shui guardian boundary. "
+                "Ensure the South-West and South fence segments are solid and slightly taller, while keeping the North-East and East segments lighter/airy with an inward-opening Gate."
+            )
+            auspicious_highlights.append(f"{f_label} (Closed Loop Perimeter Protection)")
+            total_pts += 10
+        else:
+            if open_side in ("NE", "N", "E"):
+                f_status = f"OPEN LOOP FENCE (OPEN TOWARD {open_side} — AUSPICIOUS PRANA MUKHA)"
+                f_badge = "good"
+                f_advice = (
+                    f"{f_label}: Open-Loop Fence enclosed on the heavy back/sides and open toward {open_side}. "
+                    f"In Vastu & Form School Feng Shui, an open {open_side} front (Red Phoenix / Solar opening) with solid SW/S/W backing (Black Tortoise support) is highly auspicious!"
+                )
+                auspicious_highlights.append(f"{f_label} (Open Loop facing auspicious {open_side})")
+                total_pts += 9
+            elif open_side in ("SW", "S"):
+                f_status = f"OPEN LOOP FENCE WARNING (UNPROTECTED {open_side} BOUNDARY)"
+                f_badge = "bad"
+                f_advice = (
+                    f"{f_label}: Open-Loop Fence is left open on the {open_side} side! "
+                    "In both Vastu (Nairutya Prakara Dosha) and Feng Shui (missing Black Tortoise backing), leaving the South or South-West boundary unfenced while fencing the North/East leaks wealth and stability. "
+                    "Fix: Close the fence loop along the South/South-West or plant a dense row of tall trees/shrubs along the SW boundary."
+                )
+                critical_doshas.append(f_advice)
+                total_pts += 3
+            else:
+                f_status = f"OPEN LOOP FENCE (OPEN ON {open_side})"
+                f_badge = "neutral"
+                f_advice = (
+                    f"{f_label}: Open-Loop Fence with opening toward {open_side} ({len(pts_list)} vertices). "
+                    "Keep the South-West corner of the fence solidly anchored and well-defined."
+                )
+                total_pts += 7
+        max_pts += 10
+
+        fence_evaluations.append({
+            "index": f_idx,
+            "label": f_label,
+            "loop_type": "Closed Loop (360° Enclosure)" if is_closed else f"Open Loop (Open on {open_side})",
+            "closed": is_closed,
+            "open_side": open_side,
+            "vertex_count": len(pts_list),
+            "status": f_status,
+            "badge_color": f_badge,
+            "advice": f_advice,
         })
 
     overall_score = round((total_pts / max_pts) * 100) if max_pts > 0 else 85
     if overall_score >= 82:
-        overall_grade = "A+ (Vastu Siddha — High-Energy Prosperous Layout)"
+        overall_grade = "A+ (Vastu & Feng Shui Siddha — High-Energy Prosperous Layout)"
     elif overall_score >= 68:
         overall_grade = "B+ (Harmonious Layout — Apply Simple Remedies to Reach 95%+)"
     else:
@@ -771,14 +1389,297 @@ def evaluate_visual_vastu_layout(
 
     return {
         "overall_vastu_score_percent": overall_score,
+        "overall_score": overall_score,
         "overall_grade": overall_grade,
         "house_shape_analysis": shape_info,
         "has_outer_lot": has_outer_lot,
         "compass_rotation_degrees": compass_rotation,
         "total_items_evaluated": len(evaluated_items),
+        "total_walls_evaluated": len(wall_evaluations),
+        "total_fences_evaluated": len(fence_evaluations),
         "auspicious_strengths": auspicious_highlights or ["Add rooms and lot features on the visual canvas to see strengths."],
-        "critical_doshas_and_fixes": critical_doshas or ["Zero critical Vastu defects detected in the current placement!"],
+        "critical_doshas_and_fixes": critical_doshas or ["Zero critical Vastu/Feng Shui defects detected in the current placement!"],
+        "relational_cross_checks": relational_findings,
+        "wall_line_evaluations": wall_evaluations,
+        "fence_loop_evaluations": fence_evaluations,
         "item_by_item_breakdown": evaluated_items,
+        "feng_shui_bagua_reference": FENG_SHUI_BAGUA_SECTORS,
+        "feng_shui": FENG_SHUI_BAGUA_SECTORS,
+    }
+
+
+# ---------------------------------------------------------------------------
+# 4B. CLASSICAL FENG SHUI ENGINE (BAGUA, PERSONAL KUA / EIGHT MANSIONS & FLYING STARS)
+# ---------------------------------------------------------------------------
+FENG_SHUI_BAGUA_SECTORS: Dict[str, Dict[str, Any]] = {
+    "N": {
+        "sector": "North", "trigram": "Kan (☵)", "lo_shu_number": 1, "element": "Water",
+        "life_area": "Career, Life Path & Cash Flow", "celestial_guardian": "Red Phoenix / Black Tortoise Axis",
+        "period_9_star": "Star #5 (Yellow Earth — Neutralize with 6-Rod Metal Windchime or Brass Wu Lou)",
+        "colors": "Deep Blue, Black, Charcoal, White/Metallic accents",
+        "enhancer": "Keep pathways open; use gentle moving water, aquarium, or metallic/glass decor to stimulate career flow.",
+        "avoid": "Heavy Earth boulders, yellow clay clutter, or fire features in the North.",
+    },
+    "NE": {
+        "sector": "North-East", "trigram": "Gen (☶)", "lo_shu_number": 8, "element": "Small Earth (Mountain)",
+        "life_area": "Knowledge, Spiritual Wisdom, Study & Self-Cultivation", "celestial_guardian": "Outer Gate of Wisdom",
+        "period_9_star": "Star #3 (Jade Wood — Add a touch of Red/Warm Light to calm wood-earth tension)",
+        "colors": "Sandy Beige, Terracotta, Warm Yellow, Cream",
+        "enhancer": "Ideal for meditation, Puja altar, library, and natural quartz/amethyst crystals.",
+        "avoid": "Toilets, septic tanks, trash bins, or noisy machinery.",
+    },
+    "E": {
+        "sector": "East", "trigram": "Zhen (☳)", "lo_shu_number": 3, "element": "Big Wood (Thunder)",
+        "life_area": "Family Harmony, Physical Health, Vitality & Elders", "celestial_guardian": "Green Dragon (Qing Long — Keep Slightly Higher & Lush)",
+        "period_9_star": "Star #7 (Red Metal — Place lush green bamboo or water-grown plants to absorb metal)",
+        "colors": "Emerald Green, Forest Green, Teal, Aqua",
+        "enhancer": "Healthy lush green plants, Lucky Bamboo (3 stalks), wooden furniture, and morning sunlight.",
+        "avoid": "Sharp metal blades, dead/dried plants, or heavy metallic clutter.",
+    },
+    "SE": {
+        "sector": "South-East", "trigram": "Xun (☴)", "lo_shu_number": 4, "element": "Soft Wood (Wind)",
+        "life_area": "Wealth, Prosperity, Abundance & Fortunate Blessings", "celestial_guardian": "Sunlit Dragon Wing",
+        "period_9_star": "Star #8 (White Wealth Star — Secondary Prosperity Star in Period 9!)",
+        "colors": "Green, Jade, Purple, Lavender, Gold accents",
+        "enhancer": "Jade plant / Money tree, citrine cluster, wooden wealth bowl, or clean kitchen warmth.",
+        "avoid": "Withering plants, garbage, or dark stagnant corners.",
+    },
+    "S": {
+        "sector": "South", "trigram": "Li (☲)", "lo_shu_number": 9, "element": "Fire",
+        "life_area": "Fame, Reputation, Recognition & Social Illumination", "celestial_guardian": "Red Phoenix / Vermilion Bird (Keep Open & Bright)",
+        "period_9_star": "Star #4 (Green Wood Academic & Romance Star — Feeds Fire naturally!)",
+        "colors": "Crimson Red, Coral, Orange, Magenta, Bright Gold",
+        "enhancer": "Bright lighting, awards/diplomas, fireplace/hearth, or 9-stalk upward-growing plants.",
+        "avoid": "Large water tanks, swimming pools, or dark mirrors extinguishing South Fire.",
+    },
+    "SW": {
+        "sector": "South-West", "trigram": "Kun (☷)", "lo_shu_number": 2, "element": "Big Earth (Receptive Mother)",
+        "life_area": "Love, Marriage, Devoted Partnerships & Maternal Stability", "celestial_guardian": "Black Tortoise Support Wing",
+        "period_9_star": "Star #6 (White Metal Heavenly Authority Star — Harmonious Earth-Metal bond)",
+        "colors": "Rose Pink, Terracotta, Earthy Ochre, Soft Peach, Warm Beige",
+        "enhancer": "Master Bedroom, paired rose quartz crystals, pairs of lamps/cushions, and heavy grounding furniture.",
+        "avoid": "Single/lonely imagery, thorny cacti, water pools, or toilets.",
+    },
+    "W": {
+        "sector": "West", "trigram": "Dui (☱)", "lo_shu_number": 7, "element": "Small Metal (Lake / Joy)",
+        "life_area": "Children, Creativity, Descendants, Joy & Artistic Expression", "celestial_guardian": "White Tiger (Bai Hu — Keep Calmer & Lower than East)",
+        "period_9_star": "Star #2 (Black Earth — Hang a Brass Wu Lou gourd to transmute illness energy into Metal)",
+        "colors": "White, Silver, Metallic Gold, Pastel Grey",
+        "enhancer": "Creative studio, children's bedroom, round metallic frames, and joyful family artwork.",
+        "avoid": "Excessive open fire or chaotic clutter.",
+    },
+    "NW": {
+        "sector": "North-West", "trigram": "Qian (☰)", "lo_shu_number": 6, "element": "Big Metal (Heaven / Mentor)",
+        "life_area": "Helpful People, Mentors, Global Travel, Benefactors & Patriarch", "celestial_guardian": "Heavenly Gate (Qian)",
+        "period_9_star": "Star #1 (White Water Future Prosperity & Nobleman Star — Highly Auspicious!)",
+        "colors": "Metallic Gold, Silver, Pearl White, Platinum",
+        "enhancer": "Guest room, travel globes, brass/silver bells (6-rod metal chime), and images of mentors/benefactors.",
+        "avoid": "Heavy fire/kitchen stoves ('Fire at Heaven\\'s Gate' in Feng Shui — cure with yellow ceramic/earth crystal if kitchen is NW).",
+    },
+    "Center": {
+        "sector": "Center (Tai Qi / Heart of Home)", "trigram": "Tai Qi (☯)", "lo_shu_number": 5, "element": "Central Earth",
+        "life_area": "Overall Health, Unity, Spiritual Grounding & Qi Distribution", "celestial_guardian": "Supreme Axis (Brahmasthan / Tai Qi)",
+        "period_9_star": "Star #9 (Purple Fire Supreme Period-9 reigning Star 2024–2043!)",
+        "colors": "Cream, Ivory, Light Gold, Earthy Neutral",
+        "enhancer": "Keep completely open, airy, well-lit, and unencumbered so Qi and Prana circulate to all 8 outer sectors.",
+        "avoid": "Pillars, heavy staircases, bathrooms, or storage closets in the exact center.",
+    },
+}
+
+
+def compute_classical_feng_shui(
+    birth_year: int = 1990,
+    birth_month: int | str = 5,
+    birth_day: int = 15,
+    gender: str = "male",
+    pos: Dict[str, Any] | None = None,
+    asc_lon: float | None = None,
+) -> Dict[str, Any]:
+    """Computes Personal Kua Number (Ming Gua), Eight Mansions (Ba Zhai) 4 Auspicious
+    & 4 Inauspicious Directions, Bagua 9-Grid, Period 9 Flying Stars, and Form School Landscape rules."""
+    if isinstance(birth_month, str):
+        gender = birth_month
+        birth_month = 5
+    # Adjust solar year for Lichun (approx Feb 4)
+    solar_year = birth_year - 1 if (birth_month == 1 or (birth_month == 2 and birth_day < 4)) else birth_year
+    last_two = solar_year % 100
+    s = (last_two // 10) + (last_two % 10)
+    while s >= 10:
+        s = (s // 10) + (s % 10)
+
+    is_female = str(gender or "male").lower().startswith("f")
+    if solar_year < 2000:
+        kua = (s + 4) if is_female else (10 - s)
+    else:
+        kua = (s + 6) if is_female else (9 - s)
+    while kua >= 10:
+        kua = (kua // 10) + (kua % 10)
+    if kua <= 0:
+        kua += 9
+    if kua == 5:
+        kua = 8 if is_female else 2
+
+    KUA_DATA = {
+        1: {
+            "trigram": "Kan (☵ Water)", "element": "Water", "group": "East Group",
+            "auspicious": {
+                "Sheng Qi (Supreme Wealth & Vitality)": "SE",
+                "Tian Yi (Heavenly Doctor & Health)": "E",
+                "Yan Nian (Harmony, Love & Longevity)": "S",
+                "Fu Wei (Stability, Study & Peace)": "N",
+            },
+            "inauspicious": {
+                "Huo Hai (Minor Mishaps)": "W",
+                "Wu Gui (Five Ghosts / Conflict)": "NE",
+                "Liu Sha (Six Killings / Drain)": "NW",
+                "Jue Ming (Total Loss — Suppress with Bathroom/Storage)": "SW",
+            },
+        },
+        2: {
+            "trigram": "Kun (☷ Earth)", "element": "Earth", "group": "West Group",
+            "auspicious": {
+                "Sheng Qi (Supreme Wealth & Vitality)": "NE",
+                "Tian Yi (Heavenly Doctor & Health)": "W",
+                "Yan Nian (Harmony, Love & Longevity)": "NW",
+                "Fu Wei (Stability, Study & Peace)": "SW",
+            },
+            "inauspicious": {
+                "Huo Hai (Minor Mishaps)": "E",
+                "Wu Gui (Five Ghosts / Conflict)": "SE",
+                "Liu Sha (Six Killings / Drain)": "S",
+                "Jue Ming (Total Loss — Suppress with Bathroom/Storage)": "N",
+            },
+        },
+        3: {
+            "trigram": "Zhen (☳ Wood)", "element": "Wood", "group": "East Group",
+            "auspicious": {
+                "Sheng Qi (Supreme Wealth & Vitality)": "S",
+                "Tian Yi (Heavenly Doctor & Health)": "N",
+                "Yan Nian (Harmony, Love & Longevity)": "SE",
+                "Fu Wei (Stability, Study & Peace)": "E",
+            },
+            "inauspicious": {
+                "Huo Hai (Minor Mishaps)": "SW",
+                "Wu Gui (Five Ghosts / Conflict)": "NW",
+                "Liu Sha (Six Killings / Drain)": "NE",
+                "Jue Ming (Total Loss — Suppress with Bathroom/Storage)": "W",
+            },
+        },
+        4: {
+            "trigram": "Xun (☴ Wood)", "element": "Soft Wood", "group": "East Group",
+            "auspicious": {
+                "Sheng Qi (Supreme Wealth & Vitality)": "N",
+                "Tian Yi (Heavenly Doctor & Health)": "S",
+                "Yan Nian (Harmony, Love & Longevity)": "E",
+                "Fu Wei (Stability, Study & Peace)": "SE",
+            },
+            "inauspicious": {
+                "Huo Hai (Minor Mishaps)": "NW",
+                "Wu Gui (Five Ghosts / Conflict)": "SW",
+                "Liu Sha (Six Killings / Drain)": "W",
+                "Jue Ming (Total Loss — Suppress with Bathroom/Storage)": "NE",
+            },
+        },
+        6: {
+            "trigram": "Qian (☰ Metal)", "element": "Metal", "group": "West Group",
+            "auspicious": {
+                "Sheng Qi (Supreme Wealth & Vitality)": "W",
+                "Tian Yi (Heavenly Doctor & Health)": "NE",
+                "Yan Nian (Harmony, Love & Longevity)": "SW",
+                "Fu Wei (Stability, Study & Peace)": "NW",
+            },
+            "inauspicious": {
+                "Huo Hai (Minor Mishaps)": "SE",
+                "Wu Gui (Five Ghosts / Conflict)": "E",
+                "Liu Sha (Six Killings / Drain)": "N",
+                "Jue Ming (Total Loss — Suppress with Bathroom/Storage)": "S",
+            },
+        },
+        7: {
+            "trigram": "Dui (☱ Metal)", "element": "Small Metal", "group": "West Group",
+            "auspicious": {
+                "Sheng Qi (Supreme Wealth & Vitality)": "NW",
+                "Tian Yi (Heavenly Doctor & Health)": "SW",
+                "Yan Nian (Harmony, Love & Longevity)": "NE",
+                "Fu Wei (Stability, Study & Peace)": "W",
+            },
+            "inauspicious": {
+                "Huo Hai (Minor Mishaps)": "N",
+                "Wu Gui (Five Ghosts / Conflict)": "S",
+                "Liu Sha (Six Killings / Drain)": "SE",
+                "Jue Ming (Total Loss — Suppress with Bathroom/Storage)": "E",
+            },
+        },
+        8: {
+            "trigram": "Gen (☶ Earth)", "element": "Mountain Earth", "group": "West Group",
+            "auspicious": {
+                "Sheng Qi (Supreme Wealth & Vitality)": "SW",
+                "Tian Yi (Heavenly Doctor & Health)": "NW",
+                "Yan Nian (Harmony, Love & Longevity)": "W",
+                "Fu Wei (Stability, Study & Peace)": "NE",
+            },
+            "inauspicious": {
+                "Huo Hai (Minor Mishaps)": "S",
+                "Wu Gui (Five Ghosts / Conflict)": "N",
+                "Liu Sha (Six Killings / Drain)": "E",
+                "Jue Ming (Total Loss — Suppress with Bathroom/Storage)": "SE",
+            },
+        },
+        9: {
+            "trigram": "Li (☲ Fire)", "element": "Fire", "group": "East Group",
+            "auspicious": {
+                "Sheng Qi (Supreme Wealth & Vitality)": "E",
+                "Tian Yi (Heavenly Doctor & Health)": "SE",
+                "Yan Nian (Harmony, Love & Longevity)": "N",
+                "Fu Wei (Stability, Study & Peace)": "S",
+            },
+            "inauspicious": {
+                "Huo Hai (Minor Mishaps)": "NE",
+                "Wu Gui (Five Ghosts / Conflict)": "W",
+                "Liu Sha (Six Killings / Drain)": "SW",
+                "Jue Ming (Total Loss — Suppress with Bathroom/Storage)": "NW",
+            },
+        },
+    }
+    kd = KUA_DATA[kua]
+    ausp_list = [
+        {"star": k.split(" (")[0], "title": k.split(" (")[1].rstrip(")") if "(" in k else k, "direction": v, "use": "Front door, desk orientation, bed headboard, or wealth activation"}
+        for k, v in kd["auspicious"].items()
+    ]
+    inausp_list = [
+        {"star": k.split(" (")[0], "title": k.split(" (")[1].rstrip(")") if "(" in k else k, "direction": v, "remedy": "Place bathrooms, closets, storerooms, or elemental cures here to suppress negative Qi"}
+        for k, v in kd["inauspicious"].items()
+    ]
+    return {
+        "solar_birth_year": solar_year,
+        "gender_calibrated": "female" if is_female else "male",
+        "kua_number": kua,
+        "trigram": kd["trigram"],
+        "personal_element": kd["element"],
+        "eight_mansions_group": kd["group"],
+        "personal_kua": {
+            "kua_number": kua,
+            "trigram_name": kd["trigram"],
+            "element": kd["element"],
+            "group": kd["group"],
+        },
+        "four_auspicious_directions": kd["auspicious"],
+        "four_inauspicious_directions": kd["inauspicious"],
+        "auspicious_directions": ausp_list,
+        "inauspicious_directions": inausp_list,
+        "bagua_nine_sectors": list(FENG_SHUI_BAGUA_SECTORS.values()),
+        "bagua_9_grid": FENG_SHUI_BAGUA_SECTORS,
+        "form_school_four_celestial_animals": [
+            {"guardian": "Black Tortoise (Xuan Wu — Back / South-West Support)", "rule": "Keep the back of the house/lot supported by higher ground, a solid fence/wall, or tall shade trees for career and family backing."},
+            {"guardian": "Red Phoenix (Zhu Que — Front / Ming Tang Bright Hall)", "rule": "Keep the front entrance lawn/yard open, bright, and welcoming (grass, low flowers, or gentle water feature) so opportunities gather."},
+            {"guardian": "Green Dragon (Qing Long — Left / East Side looking out)", "rule": "Plant vibrant green trees/garden slightly higher on the East/Left side to activate Yang growth and noble mentors."},
+            {"guardian": "White Tiger (Bai Hu — Right / West Side looking out)", "rule": "Keep the West/Right side tidy with lower bushes and calm pathway lighting so White Tiger energy stays protective and peaceful."},
+        ],
+        "period_9_fire_era_summary": (
+            "We are currently in the 20-year Xuan Kong Period 9 (2024–2043), ruled by the #9 Purple Fire Star (Li Trigram). "
+            "Homes with open, bright North/South axes, thriving Southeast (#8 Wealth Star) and Northwest (#1 Nobleman Star) sectors, "
+            "and a clutter-free Center (#9 Supreme Star) experience maximum prosperity."
+        ),
     }
 
 

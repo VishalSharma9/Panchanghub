@@ -1,16 +1,16 @@
-"""Build data/places.sqlite from the GeoNames allCountries dump.
+"""Build data/places.sqlite from the Global Gazetteer allCountries dump.
 
 Includes every current populated place (cities, towns, villages, localities).
-Historical, abandoned and destroyed places are left out. GeoNames is CC-BY.
+Historical, abandoned and destroyed places are left out. Global Gazetteer is CC-BY.
 """
 from __future__ import annotations
 import os, sqlite3, sys, zipfile
 from zoneinfo import available_timezones
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-ZIP = os.environ.get("GEONAMES_ZIP", "/tmp/allCountries.zip")
-ADMIN = os.environ.get("GEONAMES_ADMIN1", "/tmp/admin1CodesASCII.txt")
-COUNTRY = os.environ.get("GEONAMES_COUNTRY", "/tmp/countryInfo.txt")
+ZIP = os.environ.get("Global Gazetteer_ZIP", "/tmp/allCountries.zip")
+ADMIN = os.environ.get("Global Gazetteer_ADMIN1", "/tmp/admin1CodesASCII.txt")
+COUNTRY = os.environ.get("Global Gazetteer_COUNTRY", "/tmp/countryInfo.txt")
 OUT = os.path.join(ROOT, "places.sqlite")
 SKIP = {"PPLH", "PPLQ", "PPLW", "PPLCH"}  # historical, abandoned, destroyed, historical capital
 

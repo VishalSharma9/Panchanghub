@@ -198,6 +198,11 @@ def get_current_dasha(moon_lon: float, birth_jd: float, target_jd: float, tz) ->
             "start": _fmt_date(s_start, tz),
             "end": _fmt_date(s_end, tz),
         },
+        "sookshma": {
+            "lord": s_lord,
+            "start": _fmt_date(s_start, tz),
+            "end": _fmt_date(s_end, tz),
+        },
         "summary": f"{m_lord}-{a_lord}-{p_lord}-{s_lord}",
         "theme": theme,
     }

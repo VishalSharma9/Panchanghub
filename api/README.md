@@ -1,12 +1,12 @@
 # PanchangHub
 
-Vedic-first astrology & panchang **REST API + website** (FastAPI + Swiss Ephemeris).
+Vedic-first astrology & panchang **REST API + website** (FastAPI + High-Precision Planetary Ephemeris).
 Brand: **PanchangHub** · https://panchanghub.com
 
 * Sidereal **Lahiri (Chitrapaksha)** by default, calibrated to canonical Drik Ganita ephemeris standards (displayed ayanamsa matches to <0.1″).
 * Canonical time handling: sunrise/sunset with refraction (upper limb), moonrise/moonset by disc centre, positions
   evaluated according to observational ephemeris standards. Set `PANCHANGHUB_STRICT_DT=1` for strict astronomy.
-* Swiss Ephemeris data files are bundled in `ephe/` (planets, Moon, main asteroids, 1800–2400). Without them it falls back to the built-in Moshier ephemeris.
+* High-Precision Planetary Ephemeris data files are bundled in `ephe/` (planets, Moon, main asteroids, 1800–2400). Without them it falls back to the built-in Moshier ephemeris.
 * Western tropical charts (Placidus etc.) are kept, plus synastry, composite, Davison, progressions, returns, astrocartography.
 
 ## Quick start
@@ -80,7 +80,7 @@ Original spec paths (`/health`, `/chart`, `/planets`, `/zodiac/{sign}`, `/naksha
 | Core | GET | `/api/nakshatra` | Moon nakshatra & pada (sidereal Lahiri) |
 | Core | GET | `/api/planets` | Planet positions at a moment (default now) |
 | Core | GET | `/api/zodiac/{sign}` | Zodiac sign reference info (English or Sanskrit name) |
-| Geo | GET | `/api/cities` | Every current city, town and village (GeoNames populated places) |
+| Geo | GET | `/api/cities` | Every current city, town and village (Global Gazetteer populated places) |
 | Geo | GET | `/api/cities/nearest` | Nearest city to coordinates |
 | Horoscopes | GET | `/api/horoscope/nakshatra/{index}` | Nak Pred |
 | Horoscopes | GET | `/api/horoscope/{period}/{sign}` | Horoscope |
@@ -230,7 +230,7 @@ Location persists in a cookie (`ph_loc`); default New Delhi. Screenshots: `scree
 app/main.py              FastAPI app; auto-registers routers listed in app/api/__init__.py
 app/models.py            Pydantic request models + validation
 app/api/routers/         core, panchang, vedic, calendar, geo, extras, more
-app/core/ephem.py        Swiss Ephemeris wrappers, ayanamsa modes, rise/set, root finding
+app/core/ephem.py        High-Precision Planetary Ephemeris wrappers, ayanamsa modes, rise/set, root finding
 app/core/panchang.py     daily panchang, muhurtas, choghadiya, hora, gowri, lagna table, regional calendars, search
 app/core/kundli.py       kundli, vargas, dashas, ashtakavarga, shadbala, doshas, yogas
 app/core/advanced.py     KP, Jaimini, Lal Kitab, Varshaphal, Ashtottari, avakahada, remedies, special yogas
@@ -249,8 +249,8 @@ sdk/                     Python + JS client SDKs
 app/core/charts_svg.py   North/South/East Indian + Western wheel SVG
 app/web/ + web/          website (templates, static)
 accuracy/                Canonical ephemeris comparison and verification harness (compare.py, reports)
-data/places.sqlite      GeoNames populated places (cities, towns, villages). Rebuild with data/build_places.py
-ephe/                    Swiss Ephemeris data files
+data/places.sqlite      Global Gazetteer populated places (cities, towns, villages). Rebuild with data/build_places.py
+ephe/                    High-Precision Planetary Ephemeris data files
 ```
 
 **Adding a feature module:** create `app/core/<feature>.py` and `app/api/routers/<feature>.py` exposing `router`, add the

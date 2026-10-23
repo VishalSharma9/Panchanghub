@@ -320,3 +320,53 @@
   });
   obs.observe(document.body, { childList: true, subtree: true });
 })();
+
+
+// Normalize 5+ digit year typos (e.g., 19992-05-04 -> 1992-05-04) on all date inputs & forms
+(function(){
+  function fixDateVal(val) {
+    if (!val || typeof val !== 'string') return val;
+    const m = val.trim().match(/^(\d{5,})-(\d{1,2})-(\d{1,2})$/);
+    if (!m) return val;
+    let yr = m[1];
+    while (yr.length > 4) {
+      let collapsed = false;
+      for (let i = 0; i < yr.length - 1; i++) {
+        if (yr[i] === yr[i + 1]) {
+          yr = yr.slice(0, i) + yr.slice(i + 1);
+          collapsed = true;
+          break;
+        }
+      }
+      if (!collapsed) yr = yr.slice(0, 4);
+    }
+    return yr + '-' + m[2].padStart(2, '0') + '-' + m[3].padStart(2, '0');
+  }
+  function bindDateInputs() {
+    document.querySelectorAll('input[type="date"]').forEach(inp => {
+      if (!inp.getAttribute('min')) inp.setAttribute('min', '1800-01-01');
+      if (!inp.getAttribute('max')) inp.setAttribute('max', '2100-12-31');
+      if (inp.value) {
+        const fixed = fixDateVal(inp.value);
+        if (fixed !== inp.value) inp.value = fixed;
+      }
+      inp.addEventListener('change', () => {
+        const fixed = fixDateVal(inp.value);
+        if (fixed !== inp.value) inp.value = fixed;
+      });
+    });
+    document.querySelectorAll('form').forEach(f => {
+      f.addEventListener('submit', () => {
+        f.querySelectorAll('input[type="date"]').forEach(inp => {
+          const fixed = fixDateVal(inp.value);
+          if (fixed !== inp.value) inp.value = fixed;
+        });
+      });
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindDateInputs);
+  } else {
+    bindDateInputs();
+  }
+})();

@@ -329,7 +329,12 @@ def varshaphal(birth_utc, lat, lon, year, tz):
                 if abs(sep - ang) <= orb:
                     fast, slow = (a, b) if abs(P[a]["speed"]) > abs(P[b]["speed"]) else (b, a)
                     applying = (P[fast]["longitude"] % 30) < (P[slow]["longitude"] % 30)
-                    yogas.append({"planets": [a, b], "aspect": ang, "yoga": "Ithasala" if applying else "Ishrafa"})
+                    yogas.append({
+                        "planets": [a, b],
+                        "aspect": ang,
+                        "yoga": "Ithasala" if applying else "Ishrafa",
+                        "note": f"{fast} applies to {slow} ({ang}° aspect)" if applying else f"{fast} separates from {slow} ({ang}° aspect)",
+                    })
     # Sahams (day formulae)
     asc = k["lagna"]["longitude"]; S = lambda p: P[p]["longitude"]
     sahams = {"Punya": norm(S("Moon") - S("Sun") + asc), "Vidya": norm(S("Sun") - S("Moon") + asc),
@@ -337,8 +342,8 @@ def varshaphal(birth_utc, lat, lon, year, tz):
               "Vivaha": norm(S("Venus") - S("Saturn") + asc), "Putra": norm(S("Jupiter") - S("Moon") + asc)}
     # ---- extra Tajik yogas ----
     hs = {p: P[p]["house"] for p in DEEPT}
-    if all(h in (1, 2, 4, 5, 7, 8, 10, 11) for h in hs.values()): yogas.append({"planets": list(DEEPT), "yoga": "Ikkabal", "note": "all planets in kendra/panapara: success"})
-    elif all(h in (3, 6, 9, 12) for h in hs.values()): yogas.append({"planets": list(DEEPT), "yoga": "Induvara", "note": "all planets in apoklima: obstacles"})
+    if all(h in (1, 2, 4, 5, 7, 8, 10, 11) for h in hs.values()): yogas.append({"planets": list(DEEPT), "aspect": 0, "yoga": "Ikkabal", "note": "all planets in kendra/panapara: success"})
+    elif all(h in (3, 6, 9, 12) for h in hs.values()): yogas.append({"planets": list(DEEPT), "aspect": 0, "yoga": "Induvara", "note": "all planets in apoklima: obstacles"})
     asp = lambda a, b: any(abs(abs(angdiff(P[a]["longitude"], P[b]["longitude"])) - g) <= (DEEPT[a] + DEEPT[b]) / 2 for g in (0, 60, 90, 120, 180))
     pairs = [(a, b) for a in DEEPT for b in DEEPT if a < b]
     for a, b in pairs:
@@ -346,20 +351,20 @@ def varshaphal(birth_utc, lat, lon, year, tz):
         for c in DEEPT:
             if c in (a, b) or not (asp(c, a) and asp(c, b)): continue
             sp = lambda x: abs(P[x]["speed"])
-            if sp(c) > max(sp(a), sp(b)): yogas.append({"planets": [a, b, c], "yoga": "Nakta", "note": f"{c} transfers light between {a} and {b}"})
-            elif sp(c) < min(sp(a), sp(b)): yogas.append({"planets": [a, b, c], "yoga": "Yamaya", "note": f"{c} collects light of {a} and {b}"})
+            if sp(c) > max(sp(a), sp(b)): yogas.append({"planets": [a, b, c], "aspect": 60, "yoga": "Nakta", "note": f"{c} transfers light between {a} and {b}"})
+            elif sp(c) < min(sp(a), sp(b)): yogas.append({"planets": [a, b, c], "aspect": 120, "yoga": "Yamaya", "note": f"{c} collects light of {a} and {b}"})
     ith = [y for y in yogas if y.get("yoga") == "Ithasala"]
     for y in ith:
         a, b = y["planets"]
         for x in (a, b):
-            if P[x]["retrograde"] or P[x].get("combust"): yogas.append({"planets": [a, b], "yoga": "Radda", "note": f"{x} retrograde/combust spoils the Ithasala"})
+            if P[x]["retrograde"] or P[x].get("combust"): yogas.append({"planets": [a, b], "aspect": y["aspect"], "yoga": "Radda", "note": f"{x} retrograde/combust spoils the Ithasala"})
         if "Moon" not in (a, b) and any(set(z["planets"]) in ({"Moon", a}, {"Moon", b}) for z in ith):
-            yogas.append({"planets": [a, b, "Moon"], "yoga": "Kamboola", "note": "Moon in Ithasala with a participant strengthens it"})
+            yogas.append({"planets": [a, b, "Moon"], "aspect": y["aspect"], "yoga": "Kamboola", "note": "Moon in Ithasala with a participant strengthens it"})
         for m in ("Mars", "Saturn"):
             if m not in (a, b) and (asp(m, a) or asp(m, b)) and P[m]["speed"] > 0:
-                yogas.append({"planets": [a, b, m], "yoga": "Manau", "note": f"malefic {m} interferes with the Ithasala"}); break
+                yogas.append({"planets": [a, b, m], "aspect": y["aspect"], "yoga": "Manau", "note": f"malefic {m} interferes with the Ithasala"}); break
     if not any("Moon" in z["planets"] and z.get("yoga") == "Ithasala" for z in ith):
-        yogas.append({"planets": ["Moon"], "yoga": "Khallasara", "note": "Moon forms no applying aspect: matters lack support"})
+        yogas.append({"planets": ["Moon"], "aspect": 0, "yoga": "Khallasara", "note": "Moon forms no applying aspect: matters lack support"})
     # ---- Pancha-adhikari and Varsheshwara (year lord) ----
     wd = (local_from_jd(rj, tz).weekday() + 1) % 7
     vsun = P["Sun"]["house"]; day = vsun in (7, 8, 9, 10, 11, 12)

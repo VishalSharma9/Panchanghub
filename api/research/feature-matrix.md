@@ -65,4 +65,4 @@ Marriage, Griha Pravesh, vehicle purchase, property registration, mundan, naamka
 Festival by date/year/month, vrat (Ekadashi, Purnima, Amavasya, Pradosh, Sankashti), Jayantis, Sankranti, regional festivals, eclipses.
 
 ### Output & Platform Features
-PDF reports (kundli, matching, yearly), chart images/SVG (North, South, East Indian & Western wheel), multilingual support (9 languages), global geo/city/timezone lookup (GeoNames database), REST API, and member access gating.
+PDF reports (kundli, matching, yearly), chart images/SVG (North, South, East Indian & Western wheel), multilingual support (9 languages), global geo/city/timezone lookup (Global Gazetteer database), REST API, and member access gating.

@@ -102,6 +102,7 @@ def get_navamsha_interpretation(d1_asc_sign: int, d1_asc_deg: float, moon_sign: 
         "is_vargottama": is_vargottama,
         "is_pushkara": is_pushkara,
         "saravali_sloka": sloka_text,
+        "source": f"Saravali Ch. 51 & BPHS Ch. 35 (Navamsha {pada} of {SIGNS[d1_asc_sign]})",
         "saravali_source": f"Saravali of Kalyana Varma, Ch. 51 (Navamsha {pada} of {SIGNS[d1_asc_sign]})",
         "karakamsha_reading": kk_text,
         "karakamsha_source": f"Brihat Parashara Hora Shastra, Ch. 35 (Karakamsha in {SIGNS[ak_nav_sign] if ak_nav_sign is not None else ''})" if kk_text else "",

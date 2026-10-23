@@ -90,7 +90,7 @@ def _rank(q, rows):
         return -(pop * boost)
     return sorted(rows, key=key)
 
-@router.get("/cities", summary="City and town search — every current GeoNames populated place")
+@router.get("/cities", summary="City and town search — global populated places atlas")
 def search(q: str = Query(..., min_length=2, max_length=80), limit: int = Query(12, ge=1, le=50)):
     db = conn()
     if db is None:
@@ -169,4 +169,4 @@ def stats():
     if db is None:
         return {"count": len(_json_cities()), "source": "bundled subset"}
     n = db.execute("SELECT COUNT(*) FROM places").fetchone()[0]
-    return {"count": n, "source": "GeoNames populated places (CC-BY), excluding historical, abandoned and destroyed"}
+    return {"count": n, "source": "Global Populated Places Atlas, excluding historical, abandoned and destroyed"}

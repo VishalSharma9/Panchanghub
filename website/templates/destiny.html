@@ -2,10 +2,10 @@
 {% block content %}
 <div class="hero-section" style="margin-bottom: 24px;">
     <h1 style="margin: 0 0 8px 0; font-size: 28px; display: flex; align-items: center; gap: 10px;">
-        <span>&#x1F531;</span> Master Destiny, Ravana Graha Control, Astro-Vastu &amp; Life Oracle
+        <span>&#x1F531;</span> Master Destiny, 9-Planet Graha Control, Astro-Vastu &amp; Life Oracle
     </h1>
     <p class="neutral" style="margin: 0; font-size: 15px;">
-        Deep Plain-English Vedic Intelligence: Ravana Samhita 9-Planet Mastery, Lottery &amp; Windfall Horas, Accident &amp; Danger Windows, Diseases &amp; Longevity (Ayurdaya), Marriage Count &amp; Fixes, Progeny &amp; Grandchildren (D-7), Past/Future Life (D-60), Interactive House/Lot Visual Vastu Architect, and Plain-English Term Dictionary.
+        Deep Plain-English Vedic Intelligence: Samhita 9-Planet Mastery, Lottery &amp; Windfall Horas, Accident &amp; Danger Windows, Diseases &amp; Longevity (Ayurdaya), Marriage Count &amp; Fixes, Progeny &amp; Grandchildren (D-7), Past/Future Life (D-60), Interactive House/Lot Visual Vastu &amp; Feng Shui Architect, and Plain-English Term Dictionary.
     </p>
 </div>
 
@@ -22,7 +22,7 @@
                     <input type="text" name="name" value="{{ form.name }}" required>
                 </label>
                 <label>Birth Date
-                    <input type="date" name="date" value="{{ form.date }}" required>
+                    <input type="date" name="date" min="1800-01-01" max="2100-12-31" value="{{ form.date }}" required>
                 </label>
                 <label>Birth Time
                     <input type="time" name="time" value="{{ form.time }}" step="60" required>
@@ -91,7 +91,9 @@
             <a class="btn" style="padding: 6px 12px; font-size: 13px;" href="/numerology?{{ bq }}">&#x1F522; Astro-Numerology</a>
             <a class="btn" style="padding: 6px 12px; font-size: 13px;" href="/reading?{{ bq }}">&#x1F4DC; 144 Lords Reading</a>
             <a class="btn" style="padding: 6px 12px; font-size: 13px;" href="/yogas?{{ bq }}">&#x2728; Classical Yogas</a>
-            <a class="btn" style="padding: 6px 12px; font-size: 13px; background:#0f766e; color:#fff;" href="/vastu?{{ bq }}">&#x1F3E1; Visual Vastu Studio</a>
+            <a class="btn" style="padding: 6px 12px; font-size: 13px; background:#0f766e; color:#fff;" href="/vastu?{{ bq }}">&#x1F3E1; Visual Vastu &amp; Feng Shui Studio</a>
+            <a class="btn" style="padding: 6px 12px; font-size: 13px; background:#1e40af; color:#fff;" href="/traditions?{{ bq }}">&#x1F30D; All Traditions, Dosha &amp; Elements</a>
+            <a class="btn" style="padding: 6px 12px; font-size: 13px; background:#6d28d9; color:#fff;" href="/palmistry?{{ bq }}">&#x1F590; Vision Palmistry</a>
             <a class="btn" style="padding: 6px 12px; font-size: 13px;" href="/prashna?lat={{ form.cur_lat }}&lon={{ form.cur_lon }}&tz={{ form.cur_tz }}">&#x1F52E; Live Prashna</a>
         </div>
     </div>
@@ -139,7 +141,7 @@
 
 <!-- 10-Tab Navigation -->
 <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;">
-    <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-ravana', this)" style="background:#b45309; color:#fff; font-weight:bold;">&#x1F451; 1. Ravana 9-Planet Control</button>
+    <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-planetary-mastery', this)" style="background:#b45309; color:#fff; font-weight:bold;">&#x1F451; 1. 9-Planet Graha Control</button>
     <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-lottery', this)" style="background:#475569; color:#fff;">&#x1F3B0; 2. Lottery &amp; Windfall Horas</button>
     <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-turning', this)" style="background:#475569; color:#fff;">&#x26A1; 3. Good/Bad Dates &amp; Luck Fix</button>
     <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('tab-accidents', this)" style="background:#475569; color:#fff;">&#x1F6E1; 4. Accidents &amp; Danger Hours</button>
@@ -152,14 +154,14 @@
     <button type="button" class="btn d-tab-btn" onclick="showDestinyTab('all', this)" style="background:#334155; color:#fff;">&#x1F4DC; Show All 10 Sections</button>
 </div>
 
-<!-- ==================== TAB 1: RAVANA SAMHITA 9-PLANET MASTERY ==================== -->
+<!-- ==================== TAB 1: SAMHITA 9-PLANET MASTERY ==================== -->
 {% set rm = dossier.ravana_samhita_planetary_mastery %}
-<div id="tab-ravana" class="d-tab-pane">
+<div id="tab-planetary-mastery" class="d-tab-pane">
     <section class="card" style="margin-bottom: 20px;">
-        <h2>&#x1F451; Ravana Samhita Graha Prabandhana &mdash; Complete 9-Planet Mastery</h2>
+        <h2>&#x1F451; Classical Samhita Graha Prabandhana &mdash; Complete 9-Planet Mastery</h2>
         <div class="body">
             {{ render_simple_guide(simp.ravana_mastery_in_simple_words) }}
-            <p>Just as Dashagriva Ravana commanded the 9 Grahas around his throne through supreme astronomical timing and Tantra/Mantra discipline, your <b>{{ rm.functional_planet_hierarchy.lagna_sign }} ({{ rm.functional_planet_hierarchy.lagna_rashi }})</b> chart has a specific command hierarchy:</p>
+            <p>Through classical Vedic Samhita astronomical timing and Mantra/Tantra discipline, your <b>{{ rm.functional_planet_hierarchy.lagna_sign }} ({{ rm.functional_planet_hierarchy.lagna_rashi }})</b> chart has a specific planetary command hierarchy:</p>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 16px;">
                 <div style="padding:12px; background:#f0fdf4; border-left:4px solid #16a34a; border-radius:6px;">
                     <strong>&#x1F31F; Functional Benefics (Amplify):</strong><br>
@@ -228,7 +230,7 @@
                 </div>
             </div>
 
-            <h3 style="margin-top:20px;">&#x1F549; All 9 Planets Command Schedule: God to Worship, When, How Long &amp; Ravana Secret</h3>
+            <h3 style="margin-top:20px;">&#x1F549; All 9 Planets Command Schedule: God to Worship, When, How Long &amp; Samhita Mastery Secret</h3>
             <div class="table-wrap">
                 <table>
                     <thead>
@@ -237,7 +239,7 @@
                             <th>Command Strategy</th>
                             <th>Deity, When &amp; How Long</th>
                             <th>Beej &amp; Puranic Shloka</th>
-                            <th>Ravana Samhita Secret &amp; Dana</th>
+                            <th>Samhita Mastery Secret &amp; Dana</th>
                         </tr>
                     </thead>
                     <tbody>

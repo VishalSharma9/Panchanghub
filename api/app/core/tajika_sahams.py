@@ -180,6 +180,7 @@ def compute_tajika_sahams(pos: Dict[str, Any], asc_lon: float, is_day_birth: boo
         {"name": "Satru Saham", "meaning": "Enemies, rivals and victory over adversaries", "p1": "Mars", "p2": "Saturn", "rev": True, "lon": calc_saham("Mars", "Saturn", True)},
     ]
 
+    lag_sign = int((asc_lon % 360.0) // 30) % 12
     results = []
     for item in sahams_defs:
         lon = item["lon"] % 360.0
@@ -190,16 +191,20 @@ def compute_tajika_sahams(pos: Dict[str, Any], asc_lon: float, is_day_birth: boo
         if m_int == 60:
             d_int += 1
             m_int = 0
+        house_from_lagna = ((s_idx - lag_sign) % 12) + 1
             
         results.append({
             "name": item["name"],
             "meaning": item["meaning"],
+            "signification": item["meaning"],
             "sign": SIGNS[s_idx],
             "rashi": RASHIS[s_idx],
             "degree": round(deg, 4),
             "dms": f"{d_int}°{m_int:02d}'",
             "lord": SIGN_LORDS[s_idx],
             "longitude": round(lon, 4),
+            "house_from_lagna": house_from_lagna,
+            "house": house_from_lagna,
         })
 
     return results

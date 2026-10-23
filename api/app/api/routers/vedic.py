@@ -1,6 +1,9 @@
 from datetime import datetime as _dt, timezone as _tz
 from fastapi import APIRouter
-from ...models import KundliRequest, MatchRequest, VarshaphalaRequest, KPRequest, PrashnaRequest, DestinyRequest
+from ...models import (
+    KundliRequest, MatchRequest, VarshaphalaRequest, KPRequest,
+    PrashnaRequest, DestinyRequest, TraditionsReportRequest, PalmistryPhotoRequest,
+)
 from ...core import ephem
 from ...core.destiny_engine import compute_master_destiny_dossier
 from ...core.kundli import compute_kundli
@@ -40,7 +43,10 @@ def kundli(req: KundliRequest):
         "marriage_count_and_remedies": "/api/kundli/marriage-analysis",
         "progeny_children_and_grandchildren": "/api/kundli/progeny-lineage",
         "past_future_life_and_rinas": "/api/kundli/past-future-life",
-        "ravana_samhita_planetary_mastery": "/api/kundli/ravana-mastery",
+        "samhita_planetary_mastery": "/api/kundli/planetary-mastery",
+        "ravana_samhita_planetary_mastery": "/api/kundli/planetary-mastery",
+        "multi_tradition_report": "/api/traditions/report",
+        "dosha_and_element_balance": "/api/traditions/dosha-element-balance",
         "astro_numerology_synthesis": "/api/numerology/chart",
         "web_portal": "/destiny",
     }
@@ -435,7 +441,7 @@ def _run_destiny(req: DestinyRequest):
         req.ayanamsa,
     )
 
-@router.post("/kundli/destiny-dossier", summary="Master Cross-Linked Destiny Dossier: Diseases, Longevity, Accidents, Lottery, Marriage, Progeny/Grandkids, Past/Future Life & Ravana Mastery")
+@router.post("/kundli/destiny-dossier", summary="Master Cross-Linked Destiny Dossier: Diseases, Longevity, Accidents, Lottery, Marriage, Progeny/Grandkids, Past/Future Life & 9-Planet Mastery")
 def destiny_dossier_endpoint(req: DestinyRequest):
     return _run_destiny(req)
 
@@ -502,12 +508,14 @@ def past_future_life_endpoint(req: DestinyRequest):
         "past_life_future_life_and_purpose": res["past_life_future_life_and_purpose"],
     }
 
-@router.post("/kundli/ravana-mastery", summary="Ravana Samhita 9-Planet Control Matrix: Gemstones, Shlokas, Deity Worship Schedule & Keep-Close vs Avoid Guide")
-def ravana_mastery_endpoint(req: DestinyRequest):
+@router.post("/kundli/planetary-mastery", summary="Samhita 9-Planet Control Matrix: Gemstones, Shlokas, Deity Worship Schedule & Keep-Close vs Avoid Guide")
+@router.post("/kundli/ravana-mastery", include_in_schema=False)
+def planetary_mastery_endpoint(req: DestinyRequest):
     res = _run_destiny(req)
     return {
         "name": res["name"],
         "birth_chart_anchor": res["birth_chart_anchor"],
+        "samhita_planetary_mastery": res["ravana_samhita_planetary_mastery"],
         "ravana_samhita_planetary_mastery": res["ravana_samhita_planetary_mastery"],
     }
 
@@ -524,7 +532,8 @@ def astro_vastu_endpoint(req: DestinyRequest):
     }
 
 
-@router.post("/vastu/analyze-layout", summary="Evaluate Interactive Visual House (Square/Rectangle) & Outer-Lot Vastu Layout with Birth-Chart Synergy")
+@router.post("/vastu/analyze-layout", summary="Evaluate Interactive Visual House (Square/Rectangle) & Outer-Lot Vastu & Feng Shui Layout with Birth-Chart Synergy")
+@router.post("/vastu/evaluate", include_in_schema=False)
 def analyze_visual_vastu_layout_endpoint(payload: dict):
     from ...core.astro_vastu_engine import evaluate_visual_vastu_layout
     items = payload.get("items") or []
@@ -567,4 +576,162 @@ def analyze_visual_vastu_layout_endpoint(payload: dict):
         compass_rotation=compass_rotation,
         pos=pos,
         asc_lon=asc_lon,
+        walls=payload.get("walls"),
+        fences=payload.get("fences"),
     )
+
+
+@router.post("/vastu/feng-shui", summary="Classical Feng Shui: Personal Kua (Ming Gua), Eight Mansions (Ba Zhai), Bagua 9-Grid & Period 9 Flying Stars")
+def vastu_feng_shui_endpoint(req: TraditionsReportRequest):
+    from ...core.astro_vastu_engine import compute_classical_feng_shui
+    ephem.set_ayanamsa_mode(req.ayanamsa)
+    jd = ephem.jd_from_utc(birth_utc(req))
+    pos = ephem.all_positions(jd, sidereal=True, true_node=req.true_node)
+    _, asc_lon, _ = ephem.houses(jd, req.latitude, req.longitude, HS[req.house_system], True)
+    return compute_classical_feng_shui(req.date.year, req.gender, pos=pos, asc_lon=asc_lon)
+
+
+# ==============================================================================
+# GLOBAL & CLASSICAL ASTROLOGICAL TRADITIONS + DOSHA / FIVE ELEMENTS API
+# ==============================================================================
+
+@router.get("/traditions/catalog", tags=["Global Traditions & Doshas"], summary="Catalog of all 14 Eastern/Vedic, Western & Global astrological traditions, goals, and schools")
+def traditions_catalog_endpoint():
+    from ...core.traditions_engine import get_traditions_catalog
+    return get_traditions_catalog()
+
+
+@router.post("/traditions/report", tags=["Global Traditions & Doshas"], summary="Customizable Multi-Tradition Astrological Report with Vata-Pitta-Kapha & Chinese Five Elements Balance")
+def traditions_report_endpoint(req: TraditionsReportRequest):
+    from ...core.traditions_engine import compute_traditions_report
+    ephem.set_ayanamsa_mode(req.ayanamsa)
+    return wrap(
+        compute_traditions_report,
+        birth_utc(req),
+        req.latitude,
+        req.longitude,
+        ephem.make_tz(req.timezone, req.utc_offset),
+        req.name or "Native",
+        req.gender or "male",
+        req.selected_traditions or req.traditions,
+        req.goal or req.focus_mode or "all",
+        req.approach or req.school_preference or "all",
+    )
+
+
+@router.post("/traditions/dosha-element-balance", tags=["Global Traditions & Doshas"], summary="Ayurvedic Tridosha (Vata, Pitta, Kapha) × Chinese Five Elements (Wood, Fire, Earth, Metal, Water) Constitutional Balance")
+def traditions_dosha_element_endpoint(req: TraditionsReportRequest):
+    from ...core.traditions_engine import compute_traditions_report
+    res = compute_traditions_report(
+        birth_utc(req),
+        req.latitude,
+        req.longitude,
+        ephem.make_tz(req.timezone, req.utc_offset),
+        name=req.name or "Native",
+        gender=req.gender,
+        selected_traditions=["dosha_and_elements"],
+    )
+    return res["traditions"]["dosha_and_elements"]
+
+
+@router.post("/traditions/lal-kitab", tags=["Global Traditions & Doshas"], summary="Detailed Lal Kitab Report: Fixed Aries Ascendant (Pakka Ghar), SVG Chart, Sleeping Planets, Rinas, Palmistry Links & 43-Day Upayas")
+def traditions_lal_kitab_endpoint(req: TraditionsReportRequest):
+    from ...core.traditions_engine import compute_traditions_report
+    res = compute_traditions_report(
+        birth_utc(req), req.latitude, req.longitude, ephem.make_tz(req.timezone, req.utc_offset),
+        name=req.name or "Native", gender=req.gender, selected_traditions=["lal_kitab"],
+    )
+    return res["traditions"]["lal_kitab"]
+
+
+@router.post("/traditions/jaimini", tags=["Global Traditions & Doshas"], summary="Detailed Jaimini Sutras Report: 7 Chara Karakas, Karakamsha, Arudha Padas (AL, UL, A7, A10), Rashi Drishti & Chara Dasha")
+def traditions_jaimini_endpoint(req: TraditionsReportRequest):
+    from ...core.traditions_engine import compute_traditions_report
+    res = compute_traditions_report(
+        birth_utc(req), req.latitude, req.longitude, ephem.make_tz(req.timezone, req.utc_offset),
+        name=req.name or "Native", gender=req.gender, selected_traditions=["jaimini"],
+    )
+    return res["traditions"]["jaimini"]
+
+
+@router.post("/traditions/nadi", tags=["Global Traditions & Doshas"], summary="Detailed Nadi Astrology Report: 150 Nadi Amshas, Thumbprint Archetypes, Bhrigu Nandi Nadi Circuits & 14 Kandams")
+def traditions_nadi_endpoint(req: TraditionsReportRequest):
+    from ...core.traditions_engine import compute_traditions_report
+    res = compute_traditions_report(
+        birth_utc(req), req.latitude, req.longitude, ephem.make_tz(req.timezone, req.utc_offset),
+        name=req.name or "Native", gender=req.gender, selected_traditions=["nadi"],
+    )
+    return res["traditions"]["nadi"]
+
+
+@router.post("/traditions/hellenistic", tags=["Global Traditions & Doshas"], summary="Detailed Hellenistic Astrology Report: Sect (Day/Night), Whole-Sign Houses, Lots of Fortune & Spirit, Annual Profections")
+def traditions_hellenistic_endpoint(req: TraditionsReportRequest):
+    from ...core.traditions_engine import compute_traditions_report
+    res = compute_traditions_report(
+        birth_utc(req), req.latitude, req.longitude, ephem.make_tz(req.timezone, req.utc_offset),
+        name=req.name or "Native", gender=req.gender, selected_traditions=["hellenistic"],
+    )
+    return res["traditions"]["hellenistic"]
+
+
+@router.post("/traditions/evolutionary", tags=["Global Traditions & Doshas"], summary="Modern Psychological & Evolutionary Astrology: Jungian Archetypes, Pluto Soul Evolution, PPP & Lunar Nodes")
+def traditions_evolutionary_endpoint(req: TraditionsReportRequest):
+    from ...core.traditions_engine import compute_traditions_report
+    res = compute_traditions_report(
+        birth_utc(req), req.latitude, req.longitude, ephem.make_tz(req.timezone, req.utc_offset),
+        name=req.name or "Native", gender=req.gender, selected_traditions=["psychological_evolutionary"],
+    )
+    return res["traditions"]["psychological_evolutionary"]
+
+
+@router.post("/traditions/uranian", tags=["Global Traditions & Doshas"], summary="Uranian / Hamburg School Astrology: 8 Trans-Neptunian Planets (Cupido..Poseidon), 90° Dial & Planetary Midpoints")
+def traditions_uranian_endpoint(req: TraditionsReportRequest):
+    from ...core.traditions_engine import compute_traditions_report
+    res = compute_traditions_report(
+        birth_utc(req), req.latitude, req.longitude, ephem.make_tz(req.timezone, req.utc_offset),
+        name=req.name or "Native", gender=req.gender, selected_traditions=["uranian_hamburg"],
+    )
+    return res["traditions"]["uranian_hamburg"]
+
+
+@router.post("/traditions/feng-shui", tags=["Global Traditions & Doshas"], summary="Classical Feng Shui Report: Kua Number, Eight Mansions, Bagua 9-Grid, Period 9 Flying Stars & Form School")
+def traditions_feng_shui_endpoint(req: TraditionsReportRequest):
+    from ...core.traditions_engine import compute_traditions_report
+    res = compute_traditions_report(
+        birth_utc(req), req.latitude, req.longitude, ephem.make_tz(req.timezone, req.utc_offset),
+        name=req.name or "Native", gender=req.gender, selected_traditions=["feng_shui"],
+    )
+    return res["traditions"]["feng_shui"]
+
+
+# ==============================================================================
+# MULTI-SPECTRUM COMPUTER-VISION PALMISTRY & NADI THUMBPRINT API
+# ==============================================================================
+
+@router.get("/palmistry/spectrum-modes", tags=["Palmistry Vision"], summary="List all 10 color & spectral imaging modes for palm line, mount, and Nadi thumbprint inspection")
+def palmistry_spectrum_modes_endpoint():
+    from ...core.palmistry_vision import get_spectrum_modes_catalog
+    return get_spectrum_modes_catalog()
+
+
+@router.post("/palmistry/analyze-photo", tags=["Palmistry Vision"], summary="Analyze palm & thumbprint photo across 10 spectral modes + optional Vedic birth-chart mount & Lal Kitab calibration")
+def palmistry_analyze_photo_endpoint(req: PalmistryPhotoRequest):
+    from ...core.palmistry_vision import analyze_palm_photo
+    return analyze_palm_photo(
+        image_base64=req.image_base64,
+        thumb_image_base64=req.thumb_image_base64,
+        hand_side=req.hand_side or "right",
+        active_spectrum=req.active_spectrum or "ridge_enhance",
+        hand_shape=req.hand_shape,
+        heart_line=req.heart_line,
+        head_line=req.head_line,
+        life_line=req.life_line,
+        fate_line=req.fate_line,
+        thumbprint_type=req.thumbprint_type,
+        birth_date=req.birth_date or req.date or "1990-05-15",
+        birth_time=req.birth_time or req.time or "10:30:00",
+        latitude=req.latitude if req.latitude is not None else 28.6139,
+        longitude=req.longitude if req.longitude is not None else 77.2090,
+        timezone_str=req.timezone or "Asia/Kolkata",
+    )
+

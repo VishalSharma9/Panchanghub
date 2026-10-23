@@ -18,5 +18,5 @@
 * Thai 1 / Pongal 2026: Vakya Makara sankranti 18:31 IST Jan 14 (after sunset) -> Thai 1 = Jan 15, matching the
   Tamil Nadu Pongal holiday (Jan 15) while Drik/Thirukanitha gives Jan 14.
 * Against modern (Drik) 2026, Chennai: Vakya tithi ends mean +86 min, median |Δ| 111 min, max 7 h; nakshatra similar.
-  Residual analysis vs Swiss Ephemeris shows exactly the terms the Vakya Moon omits: evection 1.27°, variation 0.66°,
+  Residual analysis vs High-Precision Planetary Ephemeris shows exactly the terms the Vakya Moon omits: evection 1.27°, variation 0.66°,
   annual equation 0.19°, plus ~1° epoch drift - i.e. the expected behaviour of a genuine Vakya almanac.

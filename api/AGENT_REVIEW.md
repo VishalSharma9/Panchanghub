@@ -2,7 +2,7 @@
 
 Read this before changing anything. It is the map of the running product: one FastAPI process that is both the public website and the REST API. They share the same calculation code. Do not fork a second copy of the astronomy.
 
-Brand: **PanchangHub**. Sidereal Lahiri (Chitrapaksha), calibrated against canonical Drik Ganita astronomical standards. Dates from **1 CE through 3000 CE**. City search is the GeoNames populated-place set (about 5.17 million), not a short city list.
+Brand: **PanchangHub**. Sidereal Lahiri (Chitrapaksha), calibrated against canonical Drik Ganita astronomical standards. Dates from **1 CE through 3000 CE**. City search is the Global Gazetteer populated-place set (about 5.17 million), not a short city list.
 
 ## 1. How to run
 
@@ -24,7 +24,7 @@ The preview sandbox starts the same app with `/workspace/startup.sh` on port **8
 
 `places.sqlite` is about 1.1 GB. It is required for city search. `data/cities.json` is only a small fallback if the sqlite file is missing. Do not delete the sqlite file. Do not commit a second copy of it.
 
-Swiss Ephemeris files in `ephe/` cover roughly 1800–2399 (planets, Moon, asteroids). Outside that span the engine falls back to the built-in Moshier ephemeris. That is intentional so year 1 and year 3000 still answer.
+High-Precision Planetary Ephemeris files in `ephe/` cover roughly 1800–2399 (planets, Moon, asteroids). Outside that span the engine falls back to the built-in Moshier ephemeris. That is intentional so year 1 and year 3000 still answer.
 
 ## 2. How the API connects to the website
 
@@ -68,7 +68,7 @@ The panchang router subtracts 1 before the core sees them. The website passes **
 The core:
 
 - Builds a timezone with `ephem.make_tz`.
-- Sunrise, sunset, moonrise, moonset from Swiss Ephemeris (`day_events`). Sunrise is the upper limb with refraction. Moonrise is disc centre. This matches Drik, not “geometric centre of the Sun”.
+- Sunrise, sunset, moonrise, moonset from High-Precision Planetary Ephemeris (`day_events`). Sunrise is the upper limb with refraction. Moonrise is disc centre. This matches Drik, not “geometric centre of the Sun”.
 - Tithi, nakshatra, yoga, karana, pada, moon sign are windows from one sunrise to the next sunrise, not midnight to midnight. A page can show two tithis.
 - Muhurta windows (Rahu, Yamaganda, Gulika, durmuhurtam, varjyam, Abhijit, Brahma, Godhuli, Amrit) are in `compute_panchang` and `day_extras.py`.
 - `day_extras.py` adds Pravishte/gate, Vedic ghati, Pancha Pakshi, Mantri Mandala, Agnivasa, Chandra vasa, Shivavasa, Homahuti, Tamil yoga, Aadal, do-ghati names.
@@ -91,7 +91,7 @@ Resolution order in `loc_from()`:
 1. If `localStorage.ph_loc` exists, reuse it and reload.
 2. Else `navigator.geolocation`. On success, `GET /api/cities/nearest` and save cookie + localStorage with `src: "gps"`. The timezone saved is `Intl.DateTimeFormat().resolvedOptions().timeZone`, not the city’s zone from the database, so DST matches the device.
 3. If permission is denied, missing, or times out: `GET /api/cities/timezone?tz=<browser IANA zone>`, which returns the **largest** populated place in that zone (`src: "timezone"`). The bar must say the place came from the timezone and that search can correct it. Do not leave the user on the text “Location blocked”.
-4. If that lookup 404s (for example timezone `UTC`, which has no GeoNames row), focus the search box and say so. The clock still runs, using the browser zone while the page is in the pending state.
+4. If that lookup 404s (for example timezone `UTC`, which has no Global Gazetteer row), focus the search box and say so. The clock still runs, using the browser zone while the page is in the pending state.
 
 Search box: `GET /api/cities?q=&limit=`. SQLite FTS5 (`places_fts`), then reranked so an exact city name beats a hamlet, with population as the tie-break. Picking a row writes `ph_loc` and reloads.
 
@@ -203,7 +203,7 @@ Location query on GET endpoints: `lat`, `lon`, and `tz` (IANA) or `utc_offset` (
 ## 10. Data, range, and performance
 
 - `data/places.sqlite`: table `places` plus FTS5 `places_fts`. Nearest-city uses a 0.25° cell column `cell`. Timezone lookup is `WHERE tz=? ORDER BY pop DESC LIMIT 1` and is a scan (about half a second). An index on `tz` would speed the GPS-denied fallback; build it with the file writable and expect a large rewrite.
-- `data/build_places.py` rebuilds the sqlite from GeoNames `allCountries.zip`. Only rerun if the place set is wrong.
+- `data/build_places.py` rebuilds the sqlite from Global Gazetteer `allCountries.zip`. Only rerun if the place set is wrong.
 - Festival and muhurat searches walk days. One muhurat request may cover at most 3660 days (`SPAN_MAX_DAYS`). Say “10 years” in errors, not “0..400”.
 - `/week` is seven full panchangs. Acceptable for that page. Do not put it on `/`.
 - Mantri Mandala finds the year’s Chaitra Shukla Pratipada by walking new moons. It is cached per place. Do not replace it with a 400-day scan.
