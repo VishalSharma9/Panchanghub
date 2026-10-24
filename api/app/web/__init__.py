@@ -959,7 +959,9 @@ def register(app: FastAPI):
             pos = ephem.all_positions(jd, sidereal=True)
             _, asc_lon, _ = ephem.houses(jd, b_lat, b_lon, "P", sidereal=True)
             astro_vastu = compute_personalized_astro_vastu(pos, asc_lon)
-            feng_shui = compute_classical_feng_shui(d_obj.year, gender, pos=pos, asc_lon=asc_lon)
+            feng_shui = compute_classical_feng_shui(
+                d_obj.year, d_obj.month, d_obj.day, gender, pos=pos, asc_lon=asc_lon, facing=q.get("facing")
+            )
         except Exception:
             astro_vastu = None
             try:

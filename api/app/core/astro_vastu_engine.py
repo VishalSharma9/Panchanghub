@@ -964,15 +964,13 @@ def build_personalized_chart_preset(
 
 
 def _coord_to_zone(cx: float, cy: float, compass_deg: float = 0.0) -> str:
-    """Given normalized center coordinates (cx, cy) in [0..100] where (50, 50) is
-    the center of the house/lot and top (y=0) is North when compass_deg=0,
-    returns the Vastu zone: 'Center', 'N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'."""
-    dx = cx - 50.0
-    dy = cy - 50.0
-    dist = math.hypot(dx, dy)
-    if dist < 11.5:
+    """Normalized center (0..100). The classical Brahmasthan is the middle third, not a small circle.
+    Top (y=0) is North when compass_deg is 0."""
+    if _in_brahmasthan(cx, cy):
         return "Center"
 
+    dx = cx - 50.0
+    dy = cy - 50.0
     angle_cw_from_top = (math.degrees(math.atan2(dx, -dy)) + 360.0) % 360.0
     rel_angle = (angle_cw_from_top - compass_deg + 360.0) % 360.0
     sectors = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
@@ -980,14 +978,43 @@ def _coord_to_zone(cx: float, cy: float, compass_deg: float = 0.0) -> str:
     return sectors[idx]
 
 
+def _in_brahmasthan(x: float, y: float) -> bool:
+    """Middle pada of a 9-pada grid: the central third of each side."""
+    lo, hi = 100.0 / 3.0, 200.0 / 3.0
+    return lo <= x <= hi and lo <= y <= hi
+
+
+def _segment_hits_brahmasthan(x1: float, y1: float, x2: float, y2: float) -> bool:
+    if _in_brahmasthan(x1, y1) or _in_brahmasthan(x2, y2):
+        return True
+    for step in range(1, 25):
+        t = step / 25.0
+        if _in_brahmasthan(x1 + (x2 - x1) * t, y1 + (y2 - y1) * t):
+            return True
+    return False
+
+
+BLOCKING_ITEM_TYPES = {"bathroom", "septic_trash", "overhead_tank", "kitchen", "kitchen_stove", "entrance", "gate"}
+
+
+def _norm_compass(value: Optional[str]) -> str:
+    if not value:
+        return ""
+    aliases = {
+        "NORTH": "N", "SOUTH": "S", "EAST": "E", "WEST": "W",
+        "NORTHEAST": "NE", "NORTHWEST": "NW", "SOUTHEAST": "SE", "SOUTHWEST": "SW",
+    }
+    v = str(value).strip().upper().replace("-", "").replace(" ", "")
+    v = aliases.get(v, v)
+    return v if v in ("N", "NE", "E", "SE", "S", "SW", "W", "NW") else ""
+
+
 def _point_to_segment_dist(px: float, py: float, x1: float, y1: float, x2: float, y2: float) -> float:
     dx, dy = x2 - x1, y2 - y1
     if dx == 0 and dy == 0:
         return math.hypot(px - x1, py - y1)
     t = max(0.0, min(1.0, ((px - x1) * dx + (py - y1) * dy) / (dx * dx + dy * dy)))
-    proj_x = x1 + t * dx
-    proj_y = y1 + t * dy
-    return math.hypot(px - proj_x, py - proj_y)
+    return math.hypot(px - (x1 + t * dx), py - (y1 + t * dy))
 
 
 def evaluate_visual_vastu_layout(
@@ -1000,6 +1027,7 @@ def evaluate_visual_vastu_layout(
     walls: Optional[List[Dict[str, Any]]] = None,
     fences: Optional[List[Dict[str, Any]]] = None,
     palm_data: Optional[Dict[str, Any]] = None,
+    auspicious_dirs: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """Evaluates a complete visual House + Outer-Lot Vastu & Feng Shui diagram with:
     - All 45+ indoor rooms, appliances (washer/dryer, stove, taps), sacred spaces (temple, meditation, medication),
@@ -1040,13 +1068,17 @@ def evaluate_visual_vastu_layout(
     max_pts = 0
     critical_doshas: List[str] = []
     auspicious_highlights: List[str] = []
+    blocking_findings: List[Dict[str, Any]] = []
+    good_dirs = {_norm_compass(d) for d in (auspicious_dirs or []) if _norm_compass(d)}
 
     # Track placed items by type for relational cross-checks
     by_type: Dict[str, List[Dict[str, Any]]] = {}
 
     for idx, raw in enumerate(items, start=1):
         itype = str(raw.get("type", "living_room")).lower()
-        rule = ITEM_RULES.get(itype, ITEM_RULES["living_room"])
+        if itype not in ITEM_RULES:
+            raise ValueError(itype)
+        rule = ITEM_RULES[itype]
         custom_label = raw.get("label") or rule["label"]
         cx = float(raw.get("x", 50.0)) + float(raw.get("w", 12.0)) / 2.0
         cy = float(raw.get("y", 50.0)) + float(raw.get("h", 12.0)) / 2.0
@@ -1054,7 +1086,10 @@ def evaluate_visual_vastu_layout(
         gate_mech = str(raw.get("gate_mech") or "").lower()
         wall_side = str(raw.get("wall_side") or "").upper()
         flow_dir = str(raw.get("flow_dir") or "").upper()
+        cook_facing = _norm_compass(raw.get("cook_facing"))
+        bed_head = _norm_compass(raw.get("bed_head"))
         area_scope = raw.get("scope") or rule["category"]  # 'indoor', 'outdoor', or 'outside_boundary'
+        blocking = False
 
         zone = _coord_to_zone(cx, cy, compass_rotation)
         zone_meta = DIRECTION_META[zone]
@@ -1100,6 +1135,33 @@ def evaluate_visual_vastu_layout(
                 extra_notes.append(f"Facing {door_dir} needs a threshold copper strip / bright lamp.")
             else:
                 extra_notes.append(f"Facing {door_dir} is balanced.")
+
+        if itype in ("kitchen_stove", "kitchen") and cook_facing:
+            if cook_facing in ("E", "N"):
+                pts = min(10, pts + 1)
+                extra_notes.append(f"Cook faces {cook_facing}, which suits the stove.")
+            else:
+                pts = max(1, pts - 2)
+                extra_notes.append(f"Cook faces {cook_facing}. Turn the cook toward East.")
+                if cook_facing in ("SW", "W", "S"):
+                    blocking = True
+
+        if itype in ("master_bedroom", "bedroom") and bed_head:
+            if bed_head == "N":
+                pts = max(1, pts - 3)
+                blocking = True
+                extra_notes.append("Bed head points North. Use South or East.")
+            elif bed_head in ("S", "E"):
+                pts = min(10, pts + 1)
+                extra_notes.append(f"Bed head toward {bed_head} is a sound sleeping direction.")
+            else:
+                extra_notes.append(f"Bed head toward {bed_head}. South or East is steadier.")
+            if good_dirs and bed_head not in good_dirs:
+                extra_notes.append(f"Bed head {bed_head} is not one of this person's four Ba Zhai directions ({', '.join(sorted(good_dirs))}).")
+
+        if itype in BLOCKING_ITEM_TYPES and zone in rule.get("bad_zones", []):
+            blocking = True
+            pts = min(pts, 2)
 
         # 3. Gate / Door Swing & Sliding Mechanism Check
         mech_label = ""
@@ -1170,6 +1232,15 @@ def evaluate_visual_vastu_layout(
         elif pts <= 4:
             critical_doshas.append(f"{custom_label} in {zone}: {rule['fix_if_wrong']}")
 
+        if blocking:
+            blocking_findings.append({
+                "rule_id": f"vastu.blocking.{itype}.{zone}",
+                "severity": "blocking",
+                "item": custom_label,
+                "zone": zone,
+                "message": verdict_summary,
+            })
+
         total_pts += pts
         max_pts += 10
 
@@ -1204,6 +1275,8 @@ def evaluate_visual_vastu_layout(
             "zone_planet_and_element": f"{zone_planet} | {zone_meta['element']} | Feng Shui: {fs_bagua['element']} ({fs_bagua['life_area']})",
             "door_or_gate_facing": door_display,
             "score_out_of_10": pts,
+            "rule_id": f"vastu.zone.{itype}.{zone}",
+            "severity": "blocking" if blocking else ("caution" if pts <= 4 else "info"),
             "status": status,
             "badge_color": badge_color,
             "verdict_in_simple_words": verdict_summary + detail_suffix,
@@ -1280,14 +1353,14 @@ def evaluate_visual_vastu_layout(
         w_label = w.get("label") or f"Wall Line #{w_idx}"
         seg_len = round(math.hypot(x2 - x1, y2 - y1), 1)
         mid_zone = _coord_to_zone((x1 + x2) / 2.0, (y1 + y2) / 2.0, compass_rotation)
-        dist_center = _point_to_segment_dist(50.0, 50.0, x1, y1, x2, y2)
+        cuts_center = _segment_hits_brahmasthan(x1, y1, x2, y2)
 
         if mid_zone in ("SW", "S", "W"):
             sw_wall_len += seg_len * (1.5 if w_type == "load_bearing" else 1.0)
         elif mid_zone in ("NE", "N", "E"):
             ne_wall_len += seg_len
 
-        if dist_center < 8.5:
+        if cuts_center:
             w_status = "BRAHMASTHAN WALL DOSHA"
             w_badge = "bad"
             w_advice = (
@@ -1313,7 +1386,7 @@ def evaluate_visual_vastu_layout(
             "wall_type": w_type,
             "zone": mid_zone,
             "length_percent": seg_len,
-            "cuts_brahmasthan": dist_center < 8.5,
+            "cuts_brahmasthan": cuts_center,
             "status": w_status,
             "badge_color": w_badge,
             "advice": w_advice,
@@ -1380,7 +1453,8 @@ def evaluate_visual_vastu_layout(
             "advice": f_advice,
         })
 
-    overall_score = round((total_pts / max_pts) * 100) if max_pts > 0 else 85
+    raw_score = round((total_pts / max_pts) * 100) if max_pts > 0 else 0
+    overall_score = min(raw_score, 45) if blocking_findings else raw_score
     if overall_score >= 82:
         overall_grade = "A+ (Vastu & Feng Shui Siddha — High-Energy Prosperous Layout)"
     elif overall_score >= 68:
@@ -1499,6 +1573,14 @@ def evaluate_visual_vastu_layout(
         "overall_vastu_score_percent": overall_score,
         "overall_score": overall_score,
         "overall_grade": overall_grade,
+        "schema_version": "2026.10.23",
+        "score_breakdown": {
+            "points": total_pts,
+            "max_points": max_pts,
+            "raw_percent": raw_score,
+            "blocking_cap_applied": bool(blocking_findings),
+            "blocking": blocking_findings,
+        },
         "house_shape_analysis": shape_info,
         "has_outer_lot": has_outer_lot,
         "compass_rotation_degrees": compass_rotation,
@@ -1596,6 +1678,72 @@ FENG_SHUI_BAGUA_SECTORS: Dict[str, Dict[str, Any]] = {
 }
 
 
+def _digit_sum(n: int) -> int:
+    n = abs(int(n))
+    while n >= 10:
+        n = (n // 10) + (n % 10)
+    return n
+
+
+def _before_lichun(year: int, month: int, day: int) -> bool:
+    """True when this civil date is still before the tropical Sun reaches 315°."""
+    if month > 2:
+        return False
+    if month < 2:
+        return True
+    try:
+        from datetime import datetime, timezone
+        jd = ephem.jd_from_utc(datetime(year, month, day, 12, tzinfo=timezone.utc))
+        return (ephem.sun_lon(jd, sidereal=False) % 360.0) < 315.0
+    except Exception:
+        return day < 4
+
+
+def _kua_number(solar_year: int, gender: str) -> int:
+    """Common Ba Zhai table: women before 2000 use digit-sum + 5, not + 4."""
+    s = _digit_sum((solar_year % 100) // 10 + (solar_year % 100) % 10)
+    female = str(gender or "male").lower().startswith("f")
+    if solar_year < 2000:
+        kua = (s + 5) if female else (10 - s)
+    else:
+        kua = (s + 6) if female else (9 - s)
+    kua = _digit_sum(kua)
+    if kua == 0:
+        kua = 9
+    if kua == 5:
+        kua = 8 if female else 2
+    return kua
+
+
+_LO_SHU = ["Center", "NW", "W", "NE", "S", "N", "SW", "E", "SE"]
+_YANG_PALACE = {"N", "E", "NE", "NW"}
+
+
+def _fly_stars(start: str, start_num: int, forward: bool) -> Dict[str, int]:
+    i = _LO_SHU.index(start)
+    grid: Dict[str, int] = {}
+    n = start_num
+    for step in range(9):
+        grid[_LO_SHU[(i + step) % 9]] = n
+        if forward:
+            n = 1 if n == 9 else n + 1
+        else:
+            n = 9 if n == 1 else n - 1
+    return grid
+
+
+def _form_animals(facing: str) -> List[Dict[str, str]]:
+    order = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+    i = order.index(facing)
+    left, right, back = order[(i - 2) % 8], order[(i + 2) % 8], order[(i + 4) % 8]
+    return [
+        {"guardian": "Black Tortoise", "direction": back, "rule": "Support the back of the house, opposite the front door, with higher ground, a solid wall, or tall trees."},
+        {"guardian": "Red Phoenix", "direction": facing, "rule": "Keep the front, the side the door faces, open and bright."},
+        {"guardian": "Green Dragon", "direction": left, "rule": "Looking out the front door, the left side should be slightly higher and greener."},
+        {"guardian": "White Tiger", "direction": right, "rule": "Looking out the front door, the right side should stay lower and quieter than the left."},
+    ]
+
+
 def compute_classical_feng_shui(
     birth_year: int = 1990,
     birth_month: int | str = 5,
@@ -1603,30 +1751,19 @@ def compute_classical_feng_shui(
     gender: str = "male",
     pos: Dict[str, Any] | None = None,
     asc_lon: float | None = None,
+    sitting: str | None = None,
+    facing: str | None = None,
 ) -> Dict[str, Any]:
-    """Computes Personal Kua Number (Ming Gua), Eight Mansions (Ba Zhai) 4 Auspicious
-    & 4 Inauspicious Directions, Bagua 9-Grid, Period 9 Flying Stars, and Form School Landscape rules."""
+    """Personal Kua, Eight Mansions, and an 8-palace Period 9 chart when sitting and facing are both given."""
     if isinstance(birth_month, str):
         gender = birth_month
         birth_month = 5
-    # Adjust solar year for Lichun (approx Feb 4)
-    solar_year = birth_year - 1 if (birth_month == 1 or (birth_month == 2 and birth_day < 4)) else birth_year
-    last_two = solar_year % 100
-    s = (last_two // 10) + (last_two % 10)
-    while s >= 10:
-        s = (s // 10) + (s % 10)
-
+        birth_day = 15
+    month_n = int(birth_month)
+    day_n = int(birth_day)
+    solar_year = birth_year - 1 if _before_lichun(birth_year, month_n, day_n) else birth_year
+    kua = _kua_number(solar_year, gender)
     is_female = str(gender or "male").lower().startswith("f")
-    if solar_year < 2000:
-        kua = (s + 4) if is_female else (10 - s)
-    else:
-        kua = (s + 6) if is_female else (9 - s)
-    while kua >= 10:
-        kua = (kua // 10) + (kua % 10)
-    if kua <= 0:
-        kua += 9
-    if kua == 5:
-        kua = 8 if is_female else 2
 
     KUA_DATA = {
         1: {
@@ -1759,6 +1896,22 @@ def compute_classical_feng_shui(
         {"star": k.split(" (")[0], "title": k.split(" (")[1].rstrip(")") if "(" in k else k, "direction": v, "remedy": "Place bathrooms, closets, storerooms, or elemental cures here to suppress negative Qi"}
         for k, v in kd["inauspicious"].items()
     ]
+    face = _norm_compass(facing)
+    sit = _norm_compass(sitting)
+    if face and not sit:
+        order = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+        sit = order[(order.index(face) + 4) % 8]
+    flying = None
+    if face and sit:
+        flying = {
+            "resolution": "8-palace",
+            "period": 9,
+            "sitting": sit,
+            "facing": face,
+            "period_star": _fly_stars("Center", 9, True),
+            "water_star": _fly_stars(face, 9, face in _YANG_PALACE),
+            "mountain_star": _fly_stars(sit, 9, sit in _YANG_PALACE),
+        }
     return {
         "solar_birth_year": solar_year,
         "gender_calibrated": "female" if is_female else "male",
@@ -1778,16 +1931,13 @@ def compute_classical_feng_shui(
         "inauspicious_directions": inausp_list,
         "bagua_nine_sectors": list(FENG_SHUI_BAGUA_SECTORS.values()),
         "bagua_9_grid": FENG_SHUI_BAGUA_SECTORS,
-        "form_school_four_celestial_animals": [
-            {"guardian": "Black Tortoise (Xuan Wu — Back / South-West Support)", "rule": "Keep the back of the house/lot supported by higher ground, a solid fence/wall, or tall shade trees for career and family backing."},
-            {"guardian": "Red Phoenix (Zhu Que — Front / Ming Tang Bright Hall)", "rule": "Keep the front entrance lawn/yard open, bright, and welcoming (grass, low flowers, or gentle water feature) so opportunities gather."},
-            {"guardian": "Green Dragon (Qing Long — Left / East Side looking out)", "rule": "Plant vibrant green trees/garden slightly higher on the East/Left side to activate Yang growth and noble mentors."},
-            {"guardian": "White Tiger (Bai Hu — Right / West Side looking out)", "rule": "Keep the West/Right side tidy with lower bushes and calm pathway lighting so White Tiger energy stays protective and peaceful."},
-        ],
+        "form_school_four_celestial_animals": _form_animals(face or "S"),
+        "form_school_facing": face or "S",
+        "form_school_facing_assumed": not bool(face),
+        "flying_stars_chart": flying,
         "period_9_fire_era_summary": (
-            "We are currently in the 20-year Xuan Kong Period 9 (2024–2043), ruled by the #9 Purple Fire Star (Li Trigram). "
-            "Homes with open, bright North/South axes, thriving Southeast (#8 Wealth Star) and Northwest (#1 Nobleman Star) sectors, "
-            "and a clutter-free Center (#9 Supreme Star) experience maximum prosperity."
+            "Period 9 runs from 2024 to 2043. A sector chart is returned only when sitting and facing are sent. "
+            "The chart is an 8-palace Lo Shu flight, not a 24-mountain Xuan Kong plate."
         ),
     }
 

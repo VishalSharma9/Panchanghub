@@ -160,6 +160,8 @@ class TraditionsReportRequest(KundliRequest):
     approach: Optional[str] = Field(None, description="Alias for school_preference")
     selected_traditions: Optional[List[str]] = Field(None, description="Optional list of specific traditions to include")
     traditions: Optional[List[str]] = Field(None, description="Alias for selected_traditions")
+    sitting: Optional[str] = Field(None, description="House sitting direction, opposite the front door")
+    facing: Optional[str] = Field(None, description="Direction the front door faces")
 
 
 class PalmistryPhotoRequest(BaseModel):
@@ -180,9 +182,9 @@ class PalmistryPhotoRequest(BaseModel):
     date: Optional[str] = Field(None, description="Alias for birth_date")
     birth_time: Optional[str] = Field("10:30:00", description="Optional birth time HH:MM:SS")
     time: Optional[str] = Field(None, description="Alias for birth_time")
-    latitude: Optional[float] = Field(28.6139, description="Optional birth latitude")
-    longitude: Optional[float] = Field(77.2090, description="Optional birth longitude")
-    timezone: Optional[str] = Field("Asia/Kolkata", description="Optional birth timezone")
+    latitude: Optional[float] = Field(None, description="Birth latitude. Omit to skip the chart link.")
+    longitude: Optional[float] = Field(None, description="Birth longitude. Omit to skip the chart link.")
+    timezone: Optional[str] = Field(None, description="Birth timezone")
     utc_offset: Optional[float] = Field(None, description="Optional UTC offset")
     gender: Optional[str] = Field("male", description="Optional gender ('male' or 'female') for Feng Shui Kua & Vastu synthesis")
 
@@ -197,6 +199,8 @@ class VastuPlacedItemModel(BaseModel):
     w: float = Field(12.0, description="Width percentage (1-100)")
     h: float = Field(10.0, description="Height percentage (1-100)")
     door_dir: Optional[str] = Field("", description="Door, gate, cook, photo, or TV facing direction ('N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW')")
+    cook_facing: Optional[str] = Field("", description="Direction the cook faces at the stove")
+    bed_head: Optional[str] = Field("", description="Direction the head of the bed points")
     gate_mech: Optional[str] = Field("", description="Gate/door opening or sliding mechanism ('swing_in_cw', 'swing_in_ccw', 'double_in', 'swing_out', 'slide_ne', 'slide_sw', 'rollup')")
     wall_side: Optional[str] = Field("", description="Wall mounting side for photo frames, TV, mirror, clock ('N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW')")
     flow_dir: Optional[str] = Field("", description="Drainage flow/slope direction for trenches/ditches ('NE', 'N', 'E', 'NW', 'SE', 'W', 'S', 'SW', 'stagnant')")
@@ -247,6 +251,8 @@ class VisualVastuLayoutRequest(BaseModel):
     tz: Optional[str | float] = Field(None, description="Alias for timezone")
     birth_timezone: Optional[str | float] = Field(None, description="Alias for timezone")
     gender: Optional[str] = Field("male", description="Gender ('male' or 'female') for Classical Feng Shui Kua & Eight Mansions")
+    sitting: Optional[str] = Field(None, description="House sitting direction")
+    facing: Optional[str] = Field(None, description="Direction the front door faces")
     # Optional Palmistry photo or profile to combine Palm + Birth Chart + Vastu in a single API call
     palm_data: Optional[dict] = Field(None, description="Optional extracted palm profile (hand_shape, life_line, head_line, heart_line, fate_line, thumbprint_type) or dict containing image_base64")
     palm_image_base64: Optional[str] = Field(None, description="Optional base64 palm photo to analyze via Computer Vision and combine directly with Birth Chart & Vastu")

@@ -1476,6 +1476,9 @@ def generate_multi_tradition_report(
             "longitude": lon,
             "timezone": str(tz_name),
             "gender": gender,
+            "ayanamsa": ephem._ayan_mode.get(),
+            "house_system": "W",
+            "node": "mean",
         },
         "applied_filters": {
             "focus_mode": focus_mode,

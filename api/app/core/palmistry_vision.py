@@ -22,6 +22,10 @@ from .ephem import SIGNS, SIGN_LORDS, VEDIC_PLANETS
 from .traditions_engine import LAL_KITAB_PAKKA_GHAR
 
 
+class PalmInputError(ValueError):
+    """Raised when a palm call has neither a photo nor explicit line fields."""
+
+
 SPECTRUM_MODES: List[Dict[str, str]] = [
     {
         "id": "original",
@@ -155,17 +159,19 @@ def _extract_image_metrics(img_b64: Optional[str]) -> Dict[str, Any]:
     if not img_b64 or len(img_b64) < 32:
         return {
             "has_photo": False,
-            "width": 800,
-            "height": 1000,
-            "aspect_ratio": 0.80,
-            "contrast_score": 88.5,
-            "ridge_clarity_percent": 91.0,
-            "detected_hand_shape": "fire",
-            "detected_heart": "curved",
-            "detected_head": "long",
-            "detected_life": "deep",
-            "detected_fate": "clear",
-            "detected_thumb": "chakra_whorl",
+            "detection_method": None,
+            "confidence": 0,
+            "width": None,
+            "height": None,
+            "aspect_ratio": None,
+            "contrast_score": None,
+            "ridge_clarity_percent": None,
+            "detected_hand_shape": None,
+            "detected_heart": None,
+            "detected_head": None,
+            "detected_life": None,
+            "detected_fate": None,
+            "detected_thumb": None,
         }
 
     raw_b64 = img_b64.split(",", 1)[-1].strip()
@@ -228,6 +234,8 @@ def _extract_image_metrics(img_b64: Optional[str]) -> Dict[str, Any]:
 
     return {
         "has_photo": True,
+        "detection_method": "byte-hash",
+        "confidence": 0.15,
         "byte_size": len(data),
         "width": width,
         "height": height,
@@ -264,17 +272,46 @@ def analyze_palm_photo(
     cross-linked with the native's Vedic / Lal Kitab birth chart and Ayurvedic Tridosha."""
     metrics = _extract_image_metrics(image_base64)
     thumb_metrics = _extract_image_metrics(thumb_image_base64) if thumb_image_base64 else None
+    explicit = any(v for v in (hand_shape, heart_line, head_line, life_line, fate_line, thumbprint_type))
+    if not metrics.get("has_photo") and not (thumb_metrics and thumb_metrics.get("has_photo")) and not explicit:
+        raise PalmInputError("Send a palm photo or the hand and line fields. An empty request is not a reading.")
 
-    h_shape = (hand_shape or metrics["detected_hand_shape"]).lower()
-    if h_shape not in ("earth", "air", "fire", "water"):
-        h_shape = "fire"
-    l_heart = (heart_line or metrics["detected_heart"]).lower()
-    l_head = (head_line or metrics["detected_head"]).lower()
-    l_life = (life_line or metrics["detected_life"]).lower()
-    l_fate = (fate_line or metrics["detected_fate"]).lower()
-    t_type = (thumbprint_type or (thumb_metrics["detected_thumb"] if thumb_metrics else metrics["detected_thumb"])).lower()
+    warnings: List[Dict[str, str]] = []
+    if metrics.get("has_photo") and not explicit:
+        warnings.append({"code": "PALM_HASH_ONLY", "message": "Line labels from a photo are a byte signature, not a landmark reading."})
+    if active_spectrum and metrics.get("has_photo"):
+        warnings.append({"code": "SPECTRUM_DISPLAY_ONLY", "message": "The spectrum mode changes the picture on screen. It does not change the measured lines."})
+
+    def _pick(given, detected, allowed, fallback):
+        if given:
+            g = str(given).lower()
+            return g if g in allowed else fallback
+        if detected:
+            return detected if detected in allowed else fallback
+        return None
+
+    h_shape = _pick(hand_shape, metrics.get("detected_hand_shape"), ("earth", "air", "fire", "water"), None)
+    if h_shape is None:
+        raise PalmInputError("Hand shape is required when the photo does not yield one.")
+    l_heart = _pick(heart_line, metrics.get("detected_heart") if metrics.get("has_photo") else None, ("curved", "straight", "chained", "broken"), "curved")
+    l_head = _pick(head_line, metrics.get("detected_head") if metrics.get("has_photo") else None, ("long", "sloping", "joined", "short"), "long")
+    l_life = _pick(life_line, metrics.get("detected_life") if metrics.get("has_photo") else None, ("deep", "wide", "double", "faint"), "deep")
+    l_fate = _pick(fate_line, metrics.get("detected_fate") if metrics.get("has_photo") else None, ("clear", "late", "broken", "absent"), "clear")
+    thumb_src = None
+    if thumbprint_type:
+        thumb_src = thumbprint_type
+    elif thumb_metrics and thumb_metrics.get("has_photo"):
+        thumb_src = thumb_metrics.get("detected_thumb")
+    elif metrics.get("has_photo"):
+        thumb_src = metrics.get("detected_thumb")
+    t_type = str(thumb_src or "").lower()
     if t_type not in THUMBPRINT_ARCHETYPES:
+        t_type = None
+    if t_type is None and not explicit:
         t_type = "chakra_whorl"
+    if t_type is None:
+        t_type = "chakra_whorl"
+        warnings.append({"code": "THUMB_NOT_SENT", "message": "No thumbprint was sent. Thumb text is omitted from the measured profile."})
 
     base_palm = ESO.palmistry(h_shape, l_heart, l_head, l_life, l_fate)
 
@@ -283,7 +320,7 @@ def analyze_palm_photo(
         {
             "line_name": "Sun / Apollo Line (Surya / Yash Rekha — Beneath Ring Finger)",
             "spectrum_best_viewed_in": "540nm Green Subdermal & CLAHE Ridge Enhancer",
-            "reading": "Indicates creative brilliance, public recognition, and reputation that strengthens markedly after age 32–36.",
+            "reading": "Shown as a reference line. It was not measured from this photo.",
         },
         {
             "line_name": "Mercury / Health & Business Line (Budha Rekha — Rising Toward Little Finger)",
@@ -343,8 +380,14 @@ def analyze_palm_photo(
     }.get(h_shape, "Jupiter & Sun")
 
     try:
+        if not birth_date:
+            warnings.append({"code": "BIRTH_NOT_SENT", "message": "No birth date was sent, so the chart link was skipped."})
+            raise RuntimeError("skip-chart")
+        if latitude is None or longitude is None:
+            warnings.append({"code": "CHART_FAILED", "message": "Birth latitude and longitude are required to link a chart."})
+            raise RuntimeError("skip-chart")
         from ..models import normalize_date_str
-        clean_d = normalize_date_str(birth_date or "1990-05-15")
+        clean_d = normalize_date_str(birth_date)
         tm_s = birth_time if len(birth_time) > 5 else (birth_time + ":00")
         try:
             tz_obj = ephem.make_tz(None, float(timezone_str))
@@ -546,8 +589,11 @@ def analyze_palm_photo(
             "nine_palm_mounts_to_nine_vastu_zones": nine_palm_mounts_to_vastu,
             "palm_line_vastu_room_prescriptions": palm_vastu_prescriptions,
         }
+    except RuntimeError as exc:
+        if str(exc) != "skip-chart":
+            warnings.append({"code": "CHART_FAILED", "message": "The birth chart could not be calculated from the date, time, and place sent."})
     except Exception:
-        pass
+        warnings.append({"code": "CHART_FAILED", "message": "The birth chart could not be calculated from the date, time, and place sent."})
 
     extracted_palm_profile = {
         "has_uploaded_photo": bool(metrics.get("has_photo")),
@@ -561,10 +607,17 @@ def analyze_palm_photo(
         "thumbprint_type": t_type,
         "thumbprint_name": THUMBPRINT_ARCHETYPES[t_type]["name"],
         "dominant_mount": dominant_mount_planet,
-        "ridge_clarity_percent": metrics.get("ridge_clarity_percent", 91.0),
+        "ridge_clarity_percent": metrics.get("ridge_clarity_percent"),
+        "detection_method": "explicit" if explicit and not metrics.get("has_photo") else metrics.get("detection_method") or "explicit",
+        "confidence": 1.0 if explicit and not metrics.get("has_photo") else metrics.get("confidence") or 0,
     }
 
+    for mark in minor_lines_and_marks:
+        mark["detected"] = False
+
     return {
+        "schema_version": "2026.10.23",
+        "warnings": warnings,
         "hand_side_analyzed": hand_side,
         "active_spectrum_mode": active_spectrum,
         "available_spectrum_modes": SPECTRUM_MODES,
