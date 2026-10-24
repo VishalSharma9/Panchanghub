@@ -503,7 +503,7 @@
             </label>
             <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;color:#4ade80;font-weight:700;">
               <input type="checkbox" class="pv-chk-overlay" checked>
-              🎯 Show AI Line &amp; Mount Labels
+              🎯 Show reference line labels
             </label>
             <label style="display:inline-flex;align-items:center;gap:6px;">
               Contrast: <input type="range" class="pv-rng-contrast" min="70" max="180" value="118" style="width:90px;">
