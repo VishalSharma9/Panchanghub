@@ -1028,6 +1028,10 @@ def evaluate_visual_vastu_layout(
     fences: Optional[List[Dict[str, Any]]] = None,
     palm_data: Optional[Dict[str, Any]] = None,
     auspicious_dirs: Optional[List[str]] = None,
+    land_high: Optional[str] = None,
+    roads: Optional[List[Any]] = None,
+    plot_cuts: Optional[List[str]] = None,
+    plot_extensions: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """Evaluates a complete visual House + Outer-Lot Vastu & Feng Shui diagram with:
     - All 45+ indoor rooms, appliances (washer/dryer, stove, taps), sacred spaces (temple, meditation, medication),
@@ -1088,6 +1092,11 @@ def evaluate_visual_vastu_layout(
         flow_dir = str(raw.get("flow_dir") or "").upper()
         cook_facing = _norm_compass(raw.get("cook_facing"))
         bed_head = _norm_compass(raw.get("bed_head"))
+        desk_facing = _norm_compass(raw.get("desk_facing"))
+        stair_turn = str(raw.get("stair_turn") or "").lower()
+        water_kind = str(raw.get("water_kind") or "").lower()
+        floor_n = int(raw.get("floor") or 0)
+        entrance_pada = raw.get("entrance_pada")
         area_scope = raw.get("scope") or rule["category"]  # 'indoor', 'outdoor', or 'outside_boundary'
         blocking = False
 
@@ -1098,7 +1107,8 @@ def evaluate_visual_vastu_layout(
         by_type.setdefault(itype, []).append({
             "label": custom_label, "zone": zone, "cx": cx, "cy": cy,
             "door_dir": door_dir, "wall_side": wall_side, "gate_mech": gate_mech,
-            "flow_dir": flow_dir, "scope": area_scope,
+            "flow_dir": flow_dir, "scope": area_scope, "floor": floor_n,
+            "water_kind": water_kind,
         })
 
         # 1. Base Zone Score (out of 10)
@@ -1158,6 +1168,41 @@ def evaluate_visual_vastu_layout(
                 extra_notes.append(f"Bed head toward {bed_head}. South or East is steadier.")
             if good_dirs and bed_head not in good_dirs:
                 extra_notes.append(f"Bed head {bed_head} is not one of this person's four Ba Zhai directions ({', '.join(sorted(good_dirs))}).")
+
+        if itype == "study_room" and desk_facing:
+            if good_dirs and desk_facing not in good_dirs:
+                pts = max(1, pts - 1)
+                extra_notes.append(f"Desk faces {desk_facing}, outside this person's four Ba Zhai directions.")
+            elif desk_facing in ("E", "N", "NE"):
+                pts = min(10, pts + 1)
+                extra_notes.append(f"Desk faces {desk_facing}.")
+
+        if itype == "staircase" and stair_turn:
+            if stair_turn in ("cw", "clockwise"):
+                pts = min(10, pts + 1)
+                extra_notes.append("Stairs turn clockwise on the way up.")
+            else:
+                pts = max(1, pts - 2)
+                extra_notes.append("Stairs turn counter-clockwise. A clockwise rise is steadier.")
+
+        if itype in ("entrance", "gate") and entrance_pada not in (None, ""):
+            try:
+                pada = int(entrance_pada)
+            except (TypeError, ValueError):
+                pada = 0
+            side = door_dir if door_dir in ("N", "E", "S", "W") else ""
+            good = {"N": {4, 5, 6}, "E": {3, 4, 5}, "S": {3, 4}, "W": {4, 5}}.get(side)
+            if good and pada not in good:
+                pts = max(1, pts - 2)
+                extra_notes.append(f"Door pada {pada} on the {side} side is outside the auspicious segments {sorted(good)}.")
+            elif good:
+                pts = min(10, pts + 1)
+                extra_notes.append(f"Door pada {pada} on the {side} side is an auspicious segment.")
+
+        if itype == "water_body" and water_kind in ("well", "bore", "sump") and zone in ("SW", "S", "SE", "Center"):
+            blocking = True
+            pts = min(pts, 2)
+            extra_notes.append(f"A {water_kind} in {zone} is a heavy water defect. Use North, North-East, or East.")
 
         if itype in BLOCKING_ITEM_TYPES and zone in rule.get("bad_zones", []):
             blocking = True
@@ -1453,6 +1498,66 @@ def evaluate_visual_vastu_layout(
             "advice": f_advice,
         })
 
+    site_findings: List[Dict[str, Any]] = []
+
+    def _site(code: str, severity: str, message: str, cap: bool = False) -> None:
+        site_findings.append({"rule_id": code, "severity": severity, "message": message})
+        relational_findings.append({"type": "warning" if severity == "blocking" else "caution", "title": code, "detail": message})
+        if severity == "blocking":
+            blocking_findings.append({"rule_id": code, "severity": "blocking", "item": code, "zone": "", "message": message})
+            critical_doshas.append(message)
+        else:
+            critical_doshas.append(message)
+
+    high = _norm_compass(land_high)
+    if high:
+        if high in ("SW", "S", "W"):
+            auspicious_highlights.append(f"Land is highest toward {high}.")
+        elif high in ("NE", "N", "E"):
+            _site("vastu.land_slope", "blocking", f"The land is highest toward {high}. The heavy side should be South-West, South, or West.", True)
+        else:
+            _site("vastu.land_slope", "caution", f"The land is highest toward {high}. Prefer a South-West high side.")
+
+    for cut in plot_cuts or []:
+        c = _norm_compass(cut)
+        if c in ("NE", "SW"):
+            _site("vastu.plot_cut", "blocking", f"The {c} corner of the plot is cut. That corner should stay whole.", True)
+        elif c:
+            _site("vastu.plot_cut", "caution", f"The {c} side of the plot is cut.")
+    for ext in plot_extensions or []:
+        e = _norm_compass(ext)
+        if e == "SE":
+            _site("vastu.plot_extension", "caution", "A South-East extension pushes the fire corner outward.")
+        elif e in ("SW", "NE", "N", "E"):
+            auspicious_highlights.append(f"Plot extension toward {e}.")
+
+    for road in roads or []:
+        hit = str(road.get("hits") if isinstance(road, dict) else road).upper()
+        if hit.endswith("_CORNER") or hit in ("NE", "SE", "SW", "NW"):
+            _site("vastu.veedhi_shoola", "blocking", f"A road hits the {hit.replace('_', ' ')} corner.", True)
+        elif hit in ("S_MID", "W_MID", "S", "W"):
+            _site("vastu.road_hit", "caution", f"A road meets the {hit.replace('_', ' ')} side at its middle.")
+
+    kitchens = by_type.get("kitchen", []) + by_type.get("kitchen_stove", [])
+    wastes = by_type.get("bathroom", []) + by_type.get("septic_trash", [])
+    for waste in wastes:
+        for kit in kitchens:
+            if int(waste["floor"]) > int(kit["floor"]) and math.hypot(waste["cx"] - kit["cx"], waste["cy"] - kit["cy"]) < 22:
+                _site("vastu.toilet_above_kitchen", "blocking", f"{waste['label']} sits on a higher floor over {kit['label']}.", True)
+    for stair in by_type.get("staircase", []):
+        for sacred in by_type.get("puja_room", []):
+            if math.hypot(stair["cx"] - sacred["cx"], stair["cy"] - sacred["cy"]) < 14:
+                _site("vastu.stair_over_temple", "blocking", f"{stair['label']} crowds {sacred['label']}. Do not put the temple under the stairs.", True)
+
+    for fn in fences or []:
+        try:
+            sw_h = float(fn.get("sw_height") or 0)
+            ne_h = float(fn.get("ne_height") or 0)
+        except (TypeError, ValueError):
+            sw_h, ne_h = 0.0, 0.0
+        if sw_h and ne_h and ne_h > sw_h:
+            _site("vastu.fence_height", "caution", "The North-East compound wall is taller than the South-West wall. Keep South-West heavier.")
+
     raw_score = round((total_pts / max_pts) * 100) if max_pts > 0 else 0
     overall_score = min(raw_score, 45) if blocking_findings else raw_score
     if overall_score >= 82:
@@ -1590,6 +1695,7 @@ def evaluate_visual_vastu_layout(
         "auspicious_strengths": auspicious_highlights or ["Add rooms and lot features on the visual canvas to see strengths."],
         "critical_doshas_and_fixes": critical_doshas or ["Zero critical Vastu/Feng Shui defects detected in the current placement!"],
         "relational_cross_checks": relational_findings,
+        "site_findings": site_findings,
         "wall_line_evaluations": wall_evaluations,
         "fence_loop_evaluations": fence_evaluations,
         "item_by_item_breakdown": evaluated_items,

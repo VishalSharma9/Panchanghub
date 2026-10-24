@@ -17,7 +17,7 @@
     { id: "adaptive_ink",      short: "7. 🖋️ Ink Stamp Print",  title: "Biometric Ink-Stamp / Threshold Print", desc: "High-contrast black-on-ivory ink impression for Nadi thumbprint & ridge counting." },
     { id: "thermal_mount",     short: "8. 🌡️ Mount Heatmap",    title: "False-Color Thermal Mount Elevation Heatmap", desc: "Maps contour elevation so the 9 Planetary Mounts stand out from palm valleys." },
     { id: "inverted_xray",     short: "9. 🩻 X-Ray Negative",   title: "Inverted X-Ray Negative Crease Spectrum", desc: "Palm lines and thumb ridges glow bright white against deep obsidian." },
-    { id: "annotated_overlay", short: "10. 🎯 AI Line & Mounts",title: "AI Vision Line, Mount & Thumbprint Vector Map", desc: "Overlays anatomical Heart, Head, Life, Fate, Sun lines & 9 Mount zones." }
+    { id: "annotated_overlay", short: "10. Reference lines", title: "Reference line and mount map", desc: "Draws the usual Heart, Head, Life, and Fate positions as a guide. These marks are not measured from the photo." },
   ];
 
   /**
@@ -746,23 +746,32 @@
 
     async function runServerAnalysis() {
       const payload = {
-        image_base64: state.customPalmDataUrl || srcCanvas.toDataURL("image/png"),
+        image_base64: state.customPalmDataUrl || null,
         thumb_image_base64: state.customThumbDataUrl || null,
         hand_side: state.handSide,
-        active_spectrum: SPECTRUMS[state.activeSpectrumIdx].id,
-        birth_date: (birthMeta && birthMeta.date) || "1990-05-15",
-        birth_time: (birthMeta && birthMeta.time) || "10:30:00",
-        latitude: (birthMeta && birthMeta.lat) || 28.6139,
-        longitude: (birthMeta && birthMeta.lon) || 77.2090,
-        timezone: (birthMeta && birthMeta.tz) || "Asia/Kolkata"
+        active_spectrum: SPECTRUMS[state.activeSpectrumIdx].id
       };
+      if (birthMeta && birthMeta.date) {
+        payload.birth_date = birthMeta.date;
+        payload.birth_time = birthMeta.time || "12:00:00";
+        payload.latitude = birthMeta.lat;
+        payload.longitude = birthMeta.lon;
+        payload.timezone = birthMeta.tz;
+      }
+      if (!payload.image_base64 && !payload.thumb_image_base64) {
+        reportEl.innerHTML = `<div style="padding:12px;background:#fff7ed;border:1px solid #fdba74;border-radius:8px;">Upload or snap a palm before asking for a reading. The sample drawing is not a hand.</div>`;
+        return;
+      }
       try {
         const r = await fetch("/api/palmistry/analyze-photo", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
-        if (!r.ok) return;
+        if (!r.ok) {
+          reportEl.innerHTML = `<div style="padding:12px;background:#fff7ed;border:1px solid #fdba74;border-radius:8px;">That photo could not be read as a palm. Upload a clearer picture or enter the lines yourself.</div>`;
+          return;
+        }
         const data = await r.json();
         if (data.extracted_palm_profile) {
           const prof = Object.assign({}, data.extracted_palm_profile, {
@@ -808,7 +817,7 @@
           <div class="stat">
             <span class="label">Detected Elemental &amp; Ayurvedic Hand</span>
             <span class="value" style="font-size:1.1rem;color:#6d28d9;">${(cp.hand_shape && cp.hand_shape.type ? cp.hand_shape.type.toUpperCase() : "FIRE")} HAND</span>
-            <small><b>${dh.ayurvedic_hand_type || ""}</b><br>Ridge Clarity: <b>${bm.ridge_clarity_percent || 91}%</b> | Contrast: <b>${bm.contrast_score || 88}%</b></small>
+            <small><b>${dh.ayurvedic_hand_type || ""}</b><br>${data.extracted_palm_profile && data.extracted_palm_profile.detection_method ? data.extracted_palm_profile.detection_method : "not measured"} · confidence ${data.extracted_palm_profile && data.extracted_palm_profile.confidence != null ? data.extracted_palm_profile.confidence : 0}</small>
           </div>
           <div class="stat">
             <span class="label">Nadi Thumbprint (Angushtha Rekha)</span>

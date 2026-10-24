@@ -374,6 +374,33 @@
                 <option value="315">315° — North-West at Top</option>
               </select>
             </label>
+            <label style="font-size:12.5px;font-weight:700;color:#1e293b;">
+              Highest land:
+              <select class="va-land-high" style="margin-left:4px;padding:5px 8px;border:1px solid #94a3b8;border-radius:6px;">
+                <option value="SW">SW</option><option value="S">S</option><option value="W">W</option>
+                <option value="NE">NE</option><option value="N">N</option><option value="E">E</option>
+                <option value="SE">SE</option><option value="NW">NW</option>
+              </select>
+            </label>
+            <label style="font-size:12.5px;font-weight:700;color:#1e293b;">
+              Cut corner:
+              <select class="va-plot-cut" style="margin-left:4px;padding:5px 8px;border:1px solid #94a3b8;border-radius:6px;">
+                <option value="">None</option>
+                <option value="NE">NE</option><option value="SW">SW</option><option value="SE">SE</option><option value="NW">NW</option>
+              </select>
+            </label>
+            <label style="font-size:12.5px;font-weight:700;color:#1e293b;">
+              Road hit:
+              <select class="va-road-hit" style="margin-left:4px;padding:5px 8px;border:1px solid #94a3b8;border-radius:6px;">
+                <option value="">None</option>
+                <option value="NE_corner">NE corner</option>
+                <option value="SE_corner">SE corner</option>
+                <option value="SW_corner">SW corner</option>
+                <option value="NW_corner">NW corner</option>
+                <option value="N_mid">North middle</option>
+                <option value="E_mid">East middle</option>
+              </select>
+            </label>
           </div>
           <div style="display:flex;flex-wrap:wrap;gap:7px;">
             <button type="button" class="btn va-btn-chart-ideal" style="background:#7c3aed;color:#fff;padding:6px 11px;font-size:12px;font-weight:700;border-radius:6px;">🌟 My Birth-Chart Ideal Vastu Setting</button>
@@ -625,6 +652,9 @@
       houseShape: "square",
       hasOuterLot: true,
       compassRotation: 0,
+      landHigh: "SW",
+      plotCut: "",
+      roadHit: "",
       presetTitle: chartPreset.preset_title || "Personalized Birth-Chart Ideal Vastu & Feng Shui Arrangement",
       items: JSON.parse(JSON.stringify(chartPreset.items || [])),
       walls: JSON.parse(JSON.stringify(chartPreset.walls || [])),
@@ -641,16 +671,7 @@
           const saved = localStorage.getItem("panchang_palm_profile");
           if (saved) return JSON.parse(saved);
         } catch (e) {}
-        return {
-          has_uploaded_photo: false,
-          hand_shape: "fire",
-          life_line: "deep",
-          head_line: "long",
-          heart_line: "curved",
-          fate_line: "clear",
-          thumbprint_type: "chakra_whorl",
-          thumbprint_name: "Chakra Rekha (Concentric Whorl)"
-        };
+        return null;
       })()
     };
 
@@ -722,94 +743,6 @@
       }
     }
 
-    // Sync Palm UI Controls
-    const palmShapeSel = root.querySelector(".va-palm-shape");
-    const palmLifeSel = root.querySelector(".va-palm-life");
-    const palmHeadSel = root.querySelector(".va-palm-head");
-    const palmHeartSel = root.querySelector(".va-palm-heart");
-    const palmFateSel = root.querySelector(".va-palm-fate");
-    const palmThumbSel = root.querySelector(".va-palm-thumb");
-    const palmFileInp = root.querySelector(".va-palm-file");
-    const palmStatusBadge = root.querySelector(".va-palm-status-badge");
-
-    function syncPalmControlsFromState() {
-      const pp = state.palmProfile || {};
-      if (palmShapeSel && pp.hand_shape) palmShapeSel.value = pp.hand_shape;
-      if (palmLifeSel && pp.life_line) palmLifeSel.value = pp.life_line;
-      if (palmHeadSel && pp.head_line) palmHeadSel.value = pp.head_line;
-      if (palmHeartSel && pp.heart_line) palmHeartSel.value = pp.heart_line;
-      if (palmFateSel && pp.fate_line) palmFateSel.value = pp.fate_line;
-      if (palmThumbSel && pp.thumbprint_type) palmThumbSel.value = pp.thumbprint_type;
-      if (palmStatusBadge) {
-        palmStatusBadge.textContent = pp.has_uploaded_photo
-          ? `✅ Uploaded Palm Photo Active (${(pp.hand_shape || 'fire').toUpperCase()} Hand)`
-          : `🖐️ Palm Profile: ${(pp.hand_shape || 'fire').toUpperCase()} Hand`;
-        palmStatusBadge.style.background = pp.has_uploaded_photo ? "#dcfce7" : "#fed7aa";
-        palmStatusBadge.style.color = pp.has_uploaded_photo ? "#166534" : "#7c2d12";
-      }
-    }
-    syncPalmControlsFromState();
-
-    function onPalmControlChange() {
-      state.palmProfile = Object.assign({}, state.palmProfile, {
-        hand_shape: palmShapeSel ? palmShapeSel.value : "fire",
-        life_line: palmLifeSel ? palmLifeSel.value : "deep",
-        head_line: palmHeadSel ? palmHeadSel.value : "long",
-        heart_line: palmHeartSel ? palmHeartSel.value : "curved",
-        fate_line: palmFateSel ? palmFateSel.value : "clear",
-        thumbprint_type: palmThumbSel ? palmThumbSel.value : "chakra_whorl",
-        thumbprint_name: palmThumbSel ? palmThumbSel.options[palmThumbSel.selectedIndex].text : "Chakra Rekha"
-      });
-      try {
-        localStorage.setItem("panchang_palm_profile", JSON.stringify(state.palmProfile));
-      } catch (e) {}
-      syncPalmControlsFromState();
-      markDirty("Updated Palm features for Palm + Chart + Vastu synthesis");
-    }
-
-    [palmShapeSel, palmLifeSel, palmHeadSel, palmHeartSel, palmFateSel, palmThumbSel].forEach(sel => {
-      if (sel) sel.addEventListener("change", onPalmControlChange);
-    });
-
-    if (palmFileInp) {
-      palmFileInp.addEventListener("change", e => {
-        const file = e.target.files && e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = async ev => {
-          try {
-            const r = await fetch("/api/palmistry/analyze-photo", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                image_base64: ev.target.result,
-                birth_date: (birthMeta && birthMeta.date) || "1990-05-15",
-                birth_time: (birthMeta && birthMeta.time) || "10:30:00",
-                latitude: (birthMeta && birthMeta.lat) || 28.6139,
-                longitude: (birthMeta && birthMeta.lon) || 77.2090,
-                timezone: (birthMeta && birthMeta.tz) || "Asia/Kolkata"
-              })
-            });
-            if (r.ok) {
-              const pData = await r.json();
-              if (pData.extracted_palm_profile) {
-                state.palmProfile = Object.assign({}, pData.extracted_palm_profile, {
-                  has_uploaded_photo: true,
-                  saved_at: new Date().toISOString()
-                });
-                try {
-                  localStorage.setItem("panchang_palm_profile", JSON.stringify(state.palmProfile));
-                } catch (err) {}
-                syncPalmControlsFromState();
-                markDirty("Uploaded & analyzed Palm Photo — click Evaluate to combine Palm + Birth Chart + Vastu");
-              }
-            }
-          } catch (err) {}
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-
     // Sync Palm UI Controls
     const palmShapeSel = root.querySelector(".va-palm-shape");
     const palmLifeSel = root.querySelector(".va-palm-life");
@@ -830,8 +763,8 @@
       if (palmThumbSel && pp.thumbprint_type) palmThumbSel.value = pp.thumbprint_type;
       if (palmStatusBadge) {
         palmStatusBadge.textContent = pp.has_uploaded_photo
-          ? `✅ Uploaded Palm Photo Active (${(pp.hand_shape || 'fire').toUpperCase()} Hand)`
-          : `🖐️ Palm Profile: ${(pp.hand_shape || 'fire').toUpperCase()} Hand`;
+          ? `Uploaded palm photo (${(pp.detection_method || "byte-hash")})`
+          : (pp.hand_shape ? `Palm lines set by you (${pp.hand_shape})` : "No palm attached");
         palmStatusBadge.style.background = pp.has_uploaded_photo ? "#dcfce7" : "#fed7aa";
         palmStatusBadge.style.color = pp.has_uploaded_photo ? "#166534" : "#7c2d12";
       }
@@ -839,7 +772,8 @@
     syncPalmControlsFromState();
 
     function onPalmControlChange() {
-      state.palmProfile = Object.assign({}, state.palmProfile, {
+      state.palmProfile = Object.assign({}, state.palmProfile || {}, {
+        explicit: true,
         hand_shape: palmShapeSel ? palmShapeSel.value : "fire",
         life_line: palmLifeSel ? palmLifeSel.value : "deep",
         head_line: palmHeadSel ? palmHeadSel.value : "long",
@@ -871,11 +805,11 @@
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 image_base64: ev.target.result,
-                birth_date: (birthMeta && birthMeta.date) || "1990-05-15",
-                birth_time: (birthMeta && birthMeta.time) || "10:30:00",
-                latitude: (birthMeta && birthMeta.lat) || 28.6139,
-                longitude: (birthMeta && birthMeta.lon) || 77.2090,
-                timezone: (birthMeta && birthMeta.tz) || "Asia/Kolkata"
+                birth_date: (birthMeta && birthMeta.date) || null,
+                birth_time: (birthMeta && birthMeta.time) || null,
+                latitude: (birthMeta && birthMeta.lat),
+                longitude: (birthMeta && birthMeta.lon),
+                timezone: (birthMeta && birthMeta.tz) || null
               })
             });
             if (r.ok) {
@@ -926,6 +860,12 @@
         markDirty("Compass orientation rotated");
       });
     }
+    const landSel = root.querySelector(".va-land-high");
+    const cutSel = root.querySelector(".va-plot-cut");
+    const roadSel = root.querySelector(".va-road-hit");
+    if (landSel) landSel.addEventListener("change", () => { state.landHigh = landSel.value; markDirty("Land slope changed"); });
+    if (cutSel) cutSel.addEventListener("change", () => { state.plotCut = cutSel.value; markDirty("Plot cut changed"); });
+    if (roadSel) roadSel.addEventListener("change", () => { state.roadHit = roadSel.value; markDirty("Road hit changed"); });
 
     // Add item buttons
     root.querySelectorAll("[data-va-add]").forEach(btn => {
@@ -1502,6 +1442,15 @@
           </select>
         </div>
       ` : "";
+      const dirSelect = (key) => dirs.map(d => `<option value="${d}" ${(item[key] || "") === d ? "selected" : ""}>${d || "Not set"}</option>`).join("");
+      let extraHtml = "";
+      if (item.type === "kitchen_stove" || item.type === "kitchen") extraHtml += `<div><label style="font-size:11.5px;font-weight:700;display:block;">Cook faces</label><select class="va-inp-cook" style="padding:5px 8px;border:1px solid #cbd5e1;border-radius:4px;">${dirSelect("cook_facing")}</select></div>`;
+      if (item.type === "master_bedroom" || item.type === "bedroom") extraHtml += `<div><label style="font-size:11.5px;font-weight:700;display:block;">Bed head points</label><select class="va-inp-bed" style="padding:5px 8px;border:1px solid #cbd5e1;border-radius:4px;">${dirSelect("bed_head")}</select></div>`;
+      if (item.type === "study_room") extraHtml += `<div><label style="font-size:11.5px;font-weight:700;display:block;">Desk faces</label><select class="va-inp-desk" style="padding:5px 8px;border:1px solid #cbd5e1;border-radius:4px;">${dirSelect("desk_facing")}</select></div>`;
+      if (item.type === "staircase") extraHtml += `<div><label style="font-size:11.5px;font-weight:700;display:block;">Stair turn going up</label><select class="va-inp-stair" style="padding:5px 8px;border:1px solid #cbd5e1;border-radius:4px;"><option value="">Not set</option><option value="cw" ${item.stair_turn === "cw" ? "selected" : ""}>Clockwise</option><option value="ccw" ${item.stair_turn === "ccw" ? "selected" : ""}>Counter-clockwise</option></select></div>`;
+      if (item.type === "water_body") extraHtml += `<div><label style="font-size:11.5px;font-weight:700;display:block;">Water kind</label><select class="va-inp-water" style="padding:5px 8px;border:1px solid #cbd5e1;border-radius:4px;"><option value="pool">Pool</option><option value="well" ${item.water_kind === "well" ? "selected" : ""}>Well</option><option value="bore" ${item.water_kind === "bore" ? "selected" : ""}>Bore</option><option value="sump" ${item.water_kind === "sump" ? "selected" : ""}>Sump</option></select></div>`;
+      if (item.type === "entrance" || item.type === "gate") extraHtml += `<div><label style="font-size:11.5px;font-weight:700;display:block;">Door segment 1–9</label><input type="number" class="va-inp-pada" min="1" max="9" value="${item.entrance_pada || ""}" style="width:64px;padding:5px;border:1px solid #cbd5e1;border-radius:4px;"></div>`;
+      if (item.type === "bathroom" || item.type === "kitchen" || item.type === "kitchen_stove" || item.type === "septic_trash") extraHtml += `<div><label style="font-size:11.5px;font-weight:700;display:block;">Floor</label><input type="number" class="va-inp-floor" min="0" max="20" value="${item.floor || 0}" style="width:64px;padding:5px;border:1px solid #cbd5e1;border-radius:4px;"></div>`;
 
       inspectorEl.innerHTML = `
         <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between;">
@@ -1517,6 +1466,7 @@
             ${gateMechHtml}
             ${wallSideHtml}
             ${flowDirHtml}
+            ${extraHtml}
             <div>
               <label style="font-size:11.5px;font-weight:700;display:block;color:#1e293b;">Location Scope (In / Out Property)</label>
               <select class="va-inp-scope" style="padding:5px 8px;border:1px solid #cbd5e1;border-radius:4px;">
@@ -1575,6 +1525,24 @@
           markDirty(`Updated trench drainage direction for ${item.label}`);
         });
       }
+      const bind = (sel, key) => {
+        const el = inspectorEl.querySelector(sel);
+        if (!el) return;
+        el.addEventListener("change", e => {
+          item[key] = e.target.value;
+          renderCanvas();
+          markDirty(`Updated ${key} for ${item.label}`);
+        });
+      };
+      bind(".va-inp-cook", "cook_facing");
+      bind(".va-inp-bed", "bed_head");
+      bind(".va-inp-desk", "desk_facing");
+      bind(".va-inp-stair", "stair_turn");
+      bind(".va-inp-water", "water_kind");
+      const padaEl = inspectorEl.querySelector(".va-inp-pada");
+      if (padaEl) padaEl.addEventListener("change", e => { item.entrance_pada = parseInt(e.target.value, 10) || ""; markDirty("Door segment changed"); });
+      const floorEl = inspectorEl.querySelector(".va-inp-floor");
+      if (floorEl) floorEl.addEventListener("change", e => { item.floor = parseInt(e.target.value, 10) || 0; markDirty("Floor changed"); });
       inspectorEl.querySelector(".va-inp-scope").addEventListener("change", e => {
         item.scope = e.target.value;
         renderCanvas();
@@ -1623,7 +1591,12 @@
         items: visibleItems,
         walls: state.walls,
         fences: state.hasOuterLot ? state.fences : [],
-        palm_data: state.palmProfile
+        palm_data: (state.palmProfile && (state.palmProfile.has_uploaded_photo || state.palmProfile.explicit)) ? state.palmProfile : null,
+        land_high: state.landHigh || "SW",
+        plot_cuts: state.plotCut ? [state.plotCut] : [],
+        roads: state.roadHit ? [{ hits: state.roadHit }] : [],
+        sitting: birthMeta && birthMeta.sitting,
+        facing: birthMeta && birthMeta.facing
       }, birthMeta || {});
 
       try {
@@ -1632,11 +1605,17 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
-        if (!r.ok) return;
+        if (!r.ok) {
+          const err = await r.json().catch(() => ({}));
+          reportEl.innerHTML = `<div class="bad" style="padding:12px;">The layout could not be scored. ${err.detail && err.detail.message ? err.detail.message : "Check the rooms and try Evaluate again."}</div>`;
+          return;
+        }
         const data = await r.json();
         markClean();
         renderReport(data);
-      } catch (e) {}
+      } catch (e) {
+        reportEl.innerHTML = `<div class="bad" style="padding:12px;">The layout request did not finish. Try Evaluate again.</div>`;
+      }
     }
 
     function renderReport(data) {
@@ -1702,8 +1681,10 @@
 
       const doshasHtml = (data.critical_doshas_and_fixes || []).map(d => `<li style="margin-bottom:4px;">${d}</li>`).join("");
       const strengthsHtml = (data.auspicious_strengths || []).map(s => `<li style="margin-bottom:4px;">${s}</li>`).join("");
+      const warnHtml = (data.warnings || []).concat(data.site_findings || []).map(w => `<li>${w.message || w.code}</li>`).join("");
 
       reportEl.innerHTML = `
+        ${warnHtml ? `<ul style="padding:10px 10px 10px 28px;margin:12px 0;background:#fff7ed;border:1px solid #fdba74;border-radius:8px;">${warnHtml}</ul>` : ""}
         <div class="grid-3" style="margin-top:14px;">
           <div class="stat">
             <span class="label">Evaluated Vastu &amp; Feng Shui Score</span>

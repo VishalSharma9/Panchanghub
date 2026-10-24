@@ -709,6 +709,10 @@ def analyze_visual_vastu_layout_endpoint(req: VisualVastuLayoutRequest):
         fences=fences,
         palm_data=palm_data,
         auspicious_dirs=list((classical_feng_shui or {}).get("four_auspicious_directions", {}).values()) if classical_feng_shui else None,
+        land_high=payload.get("land_high"),
+        roads=payload.get("roads"),
+        plot_cuts=payload.get("plot_cuts"),
+        plot_extensions=payload.get("plot_extensions"),
     )
     res["warnings"] = warnings
     res["schema_version"] = "2026.10.23"

@@ -65,3 +65,19 @@ def test_layout_route_rejects_unknown_type():
     with pytest.raises(HTTPException) as caught:
         analyze_visual_vastu_layout_endpoint(req)
     assert caught.value.status_code == 422
+
+
+def test_site_rules_cap_a_cut_ne_plot():
+    scored = evaluate_visual_vastu_layout(
+        [
+            {"type": "entrance", "x": 40, "y": 5, "w": 10, "h": 6, "door_dir": "N", "entrance_pada": 1},
+            {"type": "bathroom", "x": 60, "y": 60, "w": 10, "h": 10, "floor": 2},
+            {"type": "kitchen", "x": 62, "y": 62, "w": 12, "h": 10, "floor": 0},
+        ],
+        land_high="NE",
+        plot_cuts=["NE"],
+        roads=[{"hits": "NE_corner"}],
+    )
+    ids = {f["rule_id"] for f in scored["site_findings"]}
+    assert {"vastu.land_slope", "vastu.plot_cut", "vastu.veedhi_shoola", "vastu.toilet_above_kitchen"} <= ids
+    assert scored["overall_score"] <= 45
