@@ -69,7 +69,7 @@
       <label>Birth Time
         <input type="time" name="time" value="{{ (b.time or '10:30:00')[:5] if b else '10:30' }}">
       </label>
-      <label style="min-width:210px;">Birth City
+      <label style="min-width:0;">Birth City
         <input name="city" data-place="" value="{{ b.city if b else 'New Delhi, India' }}" placeholder="Search birth city...">
       </label>
       <input type="hidden" name="lat" value="{{ b.latitude if b else 28.6139 }}">

@@ -131,46 +131,10 @@ def horoscope(period: Literal["daily", "weekly", "monthly", "yearly"], sign: str
     return wrap(H.horoscope, sign, period, date, system)
 
 # ---- Numerology ----
-class AstroNumerologyReq(BirthData):
-    name: str = Field(..., min_length=1, max_length=120)
-    system: Literal["pythagorean", "chaldean"] = "pythagorean"
-    transit_date: Date | None = None
-
-@router.get("/numerology", tags=["Numerology"], summary="Full Numerology Profile with Core Numbers, Karmic Debts, Pinnacles & Optional Kundli Synthesis")
+@router.get("/numerology", tags=["Numerology"])
 def numerology(name: str = Query(..., min_length=1, max_length=120), dob: Date = Query(...),
-               system: Literal["pythagorean", "chaldean"] = "pythagorean",
-               time: str | None = Query(None, description="Birth time in HH:MM:SS format"),
-               lat: float | None = Query(None, description="Birth latitude"),
-               lon: float | None = Query(None, description="Birth longitude"),
-               tz: str = Query("Asia/Kolkata", description="Timezone name or offset"),
-               transit_date: Date | None = Query(None, description="Date for transit calculations (defaults to today)")):
-    birth_details = None
-    if lat is not None and lon is not None:
-        birth_details = {"time": time or "12:00:00", "latitude": lat, "longitude": lon, "timezone": tz}
-    return N.profile(name, dob, system, birth_details, transit_date)
-
-@router.post("/numerology/chart", tags=["Numerology"], summary="Comprehensive Astro-Numerology Kundli Synthesis & Transit Harmonics")
-def numerology_chart(req: AstroNumerologyReq):
-    bd = {"time": req.time.isoformat() if hasattr(req.time, "isoformat") else str(req.time),
-          "latitude": req.latitude, "longitude": req.longitude,
-          "timezone": req.timezone or "Asia/Kolkata", "utc_offset": req.utc_offset}
-    return N.profile(req.name, req.date, req.system, birth_details=bd, transit_date=req.transit_date)
-
-@router.get("/numerology/lucky", tags=["Numerology"], summary="Personal Lucky Numbers, Compound Power Numbers & Shatru Anka (Avoid)")
-def numerology_lucky(dob: Date = Query(..., description="Date of birth"), name: str = Query("Soul", description="Name")):
-    m = N.reduce_single(dob.day)
-    b = N.reduce_single(sum(int(c) for c in dob.strftime("%d%m%Y")))
-    nam = N.reduce_single(N.name_sum(name, N.CHALD))
-    return {"lucky_numbers": N.generate_lucky_bundle(m, b, nam), "numbers_to_avoid": N.get_numbers_to_avoid(m, b)}
-
-@router.get("/numerology/transits", tags=["Numerology"], summary="Current Gochar Transit Numerology & Daily Transit-Harmonized Numbers")
-def numerology_transits(dob: Date = Query(...), date: Date | None = Query(None)):
-    return N.analyze_current_transits_numerology(dob, date)
-
-@router.get("/numerology/pinnacles", tags=["Numerology"], summary="4 Life Pinnacles, Challenges & Age Epochs")
-def numerology_pinnacles(dob: Date = Query(...)):
-    lp = N.reduce_single(N.reduce(dob.year) + N.reduce(dob.month) + N.reduce(dob.day))
-    return N.calculate_pinnacles_and_challenges(dob, lp)
+               system: Literal["pythagorean", "chaldean"] = "pythagorean"):
+    return N.profile(name, dob, system)
 
 @router.get("/numerology/daily", tags=["Numerology"])
 def numerology_daily(dob: Date, date: Date | None = None): return N.daily(dob, date or Date.today())
@@ -251,17 +215,3 @@ def acg(req: BirthData): return W.astrocartography(birth_utc(req))
 def wextras(req: BirthData):
     jd = ephem.jd_from_utc(birth_utc(req))
     return {"points": W.extra_points(jd), "declinations": W.declinations(jd)}
-
-
-class I18nBatchReq(BaseModel):
-    lang: str = Field(..., min_length=2, max_length=8)
-    texts: list[str] = Field(default_factory=list, max_length=500)
-
-
-@router.post("/i18n/translate", tags=["Other"], summary="Batch translate UI/report text into selected Indian language (preserving Sanskrit Shlokas & AM/PM)")
-def i18n_translate_batch(req: I18nBatchReq):
-    from ...core import i18n
-    if req.lang not in i18n.LANGS or req.lang == "en":
-        return {"lang": req.lang, "translations": req.texts}
-    return {"lang": req.lang, "translations": i18n.translate_texts_batch(req.texts, req.lang)}
-

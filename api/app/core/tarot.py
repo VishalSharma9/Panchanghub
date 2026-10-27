@@ -33,11 +33,15 @@ RANKS = [("Ace", "new opportunity"), ("Two", "balance, decisions"), ("Three", "g
          ("Knight", "pursuit, action"), ("Queen", "nurturing mastery"), ("King", "authority, control")]
 
 def deck():
-    cards = [{"id": i, "name": n, "arcana": "major", "upright": u, "reversed": r} for i, (n, u, r) in enumerate(MAJOR)]
+    from .tarot_art import card_slug
+    cards = [{"id": i, "name": n, "arcana": "major", "upright": u, "reversed": r,
+              "image": f"/tarot/card/{card_slug(n)}.svg"} for i, (n, u, r) in enumerate(MAJOR)]
     for s, (theme, el) in SUITS.items():
         for rk, m in RANKS:
-            cards.append({"id": len(cards), "name": f"{rk} of {s}", "arcana": "minor", "suit": s, "element": el,
-                          "upright": f"{m} in {theme}", "reversed": f"blocked or excessive {m} in {theme}"})
+            name = f"{rk} of {s}"
+            cards.append({"id": len(cards), "name": name, "arcana": "minor", "suit": s, "element": el,
+                          "upright": f"{m} in {theme}", "reversed": f"blocked or excessive {m} in {theme}",
+                          "image": f"/tarot/card/{card_slug(name)}.svg"})
     return cards
 
 SPREADS = {"single": ["Card"], "yes_no": ["Answer"], "three_card": ["Past", "Present", "Future"],
@@ -51,7 +55,8 @@ def draw(spread: str = "three_card", seed: str | None = None, question: str | No
     pos = SPREADS[spread]; out = []
     for i, p in enumerate(pos):
         c = d[i]; rev = rng.random() < 0.3
-        out.append({"position": p, "card": c["name"], "reversed": rev, "meaning": c["reversed"] if rev else c["upright"]})
+        out.append({"position": p, "card": c["name"], "reversed": rev, "meaning": c["reversed"] if rev else c["upright"],
+                    "image": c["image"]})
     res = {"spread": spread, "question": question, "cards": out}
     if spread == "yes_no":
         c = d[0]; yes = (not out[0]["reversed"]) and c["name"] not in ("The Tower", "Death", "The Devil", "The Moon", "Five of Swords", "Ten of Swords", "Three of Swords")

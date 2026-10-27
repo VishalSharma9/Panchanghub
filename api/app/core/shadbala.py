@@ -6,13 +6,12 @@ All values in virupas (60 virupas = 1 rupa). Implementation notes:
 * Kala bala = Nathonnata + Paksha + Tribhaga + Abda/Masa/Vara/Hora lords + Ayana + Yuddha.
 * Cheshta bala: Sun = ayana bala, Moon = paksha bala; others from motion state (Vakra 60, Anuvakra 30,
   Vikala 15, Mandatara 15, Manda 30, Sama 7.5, Chara 45, Atichara 30) per BPHS.
-* Naisargika bala fixed. Drik bala = (sum of benefic aspects - malefic aspects)/4 using BPHS aspect virupas.
-Abda/Masa lords use the ahargana-from-Kali-epoch formulae (B.V. Raman, "Graha and Bhava Balas").
+* Naisargika bala fixed. Drishti bala = (sum of benefic aspects - malefic aspects)/4 using BPHS aspect virupas.
+Abda/Masa lords use the ahargana-from-Kali-epoch formulae (B.V.).
 """
 from __future__ import annotations
 import math
-import swisseph as swe
-from .ephem import norm, angdiff, SIGN_LORDS, WEEKDAYS
+from .ephem import swe, norm, angdiff, SIGN_LORDS, WEEKDAYS
 from .kundli import EXALT_DEG, OWN, MOOLA, FRIENDS, varga_sign
 
 PL = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"]
@@ -161,19 +160,19 @@ def shadbala(jd: float, lat: float, lon: float, pos: dict, asc: float, cusps: li
                 diff = abs(ka(a) - ka(b))
                 w, l = (a, b) if ka(a) >= ka(b) else (b, a)
                 res[w]["yuddha"] = res[w].get("yuddha", 0) + diff; res[l]["yuddha"] = res[l].get("yuddha", 0) - diff
-    # drik
+    # drishti
     for p in PL:
         tot = 0.0
         for q in PL:
             if q == p: continue
             v = drishti_value(pos[p]["longitude"] - pos[q]["longitude"], q)
             tot += v if _benefic(q, waxing, merc_mal) else -v
-        res[p]["drik"] = tot / 4
+        res[p]["drishti"] = tot / 4
     out = {}
     for p in PL:
         r = res[p]; r.setdefault("yuddha", 0)
         kala = r["nathonnata"] + r["paksha"] + r["tribhaga"] + r["abda_masa_vara_hora"] + r["ayana"] + r["yuddha"]
-        total = r["sthana"] + r["dig"] + kala + r["cheshta"] + r["naisargika"] + r["drik"]
+        total = r["sthana"] + r["dig"] + kala + r["cheshta"] + r["naisargika"] + r["drishti"]
         ishta = math.sqrt(max(r["uccha"], 0) * max(r["cheshta"], 0))
         kashta = math.sqrt(max(60 - r["uccha"], 0) * max(60 - r["cheshta"], 0))
         rnd = lambda x: round(x, 2) if isinstance(x, (int, float)) else x
@@ -183,7 +182,7 @@ def shadbala(jd: float, lat: float, lon: float, pos: dict, asc: float, cusps: li
                        "strong": total / 60 >= REQUIRED_RUPAS[p], "ishta_phala": round(ishta, 2), "kashta_phala": round(kashta, 2)})
     ranked = sorted(PL, key=lambda q: -out[q]["ratio"])
     for i, q in enumerate(ranked): out[q]["rank"] = i + 1
-    return {"method": "BPHS six-fold strength (Sthana, Dig, Kala, Cheshta, Naisargika, Drik)",
+    return {"method": "BPHS six-fold strength (Sthana, Dig, Kala, Cheshta, Naisargika, Drishti)",
             "lords": {"abda": abda_lord, "masa": masa_lord, "vara": vara_lord, "hora": hora_lord, "tribhaga": tri_lord},
             "planets": out, "strongest": ranked[0], "weakest": ranked[-1]}
 

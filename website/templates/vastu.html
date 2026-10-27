@@ -87,7 +87,7 @@
             </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-bottom: 20px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 16px; margin-bottom: 20px;">
             <div style="padding: 16px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;">
                 <h3 style="margin-top: 0; color: #15803d;">&#x2705; WHAT TO DO (Astro-Vastu Do's to Double Positive Effects)</h3>
                 <ul style="line-height: 1.65; padding-left: 18px; margin: 0;">
@@ -232,8 +232,10 @@
     </div>
 </section>
 {% if v.facing %}<section class="card"><h2>Entrance</h2><div class="body"><p><b>{{ v.facing.direction }}</b>: {{ v.facing.remark }}</p></div></section>{% endif %}
-{% if v.evaluation %}<section class="card"><h2>Score: {{ v.score_percent }}%</h2><div class="body"><table class="t"><tr><th>Room</th><th>Direction</th><th>Points</th><th>Advice</th></tr>
+{% if v.evaluation %}<section class="card"><h2>Score: {{ v.score_percent }}%</h2><div class="body"><p>Each room is scored against the direction that tradition gives it. 10 means the room is in a preferred direction. 0 means it is in a direction the same tradition says to avoid. The percent is the average. It is a placement check, not a statement that the house is lucky or unlucky.</p><table class="t"><tr><th>Room</th><th>Direction</th><th>Points</th><th>Advice</th></tr>
 {% for r in v.evaluation %}<tr><td>{{ r.room|title }}</td><td>{{ r.direction }}</td><td>{{ r.points }}/10</td><td>{{ r.advice }}</td></tr>{% endfor %}</table></div></section>{% endif %}
+<section class="card"><h2>The nine zones</h2><div class="body" style="overflow-x:auto"><table class="t"><tr><th>Direction</th><th>Deity</th><th>Element</th><th>Planet</th><th>Good for</th><th>Avoid</th></tr>
+{% for d, x in v.directions.items() %}<tr><td><b>{{ d }}</b></td><td>{{ x.deity }}</td><td>{{ x.element }}</td><td>{{ x.planet }}</td><td>{{ x.good_for|join(', ') }}</td><td>{{ x.avoid|join(', ') }}</td></tr>{% endfor %}</table></div></section>
 
 <script src="/static/vastu_architect.js?v=26"></script>
 <script>

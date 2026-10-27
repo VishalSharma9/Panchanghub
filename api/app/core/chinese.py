@@ -1,8 +1,7 @@
 """Chinese astrology: zodiac by year (lunar new year), BaZi four pillars, elements, compatibility, Kua number."""
 from __future__ import annotations
 from datetime import datetime, timedelta, timezone
-import swisseph as swe
-from .ephem import jd_from_utc, utc_from_jd, sun_lon, next_boundary, angdiff
+from .ephem import swe, jd_from_utc, utc_from_jd, sun_lon, next_boundary, angdiff
 from .panchang import elong
 
 STEMS = ["Jia", "Yi", "Bing", "Ding", "Wu", "Ji", "Geng", "Xin", "Ren", "Gui"]

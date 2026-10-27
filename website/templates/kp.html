@@ -32,7 +32,7 @@
   <h2>Ruling Planets at Chart Generation</h2>
   <div class="body">
     <p class="neutral">The divine clock rulers governing the planetary vibrations of the query moment:</p>
-    <div class="suntimes" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
+    <div class="suntimes" style="grid-template-columns:repeat(auto-fit,minmax(min(100%, 160px), 1fr));">
       <div><span>Day Lord</span><b>{{ kp_data.ruling_planets.day_lord }}</b></div>
       <div><span>Moon Sign Lord</span><b>{{ kp_data.ruling_planets.moon_sign_lord }}</b></div>
       <div><span>Moon Star Lord</span><b>{{ kp_data.ruling_planets.moon_star_lord }}</b></div>
@@ -48,7 +48,7 @@
 <section class="card" id="horary">
   <h2>Horary Number #{{ kp_data.horary.number }} Ascendant Allocation</h2>
   <div class="body">
-    <div class="suntimes" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
+    <div class="suntimes" style="grid-template-columns:repeat(auto-fit,minmax(min(100%, 160px), 1fr));">
       <div><span>Horary Sign</span><b>{{ kp_data.horary.sign }}</b></div>
       <div><span>Span Range</span><b>{{ kp_data.horary.ascendant_start }}° – {{ kp_data.horary.ascendant_end }}°</b></div>
       <div><span>Star Lord</span><b>{{ kp_data.horary.star_lord }}</b></div>

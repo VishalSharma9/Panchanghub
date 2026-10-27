@@ -10,7 +10,7 @@
 <meta name="twitter:card" content="summary">
 <meta name="theme-color" content="#8e1b3a">
 <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/static/style.css?v=18">
+<link rel="stylesheet" href="/static/style.css?v=19">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"{{ BRAND }}","url":"{{ SITE }}/","potentialAction":{"@type":"SearchAction","target":"{{ SITE }}/panchang?city={search_term_string}","query-input":"required name=search_term_string"}}</script>
 </head>
 <body>
@@ -20,15 +20,11 @@
     <div class="toptools">
       <time id="liveClock" data-tz="{{ loc.tz }}" data-pending="{{ '1' if loc.source == 'default' else '0' }}">—</time>
       <span class="topdate" id="civilDate"></span>
+      <span id="langSwitch">
       <select id="langSel" aria-label="Language" class="langsel">{% for code, nm in LANGS.items() %}<option value="{{ code }}" {{ 'selected' if code==lang }}>{{ nm }}</option>{% endfor %}</select>
-      <div class="userauth" style="display:inline-flex;align-items:center;margin-left:4px">
-        {% if current_user and current_user.is_verified %}
-          <a href="/login" class="user-pill" style="font-size:12px;font-weight:700;color:var(--good);background:#e8f5e9;border:1px solid #c5e1a5;border-radius:14px;padding:3px 9px;text-decoration:none" title="Verified Member">✓ {{ current_user.email.split('@')[0] }}</a>
-          <a href="/logout" style="font-size:11.5px;color:var(--muted);margin-left:6px;text-decoration:none">Sign out</a>
-        {% else %}
-          <a href="/login" class="user-pill" style="font-size:12px;font-weight:700;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:14px;padding:3px 10px;text-decoration:none">👤 Sign In</a>
-        {% endif %}
-      </div>
+      {% if lang and lang != 'en' %}<button type="button" id="langReset" class="langreset">English</button>{% endif %}
+      </span>
+      <a href="/login" class="langreset">Sign in</a>
     </div>
   </div>
   <div class="locbar">
@@ -52,17 +48,18 @@
       </div>
     </div>
   </div>
-<nav class="main"><div class="wrap">{% for href,label in NAV %}<a href="{{ href }}" class="{{ 'on' if path==href }}">{{ label }}</a>{% endfor %}<a href="/api/docs">API</a></div></nav>
 </header>
+<nav class="main"><div class="wrap">{% for href,label in NAV %}<a href="{{ href }}" class="{{ 'on' if path==href }}">{{ label }}</a>{% endfor %}<a href="/api/docs">API</a></div></nav>
 <div class="wrap layout">
 <aside class="side">
   <h4>Panchang</h4><a href="/mine">For your birth star</a><a href="/week">This week</a><a href="/compare">Two cities</a><a href="/names">Naming syllable</a><a href="/sade-sati">Sade Sati</a><a href="/panchang">Day Panchang</a><a href="/calendar">Month Calendar</a><a href="/choghadiya">Choghadiya</a><a href="/hora">Shubha Hora</a><a href="/rahu-kaal">Rahu Kaal</a><a href="/lagna-table">Lagna Table</a><a href="/lagna-table#gowri">Gowri Panchangam</a>
   <h4>Calendars</h4><a href="/festivals">Festivals {{ '' }}</a><a href="/festivals?type=ekadashi">Ekadashi</a><a href="/festivals?type=purnima">Purnima</a><a href="/festivals?type=amavasya">Amavasya</a><a href="/festivals?type=pradosh">Pradosh</a><a href="/festivals?type=sankashti">Sankashti</a><a href="/festivals?type=sankranti">Sankranti</a><a href="/festivals?type=eclipse">Eclipses</a>
-  <h4>Jyotish</h4><a href="/destiny" style="font-weight:700;color:#8e1b3a;">&#x1F531; Master Destiny &amp; 9-Planet Control</a><a href="/traditions" style="font-weight:700;color:#0f766e;">&#x1F30D; All Traditions, Doshas &amp; Elements</a><a href="/kundli">Janma Kundli</a><a href="/prashna">Prashna Kundali (Horary)</a><a href="/vargas">Divisional Charts (31)</a><a href="/varshaphala">Varshaphala (Solar Return)</a><a href="/kp">KP System (Krishnamurti)</a><a href="/yogas">Classical Yogas (60+)</a><a href="/reading">Vedic Reading &amp; Lords</a><a href="/matching">Kundli Matching</a><a href="/muhurat">Muhurat</a><a href="/transits">Transits</a><a href="/horoscope">Rashifal</a>
-  <h4>More</h4><a href="/vastu" style="font-weight:700;color:#b45309;">&#x1F3E1; Vastu &amp; Feng Shui Architect</a><a href="/palmistry" style="font-weight:700;color:#6d28d9;">&#x1F590; Vision Palmistry &amp; Thumbprint</a><a href="/western">Western Chart</a><a href="/numerology">Numerology</a><a href="/tarot">Tarot</a><a href="/human-design">Human Design</a><a href="/iching">I-Ching</a><a href="/regional">Regional Calendars &amp; Doshas</a><a href="/tools">Mayan · Chinese · Kabbalah · Dreams · Crystals</a><a href="/api/docs">Developer API</a>
+  <h4>Jyotish</h4><a href="/destiny">Master Destiny</a><a href="/traditions">Traditions & Doshas</a><a href="/kundli">Janma Kundli</a><a href="/prashna">Prashna Kundali</a><a href="/vargas">Divisional Charts</a><a href="/varshaphala">Varshaphala</a><a href="/kp">KP System</a><a href="/yogas">Classical Yogas</a><a href="/reading">Vedic Reading</a><a href="/matching">Kundli Matching</a><a href="/muhurat">Muhurat</a><a href="/transits">Transits</a><a href="/horoscope">Rashifal</a>
+  <h4>More</h4><a href="/vastu">Vastu & Feng Shui Architect</a><a href="/palmistry">Palmistry</a><a href="/western">Western Chart</a><a href="/numerology">Numerology</a><a href="/tarot">Tarot</a><a href="/human-design">Human Design</a><a href="/iching">I-Ching</a><a href="/regional">Regional Calendars & Doshas</a><a href="/tools">Mayan · Chinese · Kabbalah · Dreams · Crystals</a><a href="/api/docs">Developer API</a>
 </aside>
 <main>{% block content %}{% endblock %}</main>
 </div>
-<footer><div class="wrap">© {{ BRAND }} · High-Precision Astronomical Ephemeris, sidereal Lahiri, calibrated to canonical Drik Ganita astronomical standards. Any day from 1 CE through 3000 CE. Global City &amp; Timezone Atlas. Times are local, including DST. · <a href="/api/docs">REST API</a></div></footer>
-<script src="/static/app.js?v=21" defer></script>
+<footer><div class="wrap">© {{ BRAND }}</div></footer>
+<script id="phUi" type="application/json">{{ ui_json|safe }}</script>
+<script src="/static/app.js?v=22" defer></script>
 </body></html>

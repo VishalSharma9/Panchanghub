@@ -102,7 +102,6 @@ def western_wheel(asc: float, cusps: list[float], planets: list[dict], size: int
     out.append("</svg>")
     return "".join(out)
 
-
 def sudarshan_chakra_svg(asc_sign: int, moon_sign: int, sun_sign: int, planets: list[dict], size: int = 560, title: str = "Sudarshan Chakra") -> str:
     """Renders the authentic 3-ring concentric Sudarshan Chakra per Brihat Parashara Hora Shastra.
     

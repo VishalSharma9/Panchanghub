@@ -4,12 +4,12 @@ Solar calendars differ only in *which civil day* becomes day 1 of a month after 
   * Tamil      - sankranti before local sunset -> same day, else next day.
   * Malayalam  - sankranti before 3/5 of the daytime (end of aparahna) -> same day, else next day.
   * Bengali / Assamese - sankranti before midnight -> NEXT day; after midnight -> the day after that
-                 (Vishuddha-siddhanta / Gupta-press style panjikas).
+                 (Vishuddha-siddhanta midnight rule used by Bengali panjikas).
   * Odia       - the civil (midnight-to-midnight) date on which the sankranti falls is day 1.
 Lunisolar: Gujarati Vikram year begins Kartika Shukla Pratipada (amanta); Marathi/Kannada/Telugu
 Shaka year begins Chaitra Shukla Pratipada (amanta); North India uses purnimanta months.
-`siddhanta="surya"` replaces the modern (drik) Sun with a Surya-Siddhanta mean+manda Sun, the basis of
-Vakya / traditional panchangs (Burgess, Surya Siddhanta ch.1-2: sidereal year 365.258756484 d,
+`siddhanta="surya"` replaces the modern (hub) Sun with a Surya-Siddhanta mean+manda Sun, the basis of
+Vakya / traditional panchangs (Surya Siddhanta ch.1-2: sidereal year 365.258756484 d,
 solar apsis ~77 deg, manda epicycle 14 deg -> 13 deg 40 min)."""
 from __future__ import annotations
 import math
@@ -22,6 +22,12 @@ ODIA_MONTHS = ["Baisakha", "Jyeshtha", "Asadha", "Shrabana", "Bhadraba", "Aswina
 ASSAMESE_MONTHS = ["Bohag", "Jeth", "Aahar", "Saon", "Bhado", "Ahin", "Kati", "Aghon", "Puh", "Magh", "Phagun", "Sot"]
 SS_YEAR = 365.258756484; KALI_EPOCH_UT = 588465.5 - 75.77 / 360  # Ujjain mean midnight, 18 Feb 3102 BCE
 SS_APSIS = 77.12; SS_EPI = (14.0 + 13 + 40 / 60) / 2
+
+def _public_sid(siddhanta: str) -> str:
+    s = (siddhanta or "hub").lower()
+    if s in ("drik", "hub", "modern"):
+        return "hub"
+    return s if s in ("surya", "vakya") else "hub"
 
 def _sunfn(siddhanta):
     if siddhanta == "vakya":
@@ -74,7 +80,8 @@ def solar_date(d: Date, rule: str, lat, lon, tz, fn=sun_sid):
         t, s = sankranti_before(t - 0.5, fn); start = first_day(rule, t, lat, lon, tz)
     return s, (d - start).days + 1, start, t
 
-def regional_calendar(d: Date, lat, lon, tz_name=None, utc_offset=None, siddhanta: str = "drik"):
+def regional_calendar(d: Date, lat, lon, tz_name=None, utc_offset=None, siddhanta: str = "hub"):
+    siddhanta = _public_sid(siddhanta)
     tz = make_tz(tz_name, utc_offset)
     fn = _sunfn(siddhanta)
     out = {"date": d.isoformat(), "siddhanta": siddhanta, "rules": RULES}
@@ -115,8 +122,9 @@ def _md(year, rule, sign, lat, lon, tz, fn):
     st = first_day(rule, t, lat, lon, tz)
     return (st.month, st.day)
 
-def regional_new_years(year: int, lat, lon, tz_name=None, utc_offset=None, siddhanta="drik"):
+def regional_new_years(year: int, lat, lon, tz_name=None, utc_offset=None, siddhanta="hub"):
     """Regional solar new years for `year` with the day each tradition observes it."""
+    siddhanta = _public_sid(siddhanta)
     tz = make_tz(tz_name, utc_offset); fn = _sunfn(siddhanta)
     jd = local_midnight_jd(Date(year, 4, 20), tz); t, s = sankranti_before(jd, fn)
     rows = []

@@ -518,7 +518,7 @@
         </div>
 
         <!-- 3. Interactive Multi-Spectrum Viewport + Dedicated Nadi Thumbprint Macro Loupe -->
-        <div class="pv-viewport-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(275px,1fr));gap:14px;margin-bottom:16px;">
+        <div class="pv-viewport-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%, 240px), 1fr));gap:14px;margin-bottom:16px;">
           <div class="pv-orig-panel" style="background:#0f172a;border:2px solid #334155;border-radius:10px;padding:10px;text-align:center;">
             <div style="font-size:12.5px;font-weight:700;color:#e2e8f0;margin-bottom:6px;">🌈 Reference View: Original True-Color RGB</div>
             <canvas class="pv-canvas-orig" style="width:100%;max-width:360px;height:auto;border-radius:8px;border:1px solid #475569;"></canvas>

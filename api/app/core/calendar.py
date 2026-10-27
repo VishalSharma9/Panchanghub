@@ -2,8 +2,7 @@
 from __future__ import annotations
 from datetime import date as Date, timedelta
 from functools import lru_cache
-import swisseph as swe
-from .ephem import (make_tz, fmt, calc, PLANETS, SIGNS, RASHIS, NAKSHATRAS, local_from_jd, jd_from_utc, norm,
+from .ephem import (swe, make_tz, fmt, calc, PLANETS, SIGNS, RASHIS, NAKSHATRAS, local_from_jd, jd_from_utc, norm,
                     BASE_FLAG, next_boundary, local_midnight_jd, find_root, angdiff, WEEKDAYS)
 from .panchang import (day_events, tithi_at, nak_at, yoga_at, lunar_month, TITHIS, MONTHS, elong, sun_sid, moon_sid,
                        weekday_of, spans, compute_panchang)
@@ -130,7 +129,7 @@ def year_festivals(year: int, lat: float, lon: float, tz_name=None, utc_offset=N
             if hits(i, et):
                 j = i
                 # Dashami-viddha: Dashami present at Arunodaya (96 min before sunrise) and Ekadashi also
-                # prevails at the next sunrise -> fast on the next day (Smarta practice as shown by Drik).
+                # prevails at the next sunrise -> fast on the next day (Smarta practice).
                 aru = x["ev"]["sunrise"] - 96 / 1440
                 if x["tithi"]["sunrise"] == et and tithi_at(aru) == et - 1 and days[i + 1]["tithi"]["sunrise"] == et:
                     j = i + 1

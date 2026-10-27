@@ -3,7 +3,12 @@
 {% block content %}
 <h1>I-Ching Oracle</h1>
 <section class="card"><h2>Ask a question</h2><div class="body"><form class="f" method="get" action="/iching"><label style="flex:1">Question<input name="question" value="{{ q.get('question','') }}" placeholder="What should I focus on this month?"></label><input type="hidden" name="cast" value="1"><button class="btn alt">Cast coins</button></form></div></section>
-{% if c %}<div class="grid2"><section class="card"><h2>{{ c.primary.number }}. {{ c.primary.name }}</h2><div class="body">{{ draw(c.primary) }}<p>{{ c.primary.judgement }}.</p>
+{% if c %}<section class="card"><h2>How to read the cast</h2><div class="body reading">
+<p>You asked{% if c.question %}: {{ c.question }}{% else %} without writing a question. The cast still describes the situation you had in mind{% endif %}. The primary hexagram, <b>{{ c.primary.number }}. {{ c.primary.name }}</b>, is the situation as it is. Read that judgement first.</p>
+<p>Each line was three coins. A 6 or a 9 is moving. A 7 or an 8 stays. {% if c.changing_lines %}Lines {{ c.changing_lines|join(', ') }} are moving, counted from the bottom. Those are the part of the situation that is already changing.{% else %}Nothing is moving. The situation is stable. Do not look for a second hexagram.{% endif %}</p>
+{% if c.relating %}<p>The relating hexagram, <b>{{ c.relating.number }}. {{ c.relating.name }}</b>, is where the moving lines are going. It is the direction, not a second unrelated answer. Read it after the primary, and only through the lines that changed.</p>{% endif %}
+</div></section>
+<div class="grid2"><section class="card"><h2>{{ c.primary.number }}. {{ c.primary.name }}</h2><div class="body">{{ draw(c.primary) }}<p>{{ c.primary.judgement }}.</p>
 <p class="neutral">{{ c.primary.upper.image }} over {{ c.primary.lower.image }} · coins {{ c.coin_values|join(' ') }} · changing lines: {{ c.changing_lines|join(', ') or 'none' }}</p></div></section>
 {% if c.relating %}<section class="card"><h2>Becoming: {{ c.relating.number }}. {{ c.relating.name }}</h2><div class="body">{{ draw(c.relating) }}<p>{{ c.relating.judgement }}.</p></div></section>{% endif %}</div>{% endif %}
 <section class="card"><h2>The 64 hexagrams</h2><div class="body"><table class="t"><tr><th>#</th><th>Name</th><th>Guidance</th></tr>{% for h in all %}<tr><td>{{ h.number }}</td><td>{{ h.name }}</td><td>{{ h.judgement }}</td></tr>{% endfor %}</table></div></section>

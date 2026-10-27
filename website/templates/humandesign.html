@@ -3,16 +3,14 @@
 <h1>Human Design Chart</h1>
 <section class="card"><h2>Birth details</h2><div class="body"><form method="get" action="/human-design">{{ birthform('', b, 'Birth data') }}<p><button class="btn alt">Generate bodygraph</button></p></form></div></section>
 {% if hd %}
-<div class="grid2">
-<section class="card"><h2>Overview</h2><div class="body"><table class="kv">
-<tr><td>Type</td><td><b>{{ hd.type }}</b></td></tr><tr><td>Strategy</td><td>{{ hd.strategy }}</td></tr><tr><td>Inner authority</td><td>{{ hd.authority }}</td></tr>
-<tr><td>Profile</td><td>{{ hd.profile }} {{ hd.profile_name }}</td></tr><tr><td>Definition</td><td>{{ hd.definition }}</td></tr>
-<tr><td>Signature / Not-self</td><td>{{ hd.signature }} / {{ hd.not_self_theme }}</td></tr><tr><td>Incarnation cross</td><td>{{ hd.incarnation_cross.angle }} {{ hd.incarnation_cross.gates }}</td></tr>
-<tr><td>Design moment (UTC)</td><td>{{ hd.design_datetime_utc|dt_ampm }}</td></tr></table></div></section>
-<section class="card"><h2>Centers &amp; channels</h2><div class="body"><table class="kv">{% for c in CENTERS %}<tr><td>{{ c }}</td><td class="{{ 'good' if c in hd.defined_centers else 'neutral' }}">{{ 'Defined' if c in hd.defined_centers else 'Open' }}</td></tr>{% endfor %}</table>
-<p><b>Channels:</b> {{ hd.channels|join(', ') or 'none' }}</p><p><b>Gates:</b> {{ hd.gates|join(', ') }}</p></div></section>
-</div>
-<section class="card"><h2>Activations</h2><div class="body" style="overflow-x:auto"><table class="t"><tr><th>Body</th><th>Personality (black)</th><th>Design (red)</th></tr>
-{% for nm, v in hd.personality.items() %}<tr><td>{{ nm }}</td><td>{{ v.activation }}</td><td>{{ hd.design[nm].activation }}</td></tr>{% endfor %}</table></div></section>
+<section class="card"><h2>What this chart says</h2><div class="body reading">{% for para in hd.reading.paragraphs %}<p>{{ para }}</p>{% endfor %}</div></section>
+<section class="card"><h2>Centers</h2><div class="body"><table class="kv">{% for c in CENTERS %}<tr><td>{{ c }}<br><b class="{{ 'good' if c in hd.defined_centers else 'neutral' }}">{{ 'Defined' if c in hd.defined_centers else 'Open' }}</b></td><td>{{ hd.reading.centers[c] }}</td></tr>{% endfor %}</table>
+<p><b>Channels</b> join two centers. A channel is why a center is defined. Yours: {{ hd.channels|join(', ') or 'none, so every center is open' }}.</p>
+<p><b>Gates</b> are the 64 themes. A gate without its pair is a hanging gate: the theme is there, and you notice people who carry the other half. Active gates: {{ hd.gates|join(', ') }}.</p></div></section>
+<section class="card"><h2>Personality and design activations</h2><div class="body"><p>Each planet is written as gate.line. Personality is conscious. Design is the body. Earth is always opposite the Sun. The South Node is always opposite the North Node.</p>
+<div style="overflow-x:auto"><table class="t"><tr><th>Body</th><th>Personality (conscious)</th><th>Design (body)</th></tr>
+{% for nm, v in hd.personality.items() %}<tr><td>{{ nm }}</td><td>{{ v.activation }}</td><td>{{ hd.design[nm].activation }}</td></tr>{% endfor %}</table></div></div></section>
+{% else %}
+<p class="sub">Enter the birth date, time and place. The page will say what the type, authority and centers mean, not only print the labels.</p>
 {% endif %}
 {% endblock %}

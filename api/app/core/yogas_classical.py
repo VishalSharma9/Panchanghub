@@ -1,7 +1,6 @@
 """Classical yoga rule catalogue (round 4). Each rule carries a classical citation (text + chapter) so the
-reader can check the source. Rules are paraphrased in our own words from the conditions given in the
-public-domain translations listed in research/sources.md (Jataka Parijata tr. V. Subrahmanya Sastri 1932,
-Phaladeepika tr. 1937, Kalaprakasika 1917) and the standard BPHS chapter numbering.
+reader can check the source. Rules are paraphrased in our own words from the conditions in
+Jataka Parijata, Phaladeepika, Kalaprakasika, and the standard BPHS chapter numbering.
 Simplifications (e.g. strength = own/exalted sign) are noted in each rule's text."""
 from __future__ import annotations
 from .ephem import SIGN_LORDS

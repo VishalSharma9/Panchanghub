@@ -29,39 +29,8 @@ def conn():
         _CON = _db()
     return _CON
 
-def _format_name(c, q: str | None = None) -> str:
-    orig_name = c["name"]
-    if not q:
-        return orig_name
-    qn = _n(q)
-    name_n = _n(orig_name)
-    ascii_n = _n(c["ascii"])
-
-    if qn == name_n or qn == ascii_n or name_n.startswith(qn) or ascii_n.startswith(qn):
-        return orig_name
-
-    alts = [x.strip() for x in (c["alt"] or "").split(",") if x.strip()]
-    matched_alt = None
-    for a in alts:
-        if _n(a) == qn:
-            matched_alt = a
-            break
-    if not matched_alt:
-        for a in alts:
-            if _n(a).startswith(qn):
-                matched_alt = a
-                break
-
-    if matched_alt:
-        if _n(matched_alt) == ascii_n or _n(matched_alt) == name_n:
-            return matched_alt
-        return f"{matched_alt} ({orig_name})"
-
-    return orig_name
-
-def _row(c, q: str | None = None):
-    name = _format_name(c, q)
-    return {"name": name, "country": c["cc"], "country_name": c["country"],
+def _row(c):
+    return {"name": c["name"], "country": c["cc"], "country_name": c["country"],
             "admin1": c["admin"], "admin1_name": c["admin_name"],
             "latitude": c["lat"], "longitude": c["lon"], "timezone": c["tz"],
             "population": c["pop"], "feature": c["fcode"]}
@@ -75,22 +44,21 @@ def _fts_query(q: str) -> str | None:
     return " AND ".join(bits)
 
 def _rank(q, rows):
-    """Prefer the real city over a hamlet that happens to share a prefix, checking primary names and aliases."""
+    """Prefer the real city over a hamlet that happens to share a prefix."""
     qn = _n(q)
     def key(c):
         a, name = _n(c["ascii"]), _n(c["name"])
         pop = c["pop"] or 0
-        alts = [_n(x) for x in (c["alt"] or "").split(",") if x.strip()]
-        if a == qn or name == qn or qn in alts:
+        if a == qn or name == qn:
             boost = 50
-        elif a.startswith(qn) or name.startswith(qn) or any(x.startswith(qn) for x in alts):
+        elif a.startswith(qn) or name.startswith(qn):
             boost = 8
         else:
             boost = 1
         return -(pop * boost)
     return sorted(rows, key=key)
 
-@router.get("/cities", summary="City and town search — global populated places atlas")
+@router.get("/cities", summary="City and town search — every populated place in the PanchangHub Places set")
 def search(q: str = Query(..., min_length=2, max_length=80), limit: int = Query(12, ge=1, le=50)):
     db = conn()
     if db is None:
@@ -113,7 +81,7 @@ def search(q: str = Query(..., min_length=2, max_length=80), limit: int = Query(
         except sqlite3.OperationalError:
             rows = []
     picked = _rank(q, rows)[:limit]
-    return {"query": q, "results": [_row(c, q) for c in picked]}
+    return {"query": q, "results": [_row(c) for c in picked]}
 
 @router.get("/cities/nearest", summary="Nearest populated place to coordinates")
 def nearest(lat: float = Query(..., ge=-90, le=90), lon: float = Query(..., ge=-180, le=180)):
@@ -169,4 +137,4 @@ def stats():
     if db is None:
         return {"count": len(_json_cities()), "source": "bundled subset"}
     n = db.execute("SELECT COUNT(*) FROM places").fetchone()[0]
-    return {"count": n, "source": "Global Populated Places Atlas, excluding historical, abandoned and destroyed"}
+    return {"count": n, "source": "PanchangHub Places"}

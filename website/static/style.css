@@ -2,36 +2,32 @@
 *{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
 body{margin:0;font:15px/1.5 "Segoe UI",system-ui,-apple-system,Roboto,sans-serif;color:var(--ink);background:var(--cream)}
 a{color:var(--teal);text-decoration:none}a:hover{text-decoration:underline}
-.top{background:linear-gradient(90deg,var(--kumkum-d),var(--kumkum));color:#fff;border-bottom:4px solid var(--haldi);position:sticky;top:0;z-index:80;overflow:visible}
-.topbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:8px 14px}
-.brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none}
+.top{background:linear-gradient(90deg,var(--kumkum-d),var(--kumkum));color:#fff;border-bottom:4px solid var(--haldi);position:sticky;top:0;z-index:40}
+.topbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 14px}
+.brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;min-width:0}
 .brand img{height:40px;display:block;background:#fff8ea;border-radius:8px;padding:2px 6px}
 .tag{font-size:12px;line-height:1.25;opacity:.88}
-.toptools{margin-left:auto;display:flex;align-items:center;gap:10px}
+.toptools{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;min-width:0}
+#langSwitch{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
 #liveClock{font-variant-numeric:tabular-nums;font-weight:700;letter-spacing:.04em;background:rgba(0,0,0,.22);padding:6px 10px;border-radius:6px;min-width:5.5em;text-align:center}
-.topdate{font-size:13px;opacity:.9}
+.topdate{font-size:13px;opacity:.9;white-space:nowrap}
 .locbar{background:#fff;color:var(--ink);border-bottom:1px solid var(--line)}
-.locbar-in{display:flex;align-items:center;gap:16px;padding:8px 14px;flex-wrap:wrap}
-.curloc{min-width:180px}
-.locname{display:block;font-weight:700;color:var(--kumkum-d);font-size:16px}
-.loctz{display:block;font-size:12px;color:var(--muted)}
-.locbox{margin-left:auto;display:flex;gap:6px;align-items:center;position:relative;flex:1;max-width:520px}
-.locbox input{padding:8px 10px;border-radius:6px;border:1px solid var(--line);min-width:0;flex:1;font-size:14px}
+.locbar-in{display:flex;align-items:center;gap:12px;padding:8px 14px;flex-wrap:wrap}
+.curloc{min-width:0;flex:1 1 180px}
+.locname{display:block;font-weight:700;color:var(--kumkum-d);font-size:16px;overflow-wrap:anywhere}
+.loctz{display:block;font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+.locbox{margin-left:auto;display:flex;gap:6px;align-items:center;position:relative;flex:1 1 280px;max-width:560px;min-width:0;flex-wrap:wrap}
+.locbox input{padding:8px 10px;border-radius:6px;border:1px solid var(--line);min-width:0;flex:1 1 180px;width:auto;font-size:14px;background:#fff}
 .locbox button,.btn{background:var(--haldi);color:var(--ink);border:0;border-radius:6px;padding:8px 12px;font-weight:600;cursor:pointer;min-height:40px}
 .btn.alt{background:var(--kumkum);color:#fff}
-.sugg{position:absolute;top:calc(100% + 4px);left:0;min-width:480px;max-width:min(640px,calc(100vw - 24px));width:max-content;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:8px;z-index:1000;max-height:300px;overflow-y:auto;overflow-x:hidden;box-shadow:0 12px 32px rgba(42,26,18,.2)}
-.locbox .sugg{left:0;right:auto;min-width:480px;max-width:min(640px,calc(100vw - 24px));width:max-content}
-.sugg div{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:9px 14px;cursor:pointer;font-size:13.5px;border-bottom:1px solid #f6eee0;white-space:nowrap;transition:background .12s ease}
-.sugg div:last-child{border-bottom:none}
-.sugg div:hover{background:var(--haldi-l)}
-.sugg .sugg-city{font-weight:700;color:var(--kumkum-d);white-space:nowrap}
-.sugg .sugg-meta{font-size:12px;color:var(--muted);white-space:nowrap;flex-shrink:0}
+.sugg,.city-dropdown{position:absolute;top:100%;left:0;right:0;width:auto;margin-top:4px;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:6px;z-index:60;max-height:280px;overflow:auto;box-shadow:0 8px 22px #0003}
+.sugg div,.city-dropdown div{padding:8px 10px;cursor:pointer;font-size:14px;white-space:normal}.sugg div:hover,.city-dropdown div:hover{background:var(--haldi-l)}
 nav.main{background:var(--sandal);border-bottom:1px solid var(--line);overflow-x:auto;white-space:nowrap}
 nav.main a{display:inline-block;padding:9px 12px;color:var(--kumkum-d);font-weight:600;font-size:14px}
 nav.main a.on{background:var(--cream);border-bottom:3px solid var(--kumkum)}
 .wrap{max-width:1200px;margin:0 auto}
-.layout{display:grid;grid-template-columns:220px 1fr;gap:18px;padding:16px 14px}
-aside.side{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;align-self:start;position:sticky;top:128px}
+.layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:18px;padding:16px 14px}
+aside.side{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;align-self:start}
 aside.side h4{margin:6px 6px 4px;color:var(--kumkum);font-size:13px;text-transform:uppercase;letter-spacing:.04em}
 aside.side a{display:block;padding:5px 8px;border-radius:6px;color:var(--ink);font-size:14px}
 aside.side a:hover,aside.side a.on{background:var(--haldi-l);text-decoration:none}
@@ -52,9 +48,8 @@ main h1{font-family:Georgia,"Iowan Old Style",Palatino,serif;color:var(--kumkum)
 .syllable{font-family:Georgia,serif;font-size:64px;line-height:1;color:var(--kumkum);margin:0}
 .syllable span{font-family:"Segoe UI",system-ui,sans-serif;font-size:28px;color:var(--ink);margin-left:8px}
 .sub{color:var(--muted);margin:0 0 14px}
-.card{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:16px;overflow:visible}
-.card>h2:first-child,.card>h3:first-child{border-top-left-radius:9px;border-top-right-radius:9px}
-.card>h2,.card>h3{margin:0;padding:9px 14px;background:linear-gradient(90deg,var(--haldi-l),#fff);border-bottom:1px solid var(--line);color:var(--kumkum-d);font-size:16px}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:16px;overflow:visible;box-shadow:0 2px 8px rgba(94,15,38,.04)}
+.card>h2,.card>h3{margin:0;padding:9px 14px;background:linear-gradient(90deg,var(--haldi-l),#fff);border-bottom:1px solid var(--line);color:var(--kumkum-d);font-size:16px;border-radius:10px 10px 0 0}
 .card .body{padding:12px 14px}
 .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 table.kv,table.t{width:100%;border-collapse:collapse;font-size:14px}
@@ -64,10 +59,12 @@ table.t td{padding:6px 9px;border-bottom:1px solid #f1e5cf}table.t tr:nth-child(
 .good{color:var(--good);font-weight:600}.bad{color:var(--bad);font-weight:600}.neutral{color:var(--muted)}
 .pill{display:inline-block;padding:1px 8px;border-radius:12px;font-size:12px;background:var(--haldi-l);color:var(--kumkum-d);margin:1px}
 .datebar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
-.datebar input{padding:6px 8px;border:1px solid var(--line);border-radius:6px}
-form.f{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;align-items:end}
-form.f label{display:flex;flex-direction:column;font-size:13px;color:var(--muted);font-weight:600;gap:3px}
-form.f input,form.f select{padding:7px 8px;border:1px solid var(--line);border-radius:6px;font-size:14px;background:#fff}
+.datebar input{padding:6px 8px;border:1px solid var(--line);border-radius:6px;max-width:100%}
+form.f,.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:12px;align-items:end}
+form.f > div,form.f > fieldset,form.f > section,form.f > p,form.f > ul,form.f > ol,form.f > h2,form.f > h3{grid-column:1 / -1;min-width:0}
+label{display:flex;flex-direction:column;font-size:13px;color:var(--muted);font-weight:600;gap:3px;min-width:0;max-width:100%;position:relative}
+label:has(input[type=checkbox]),label:has(input[type=radio]){flex-direction:row;align-items:center;font-weight:500}
+form.f input:not([type=checkbox]):not([type=radio]):not([type=hidden]),form.f select,form.f textarea,.fields input:not([type=hidden]),.fields select,.fields textarea,label > input:not([type=checkbox]):not([type=radio]):not([type=hidden]),label > select,label > textarea{width:100%;max-width:100%;min-width:0;padding:7px 8px;border:1px solid var(--line);border-radius:6px;font-size:14px;background:#fff}
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .cal .h{font-weight:700;text-align:center;color:var(--kumkum);padding:4px}
 .cal .d{background:#fff;border:1px solid var(--line);border-radius:8px;min-height:96px;padding:5px;font-size:12px}
@@ -80,104 +77,73 @@ footer{background:var(--kumkum-d);color:#f7e7cf;padding:18px 14px;margin-top:30p
 .tabs a{display:inline-block;padding:6px 12px;border:1px solid var(--line);border-radius:16px;margin:2px;background:#fff}
 .tabs a.on{background:var(--kumkum);color:#fff;border-color:var(--kumkum)}
 details summary{cursor:pointer;font-weight:600;color:var(--kumkum-d)}
-@media (max-width:860px){.layout{grid-template-columns:1fr}aside.side{position:static;display:none}.grid2,.grid3,.hero,.suntimes{grid-template-columns:1fr 1fr}.locbox{margin-left:0;width:100%;max-width:none}.toptools{width:100%}.dayhead{flex-wrap:wrap}}
+@media (max-width:860px){.layout{grid-template-columns:1fr}aside.side{position:static;display:none;max-height:none}.grid2,.grid3,.hero,.suntimes{grid-template-columns:1fr 1fr}.locbox{margin-left:0;width:100%;max-width:none}.toptools{width:100%;margin-left:0;justify-content:flex-start}.dayhead{flex-wrap:wrap}main h1{font-size:28px}}
+@media (max-width:640px){.grid2,.grid3,.hero,.suntimes,.cal{grid-template-columns:1fr}.cal{grid-template-columns:repeat(7,minmax(0,1fr))}.locbox button{width:100%}.syllable{font-size:42px}}
 @media print{.top,nav.main,aside.side,footer,form.f,.datebar{display:none}.layout{display:block}}
 
 .langsel{margin-left:8px;padding:5px 6px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink,#3a2418);font-size:13px}
+.langreset{margin-left:6px;padding:5px 8px;border-radius:6px;border:1px solid #fff;background:#fff;color:var(--kumkum-d,#5e0f26);font-size:13px;font-weight:700;cursor:pointer;text-decoration:none}
+.cloth{background:radial-gradient(ellipse at 50% 20%, #4a2d6e 0%, #1a1030 62%, #120b22 100%);border-radius:0 0 10px 10px;padding:22px 14px 18px}
+.spread{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:26px 16px;justify-items:center}
+.tcard{width:min(100%,200px);margin:0}
+.tcard img{width:100%;height:auto;aspect-ratio:400/700;display:block;border-radius:12px;background:#140e22;box-shadow:0 16px 28px #000a, 0 2px 0 #fff3 inset}
+.tcard.rev img{transform:rotate(180deg)}
+.tcard figcaption{color:#f6edd8;text-align:center;margin-top:10px}
+.tcard figcaption span{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:.72}
+.tcard figcaption b{display:block;font-family:Georgia,serif;font-size:15px;font-weight:700;margin:3px 0 2px}
+.tcard figcaption p{margin:0;font-size:12px;line-height:1.35;opacity:.88}
 .bars{display:flex;flex-direction:column;gap:4px}.bar{display:flex;align-items:center;gap:6px;font-size:12px}.bar i{display:block;height:10px;background:var(--kumkum,#8e1b3a);border-radius:3px}
 .hex{font-family:monospace;line-height:1.05;font-size:20px;letter-spacing:2px}
 .reading p{margin:.35em 0;line-height:1.5}
 
-/* --- Premium Vedic Suite & UI Enhancements --- */
-.card{box-shadow:0 3px 12px rgba(94,15,38,.04);transition:box-shadow .2s ease,transform .2s ease}
-.card:hover{box-shadow:0 6px 20px rgba(94,15,38,.08)}
-.charts figure{background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px;box-shadow:0 2px 8px rgba(0,0,0,.03);transition:transform .15s ease}
-.charts figure:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.08)}
+main,.card,.grid2,.grid3,.hero,.layout,.wrap{min-width:0}
+img,svg,video,canvas{max-width:100%;height:auto}
+fieldset{min-width:0;max-width:100%;box-sizing:border-box}
+.charts figure{background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px;margin:0}
 .charts figcaption{font-weight:700;color:var(--kumkum-d);margin-top:6px;font-size:13px}
-
-/* Feature Showcase Grid */
-.feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin:18px 0}
-.feature-card{background:linear-gradient(145deg,#fff,#fffbf2);border:1px solid var(--line);border-top:4px solid var(--haldi);border-radius:10px;padding:16px;box-shadow:0 3px 10px rgba(0,0,0,.03);display:flex;flex-direction:column;justify-content:space-between;text-decoration:none!important;color:inherit;transition:all .2s ease}
-.feature-card:hover{transform:translateY(-3px);border-top-color:var(--kumkum);box-shadow:0 8px 24px rgba(94,15,38,.12)}
-.feature-card h3{margin:0 0 6px;color:var(--kumkum-d);font-size:17px;display:flex;align-items:center;gap:8px}
-.feature-card p{margin:0 0 12px;font-size:13px;color:var(--muted);line-height:1.45}
-.feature-card .cta{font-weight:700;color:var(--kumkum);font-size:13px;display:inline-flex;align-items:center;gap:4px}
-
-/* Dignity & Astrological Status Badges */
-.pill{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;margin:1px}
+.feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:16px;margin:18px 0}
+.feature-card{background:linear-gradient(145deg,#fff,#fffbf2);border:1px solid var(--line);border-top:4px solid var(--haldi);border-radius:10px;padding:16px;display:flex;flex-direction:column;justify-content:space-between;text-decoration:none;color:inherit}
+.feature-card h3{margin:0 0 6px;color:var(--kumkum-d);font-size:17px}
+.feature-card p{margin:0 0 12px;font-size:13px;color:var(--muted)}
 .pill-exalted{background:#e8f5e9;color:#1b5e20;border:1px solid #c8e6c9}
 .pill-own{background:#e0f2f1;color:#004d40;border:1px solid #b2dfdb}
 .pill-debilitated{background:#ffebee;color:#b71c1c;border:1px solid #ffcdd2}
 .pill-retro{background:#f3e5f5;color:#4a148c;border:1px solid #e1bee7}
 .pill-combust{background:#fff3e0;color:#e65100;border:1px solid #ffe0b2}
-.pill-vargottama{background:linear-gradient(135deg,var(--haldi-l),#ffe082);color:#5d4037;border:1px solid var(--haldi);font-weight:700}
-
-/* Jump Nav Tabs */
+.pill-vargottama{background:var(--haldi-l);color:#5d4037;border:1px solid var(--haldi)}
 .quick-nav{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 18px}
-.quick-nav a{background:#fff;border:1px solid var(--line);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;color:var(--ink);transition:all .15s ease}
-.quick-nav a:hover{background:var(--haldi-l);border-color:var(--haldi);color:var(--kumkum-d);text-decoration:none}
-
-/* Loading State for PDF button */
-.btn:active{transform:scale(.98)}
-.btn-loading{opacity:.7;pointer-events:none}
-
-@media (min-width: 521px) {
-  .col-span-2 { grid-column: span 2; }
-}
-@media (max-width: 520px) {
-  .sugg, .locbox .sugg {
-    min-width: 280px;
-    width: calc(100vw - 32px);
-    max-width: calc(100vw - 32px);
-  }
-  .sugg div {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
-    white-space: normal;
-  }
-}
-
-/* Classical Vedic Workstation Bar & Tabs */
-.worksheet-bar{background:#fff;border:1px solid var(--line);border-radius:12px;margin:16px 0 20px;padding:12px 16px;box-shadow:0 4px 14px rgba(42,26,18,.05)}
+.quick-nav a{background:#fff;border:1px solid var(--line);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;color:var(--ink)}
+.worksheet-bar{background:#fff;border:1px solid var(--line);border-radius:12px;margin:16px 0 20px;padding:12px 16px}
 .ws-header{margin-bottom:10px}
-.ws-title{display:block;font-size:15px;font-weight:700;color:var(--kumkum-d);letter-spacing:.02em}
-.ws-subtitle{display:block;font-size:12px;color:var(--muted)}
+.ws-title{display:block;font-size:15px;font-weight:700;color:var(--kumkum-d)}
+.ws-subtitle{display:block;font-size:12px;color:var(--muted);overflow-wrap:anywhere}
 .ws-nav{display:flex;gap:6px;flex-wrap:wrap}
-.ws-tab{background:#fffdfa;border:1px solid var(--line);border-radius:6px;padding:7px 12px;font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer;transition:all .15s ease}
-.ws-tab:hover{background:var(--haldi-l);border-color:var(--haldi);color:var(--kumkum-d)}
-.ws-tab.active{background:var(--kumkum);border-color:var(--kumkum-d);color:#fff;box-shadow:0 2px 6px rgba(94,15,38,.25)}
+.ws-tab{background:#fffdfa;border:1px solid var(--line);border-radius:6px;padding:7px 12px;font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer}
+.ws-tab.active{background:var(--kumkum);border-color:var(--kumkum-d);color:#fff}
 .ws-pane{display:none}
 .ws-pane.active{display:block}
-
-/* Sudarshan Chakra and Circular Layouts */
-.chakra-container{display:flex;flex-direction:column;align-items:center;justify-content:center;margin:12px 0}
-.chakra-container svg{max-width:100%;height:auto;filter:drop-shadow(0 4px 12px rgba(42,26,18,.08))}
-.chakra-table{margin-top:14px;width:100%}
-
-/* Pinda Cards */
-.pinda-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:10px 0}
-.pinda-card{background:linear-gradient(135deg,#fff,#fffbf2);border:1px solid var(--line);border-top:3px solid var(--haldi);border-radius:8px;padding:10px;text-align:center}
+.chakra-container{display:flex;flex-direction:column;align-items:center;margin:12px 0}
+.chakra-table{margin-top:14px;width:100%;overflow-x:auto}
+.pinda-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));gap:10px;margin:10px 0}
+.pinda-card{background:#fffbf2;border:1px solid var(--line);border-top:3px solid var(--haldi);border-radius:8px;padding:10px;text-align:center}
 .pinda-card .title{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);display:block}
 .pinda-card .val{font-size:20px;font-weight:700;color:var(--kumkum-d);display:block;margin:3px 0}
-.pinda-card .sub{font-size:11px;color:var(--muted)}
-
-/* Tajika Yogas & Varshaphala Styles */
 .tajika-badge{display:inline-block;padding:3px 9px;border-radius:12px;font-size:11px;font-weight:700}
-.tajika-ithasala{background:#e8f5e9;color:#1b5e20;border:1px solid #c8e6c9}
-.tajika-ishrafa{background:#ffebee;color:#b71c1c;border:1px solid #ffcdd2}
-.tajika-nakta{background:#e1f5fe;color:#01579b;border:1px solid #b3e5fc}
-.tajika-yamaya{background:#fff8e1;color:#f57f17;border:1px solid #ffecb3}
-.tajika-kamboola{background:#f3e5f5;color:#4a148c;border:1px solid #e1bee7}
-
-/* Classical Sanskrit Sloka & Varga Inspector Styles */
+.tajika-ithasala{background:#e8f5e9;color:#1b5e20}
+.tajika-ishrafa{background:#ffebee;color:#b71c1c}
+.tajika-nakta{background:#e1f5fe;color:#01579b}
+.tajika-yamaya{background:#fff8e1;color:#f57f17}
+.tajika-kamboola{background:#f3e5f5;color:#4a148c}
 .sloka-card{background:#fffdfa;border:1px solid var(--line);border-left:4px solid var(--kumkum);border-radius:8px;padding:12px 14px;margin-bottom:12px}
 .sloka-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:6px}
 .sloka-title{font-size:13.5px;font-weight:700;color:var(--kumkum-d)}
-.sloka-verse{font-family:'Noto Sans Devanagari',Georgia,serif;font-size:13px;color:var(--kumkum-d);font-style:italic;line-height:1.6;background:#fff8f0;padding:8px 12px;border-radius:6px;border:1px dashed #e6caa3;margin:6px 0}
-.sloka-trans{font-size:13px;line-height:1.55;color:var(--ink);margin:4px 0 0 0}
-.house-lord-card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:8px;transition:box-shadow .15s ease}
-.house-lord-card:hover{box-shadow:0 3px 10px rgba(42,26,18,.07)}
+.sloka-verse{font-size:13px;color:var(--kumkum-d);font-style:italic;line-height:1.6;background:#fff8f0;padding:8px 12px;border-radius:6px;margin:6px 0;overflow-wrap:anywhere}
+.sloka-trans{font-size:13px;line-height:1.55;margin:4px 0 0}
+.house-lord-card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:8px}
 .varga-inspector-box{background:#fffaf3;border:1px solid var(--line);border-radius:8px;padding:14px;margin-top:14px}
-
-
+.bazi-pillars{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));gap:8px}
+@media (max-width:640px){
+  .grid2,.grid3,.hero,.suntimes{grid-template-columns:1fr}
+  main h1{font-size:26px}
+  .locbox button{flex:1 1 100%}
+}

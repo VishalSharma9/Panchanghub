@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>Hindu Calendar – {{ first.strftime('%B %Y') }}</h1><p class="sub">{{ loc.city }} · tithi &amp; nakshatra at sunrise</p>
-<div class="datebar">{% if pm %}<a class="btn" href="/calendar?year={{ pm.year }}&month={{ pm.month }}">‹ {{ pm.strftime('%b %Y') }}</a>{% endif %}<a class="btn alt" href="/calendar">This month</a>{% if nm %}<a class="btn" href="/calendar?year={{ nm.year }}&month={{ nm.month }}">{{ nm.strftime('%b %Y') }} ›</a>{% endif %}</div>
+<div class="datebar">{% if pm %}<a class="btn" href="/calendar?year={{ pm.year }}&month={{ pm.month }}">‹ {{ pm.strftime('%B %Y') }}</a>{% endif %}<a class="btn alt" href="/calendar">This month</a>{% if nm %}<a class="btn" href="/calendar?year={{ nm.year }}&month={{ nm.month }}">{{ nm.strftime('%B %Y') }} ›</a>{% endif %}</div>
 <p class="sub">Any month from 1 CE through 3000 CE.</p>
 <div class="cal">{% for w in ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] %}<div class="h">{{ w }}</div>{% endfor %}
 {% for i in range(lead) %}<div></div>{% endfor %}

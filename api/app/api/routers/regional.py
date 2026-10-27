@@ -9,11 +9,11 @@ from ..deps import loc_params, wrap
 router = APIRouter()
 
 @router.get("/panchang/regional/v2", tags=["Panchang"], summary="Tamil, Malayalam, Bengali, Assamese, Odia solar dates + Gujarati/Marathi/North lunisolar, with Surya-Siddhanta option")
-def regional_v2(date: Date | None = None, siddhanta: Literal["drik", "surya", "vakya"] = "drik", loc=Depends(loc_params)):
+def regional_v2(date: Date | None = None, siddhanta: Literal["hub", "surya", "vakya"] = "hub", loc=Depends(loc_params)):
     return wrap(R.regional_calendar, date or Date.today(), loc["lat"], loc["lon"], loc["tz"], loc["utc_offset"], siddhanta)
 
 @router.get("/festivals/regional-new-years", tags=["Calendar"], summary="Puthandu, Vishu, Pohela Boishakh, Bohag Bihu, Pana Sankranti, Thai Pongal, Chingam 1")
-def new_years(year: int = Query(..., ge=1, le=3000), siddhanta: Literal["drik", "surya", "vakya"] = "drik", loc=Depends(loc_params)):
+def new_years(year: int = Query(..., ge=1, le=3000), siddhanta: Literal["hub", "surya", "vakya"] = "hub", loc=Depends(loc_params)):
     return wrap(R.regional_new_years, year, loc["lat"], loc["lon"], loc["tz"], loc["utc_offset"], siddhanta)
 
 @router.get("/festivals/rules", tags=["Calendar"], summary="Festival determination rules (Nirnayasindhu / Dharmasindhu) incl. Smarta vs Vaishnava")
@@ -36,11 +36,11 @@ def godhuli(date: Date | None = None, loc=Depends(loc_params)):
             "source": "Muhurta Chintamani, Vivaha-prakarana v.98 (hemanta: disc still round above horizon; grishma: half-set; varsha: fully set); ends half a night-muhurta after sunset"}
 
 
-@router.get("/panchang/vakya", tags=["Panchang"], summary="Vakya panchang: tithi, nakshatra, yoga, karana by Vararuci Chandravakyas + Vakya Sun (with Drik side-by-side)")
+@router.get("/panchang/vakya", tags=["Panchang"], summary="Vakya panchang: tithi, nakshatra, yoga, karana by Vararuci Chandravakyas + Vakya Sun (with Hub side-by-side)")
 def panchang_vakya(date: Date | None = None, loc=Depends(loc_params)):
     return wrap(VK.vakya_panchang, date or Date.today(), loc["lat"], loc["lon"], loc["tz"], loc["utc_offset"])
 
-@router.get("/vakya/sankranti", tags=["Panchang"], summary="Vakya sankranti moments for a year vs Drik")
+@router.get("/vakya/sankranti", tags=["Panchang"], summary="Vakya sankranti moments for a year vs Hub")
 def vakya_sankranti(year: int = Query(..., ge=1, le=3000), tz: str = "Asia/Kolkata"):
     return wrap(VK.sankranti, year, tz, None)
 

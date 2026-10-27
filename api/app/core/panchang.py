@@ -2,8 +2,7 @@
 from __future__ import annotations
 import math
 from datetime import date as Date, datetime, timedelta
-import swisseph as swe
-from .ephem import (sun_lon, moon_lon, norm, next_boundary, rise_set, local_midnight_jd, fmt, make_tz,
+from .ephem import (swe, sun_lon, moon_lon, norm, next_boundary, rise_set, local_midnight_jd, fmt, make_tz,
                     NAKSHATRAS, NAK_LORDS, RASHIS, SIGNS, WEEKDAYS, VARAS, sign_info, nakshatra_of, ascendant,
                     find_root, angdiff, local_from_jd, ayanamsa)
 
@@ -67,10 +66,10 @@ def day_events(d: Date, lat, lon, tz, alt=0.0):
     sr = rise_set(j0, swe.SUN, lat, lon, alt, True)
     ss = rise_set(sr if sr else j0, swe.SUN, lat, lon, alt, False)
     nsr = rise_set((ss or j0) , swe.SUN, lat, lon, alt, True)
-    # Panchang day = sunrise to next sunrise (Drik convention)
+    # Panchang day = sunrise to next sunrise
     base = sr if sr else j0
     end = nsr if nsr else base + 1
-    # Moon: disc centre, no refraction (canonical Drik standard)
+    # Moon: disc centre, no refraction
     mr = rise_set(base, swe.MOON, lat, lon, alt, True, True, True)
     ms = rise_set(base, swe.MOON, lat, lon, alt, False, True, True)
     if mr and mr >= end: mr = None
@@ -207,9 +206,9 @@ def compute_panchang(d: Date, lat: float, lon: float, tz_name: str | None = None
     purn_idx = m_idx if paksha == "Shukla" else (m_idx + 1) % 12
     sam = samvat_info(d, m_idx)
     sun_trop = sun_lon(sr, False); sun_s = sun_lon(sr, True)
-    drik_ritu = RITUS[int(norm(sun_trop + 30) // 60)]
+    solar_ritu = RITUS[int(norm(sun_trop + 30) // 60)]
     vedic_ritu = RITUS[m_idx // 2]
-    drik_ayana = "Uttarayana" if (sun_trop >= 270 or sun_trop < 90) else "Dakshinayana"
+    solar_ayana = "Uttarayana" if (sun_trop >= 270 or sun_trop < 90) else "Dakshinayana"
     vedic_ayana = "Uttarayana" if (sun_s >= 270 or sun_s < 90) else "Dakshinayana"
 
     day = ss - sr; night = nsr - ss
@@ -316,7 +315,7 @@ def compute_panchang(d: Date, lat: float, lon: float, tz_name: str | None = None
         "surya_nakshatra": strip(sun_n),
         "month": {"amanta": MONTHS[m_idx] + (" (Adhika)" if adhika else ""), "purnimanta": MONTHS[purn_idx] + (" (Adhika)" if adhika else ""),
                   "adhika": adhika, "amanta_index": m_idx},
-        "samvat": sam, "ritu": {"drik": drik_ritu, "vedic": vedic_ritu}, "ayana": {"drik": drik_ayana, "vedic": vedic_ayana},
+        "samvat": sam, "ritu": {"solar": solar_ritu, "vedic": vedic_ritu}, "ayana": {"solar": solar_ayana, "vedic": vedic_ayana},
         "ayanamsa_lahiri": round(ayan, 6),
         "muhurta": mu, "disha_shool": DISHA_SHOOL[wd],
         "chandrabalam": chandrabalam, "tarabalam": tarabalam, "personal": personal,

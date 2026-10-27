@@ -2,11 +2,11 @@
 {% macro datebar(base, d, prev, next, locq) -%}<form class="datebar" method="get" action="{{ base }}">{% if prev %}<a class="btn" href="{{ base }}?date={{ prev }}&{{ locq }}">‹ Prev</a>{% endif %}<input type="date" name="date" value="{{ d.isoformat() }}" min="0001-01-01" max="3000-12-31" onchange="this.form.submit()" aria-label="Choose date"><input type="hidden" name="city" value="{{ loc.city }}"><input type="hidden" name="lat" value="{{ loc.lat }}"><input type="hidden" name="lon" value="{{ loc.lon }}"><input type="hidden" name="tz" value="{{ loc.tz }}">{% if next %}<a class="btn" href="{{ base }}?date={{ next }}&{{ locq }}">Next ›</a>{% endif %}<a class="btn alt" href="{{ base }}?{{ locq }}">Today</a></form>{%- endmacro %}
 {% macro birthform(prefix, b, label) -%}
 <fieldset style="border:1px solid var(--line);border-radius:8px;padding:10px"><legend style="color:var(--kumkum);font-weight:700">{{ label }}</legend>
-<div class="f" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px">
+<div class="fields">
 <label>Name<input name="{{ prefix }}name" value="{{ b.name if b and b.name else '' }}"></label>
 <label>Birth date<input type="date" name="{{ prefix }}date" required value="{{ b.date if b else '1990-05-15' }}"></label>
 <label>Birth time<input type="time" step="1" name="{{ prefix }}time" required value="{{ b.time if b else '10:30:00' }}"></label>
-<label class="col-span-2">Birth place<input data-place="{{ prefix }}" name="{{ prefix }}city" value="{{ b.city if b and b.city else 'New Delhi, IN' }}" autocomplete="off"></label>
+<label>Birth place<input data-place="{{ prefix }}" name="{{ prefix }}city" value="{{ b.city if b and b.city else 'New Delhi, IN' }}" autocomplete="off"></label>
 <label>Latitude<input name="{{ prefix }}lat" value="{{ b.latitude if b else 28.6139 }}"></label>
 <label>Longitude<input name="{{ prefix }}lon" value="{{ b.longitude if b else 77.209 }}"></label>
 <label>Timezone<input name="{{ prefix }}tz" value="{{ b.timezone if b else 'Asia/Kolkata' }}"></label>

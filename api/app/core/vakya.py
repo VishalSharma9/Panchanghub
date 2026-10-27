@@ -89,7 +89,7 @@ def _boundary(fn, t0, step, t_end):
 
 def vakya_panchang(d, lat, lon, tz_name=None, utc_offset=None):
     """Tithi / nakshatra / yoga / karana for the civil day d (sunrise to next sunrise) by Vakya positions,
-    side by side with Drik (modern) values."""
+    side by side with Hub (modern) values."""
     from .ephem import fmt, make_tz
     from .panchang import day_events, compute_panchang, karana_name
     tz = make_tz(tz_name, utc_offset); ev = day_events(d, lat, lon, tz)
@@ -107,14 +107,14 @@ def vakya_panchang(d, lat, lon, tz_name=None, utc_offset=None):
            "sun_longitude": round(sun(sr), 4), "moon_longitude": round(moon(sr), 4)}
     try:
         p = compute_panchang(d, lat, lon, tz_name, utc_offset)
-        res["drik"] = {"tithi": [{"name": x["name"], "end": x.get("end")} for x in p["tithi"]],
+        res["hub"] = {"tithi": [{"name": x["name"], "end": x.get("end")} for x in p["tithi"]],
                        "nakshatra": [{"name": x["name"], "end": x.get("end")} for x in p["nakshatra"]]}
     except Exception:
         pass
     return res
 
 def sankranti(year: int, tz_name=None, utc_offset=None):
-    """12 Vakya sankranti moments of a year (Vakya Sun), with the Drik moment for comparison."""
+    """12 Vakya sankranti moments of a year (Vakya Sun), with the Hub moment for comparison."""
     from .ephem import fmt, make_tz, find_root, local_midnight_jd
     from .panchang import sun_sid
     from datetime import date as Date
@@ -128,7 +128,7 @@ def sankranti(year: int, tz_name=None, utc_offset=None):
         if r is None or r >= end: break
         gd = lambda x: ((sun_sid(x) - target + 180) % 360) - 180
         rd = find_root(gd, r - 3, r + 3, 1e-7)
-        out.append({"rashi": RASHIS[(k + 1) % 12], "vakya": fmt(r, tz), "drik": fmt(rd, tz) if rd else None,
+        out.append({"rashi": RASHIS[(k + 1) % 12], "vakya": fmt(r, tz), "hub": fmt(rd, tz) if rd else None,
                     "difference_minutes": round((r - rd) * 1440, 1) if rd else None})
         t = r + 1
     return {"year": year, "sankrantis": out}

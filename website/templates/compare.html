@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}{% set ref = p.date %}
 <h1>Two cities, one day</h1>
-<p class="sub">{{ d.strftime('%A, %d %B %Y') }}. Drik makes you switch place. Here both panchangs stay on the page, so a family split across countries can see whose sunrise the tithi belongs to.</p>
+<p class="sub">{{ d.strftime('%A, %d %B %Y') }}. Both panchangs stay on the page, so a family split across countries can see whose sunrise the tithi belongs to.</p>
 <form class="datebar" method="get" action="/compare">{% if prev %}<a class="btn" href="/compare?date={{ prev }}&{{ locq }}">‹ Prev</a>{% endif %}<input type="date" name="date" value="{{ d.isoformat() }}" min="0001-01-01" max="3000-12-31" onchange="this.form.submit()" aria-label="Choose date"><input type="hidden" name="city" value="{{ loc.city }}"><input type="hidden" name="lat" value="{{ loc.lat }}"><input type="hidden" name="lon" value="{{ loc.lon }}"><input type="hidden" name="tz" value="{{ loc.tz }}">{% if loc2 %}<input type="hidden" name="city2" value="{{ loc2.city }}"><input type="hidden" name="lat2" value="{{ loc2.lat }}"><input type="hidden" name="lon2" value="{{ loc2.lon }}"><input type="hidden" name="tz2" value="{{ loc2.tz }}">{% endif %}{% if next %}<a class="btn" href="/compare?date={{ next }}&{{ locq }}">Next ›</a>{% endif %}<a class="btn alt" href="/compare?{{ locq }}">Today</a></form>
 <form class="f" method="get" action="/compare">
 <input type="hidden" name="date" value="{{ d.isoformat() }}">

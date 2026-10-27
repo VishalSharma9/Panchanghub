@@ -1,7 +1,7 @@
-"""Sankranti punya-kaal (Nirnayasindhu pt.1 'Sankranti-nirnaya'; Dharmasindhu pt.1), canonical classical rules.
+"""Sankranti punya-kaal (Nirnayasindhu pt.1 'Sankranti-nirnaya'; Dharmasindhu pt.1).
 
 Ghati G = 1/30 of the observing day's daytime (sunrise to sunset); the long Karka (30) and Makara (40) spans
-use standard 24-minute ghatis (canonical classical formula, e.g. Karka punya-kaal starting 12 h before the moment).
+use standard 24-minute ghatis (Karka punya-kaal starts 12 hours before the moment).
 Day-time sankranti (between sunrise and sunset) - window relative to the moment t, clipped to daylight:
   * Mesha, Tula (Vishuva, equinoctial) ............ 10 G before and 10 G after
   * Karka (Dakshinayana) ............................ 30 G before

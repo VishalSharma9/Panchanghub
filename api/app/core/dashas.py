@@ -1,4 +1,4 @@
-"""Additional dasha systems: Jaimini Chara dasha (K.N. Rao method), Kalachakra dasha (BPHS / B.V. Raman tables),
+"""Additional dasha systems: Jaimini Chara dasha (K.N.), Kalachakra dasha (BPHS / B.V. pada tables),
 conditional nakshatra dashas (Shodashottari, Dwadashottari, Panchottari, Shatabdika, Chaturashiti-sama,
 Dwisaptati-sama, Shashtihayani, Shattrimsha-sama) and Ghata Chakra."""
 from __future__ import annotations
@@ -47,12 +47,12 @@ def chara_dasha(pos: dict, asc: float, birth_jd: float, tz, cycles: int = 2):
                 subs.append({"sign": SIGNS[ss], "start": _d(st, tz), "end": _d(se, tz)}); st = se
             out.append({"sign": SIGNS[s], "years": y, "start": _d(t, tz), "end": _d(e, tz), "antardasha": subs})
             t = e
-    return {"method": "Jaimini Chara dasha (K.N. Rao): sequence from Lagna, direction by 9th house footedness",
+    return {"method": "Jaimini Chara dasha (K.N.): sequence from Lagna, direction by 9th house footedness",
             "direction": "forward" if forward else "reverse", "periods": out}
 
 # ---------------- Kalachakra ----------------
 KC_YEARS = [7, 16, 9, 21, 5, 9, 16, 7, 10, 4, 4, 10]
-# exact B.V. Raman savya tables (Capricorn written as 'Cp')
+# B.V. savya pada tables (Capricorn written as 'Cp')
 SAVYA = [[0, 1, 2, 3, 4, 5, 6, 7, 8], [9, 10, 11, 7, 6, 5, 3, 4, 2], [1, 0, 11, 10, 9, 8, 0, 1, 2], [3, 4, 5, 6, 7, 8, 9, 10, 11]]
 APASAVYA = [[7, 6, 5, 3, 4, 2, 1, 0, 11], [10, 9, 8, 0, 1, 2, 3, 4, 5], [6, 7, 8, 9, 10, 11, 7, 6, 5], [3, 4, 2, 1, 0, 11, 10, 9, 8]]
 SAVYA_NAK = {0, 1, 2, 6, 7, 8, 12, 13, 14, 18, 19, 20, 24, 25, 26}
@@ -70,7 +70,7 @@ def kalachakra(moon_lon: float, birth_jd: float, tz):
     for s in seq:
         e = t + KC_YEARS[s] * YEAR_DAYS
         out.append({"sign": SIGNS[s], "years": KC_YEARS[s], "start": _d(t, tz), "end": _d(e, tz)}); t = e
-    return {"method": "Kalachakra dasha (BPHS; savya/apasavya pada tables)", "nakshatra": NAKSHATRAS[ni], "pada": pada + 1,
+    return {"method": "Kalachakra dasha (BPHS / B.V. pada tables)", "nakshatra": NAKSHATRAS[ni], "pada": pada + 1,
             "group": "Savya" if savya else "Apasavya", "deha": SIGNS[seq[0]], "jeeva": SIGNS[seq[-1]],
             "paramayu_years": total, "elapsed_at_birth_years": round(elapsed, 4), "periods": out}
 

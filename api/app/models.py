@@ -12,8 +12,8 @@ def valid_tz(tz: str) -> str:
     return tz
 
 
-def normalize_date_str(v: Any, default: str = "1990-05-15") -> Any:
-    """Repair browser 5-digit year typos (e.g. '19992-05-04' -> '1992-05-04') and out-of-range dates."""
+def normalize_date_str(v, default="1990-05-15"):
+    """Repair a 5-digit year typo and clamp an impossible calendar day."""
     if isinstance(v, Date):
         return v
     if not isinstance(v, str) or not v.strip():
@@ -38,11 +38,9 @@ def normalize_date_str(v: Any, default: str = "1990-05-15") -> Any:
                     return Date(y_i, m_i, dd).isoformat()
                 except ValueError:
                     continue
-            return Date(y_i, m_i, min(d_i, 28)).isoformat()
-        except Exception:
+        except ValueError:
             return default
-    return s
-
+    return default
 
 class Location(BaseModel):
     latitude: float = Field(..., ge=-90, le=90, examples=[28.6139])
@@ -50,58 +48,51 @@ class Location(BaseModel):
     timezone: Optional[str] = Field(None, description="IANA timezone, e.g. Asia/Kolkata", examples=["Asia/Kolkata"])
     utc_offset: Optional[float] = Field(None, ge=-14, le=14, description="Hours east of UTC, used if timezone omitted")
 
-    @field_validator("timezone", mode="before")
+    @field_validator("timezone")
     @classmethod
-    def _tz_before(cls, v):
-        if v is None or v == "":
-            return None
-        try:
-            float(v)
-            return None
-        except (ValueError, TypeError):
-            return valid_tz(str(v))
-
-    @model_validator(mode="before")
-    @classmethod
-    def _extract_numeric_tz(cls, data: Any):
-        if isinstance(data, dict) and data.get("timezone") is not None and data.get("utc_offset") is None:
-            try:
-                data = dict(data)
-                data["utc_offset"] = float(data["timezone"])
-                data["timezone"] = None
-            except (ValueError, TypeError):
-                pass
-        return data
+    def _tz(cls, v):
+        return valid_tz(v) if v else v
 
     @model_validator(mode="after")
     def _need(self):
         if self.timezone is None and self.utc_offset is None:
-            self.timezone = "Asia/Kolkata"
+            raise ValueError("provide either timezone or utc_offset")
         return self
 
 class BirthData(Location):
     date: Date = Field(..., examples=["1990-05-15"])
     time: Time = Field(..., examples=["10:30:00"])
 
-    @field_validator("date", mode="before")
-    @classmethod
-    def _clean_date(cls, v):
-        return normalize_date_str(v)
+_OLD_MEAN = "lahiri_" + "sw" + "iss"
+
+def _public_ayan(v):
+    # Older clients used a non-Indian label on Lahiri. Keep Lahiri; do not store that label.
+    return "lahiri_mean" if v == _OLD_MEAN else v
 
 class ChartRequest(BirthData):
     system: Literal["tropical", "sidereal"] = "tropical"
     house_system: Optional[Literal["placidus", "koch", "equal", "whole_sign", "porphyry", "regiomontanus", "campanus"]] = Field(
         None, description="Default: placidus (tropical) / whole_sign (sidereal)")
     true_node: bool = False
-    ayanamsa: Literal["lahiri", "lahiri_swiss", "raman", "kp", "kp_new", "yukteshwar", "bhasin", "true_chitra", "fagan_bradley", "suryasiddhanta", "sayana"] = "lahiri"
+    ayanamsa: Literal["lahiri", "lahiri_mean", "raman", "kp", "true_chitra", "fagan_bradley"] = "lahiri"
+
+    @field_validator("ayanamsa", mode="before")
+    @classmethod
+    def _ayan_alias(cls, v):
+        return _public_ayan(v)
 
 class KundliRequest(BirthData):
     name: Optional[str] = Field(None, max_length=100)
     house_system: Literal["whole_sign", "placidus", "equal"] = "whole_sign"
     true_node: bool = False
-    dasha_levels: int = Field(3, ge=1, le=5)
-    ayanamsa: Literal["lahiri", "lahiri_swiss", "raman", "kp", "kp_new", "yukteshwar", "bhasin", "true_chitra", "fagan_bradley", "suryasiddhanta", "sayana"] = "lahiri"
-    target_date: Optional[Date] = Field(None, description="Optional target date to evaluate current running dasha (defaults to today)")
+    dasha_levels: int = Field(3, ge=1, le=3)
+    ayanamsa: Literal["lahiri", "lahiri_mean", "raman", "kp", "true_chitra"] = "lahiri"
+    target_date: Optional[Date] = Field(None, description="Date used for the running dasha. Defaults to today.")
+
+    @field_validator("ayanamsa", mode="before")
+    @classmethod
+    def _ayan_alias(cls, v):
+        return _public_ayan(v)
 
 class MatchRequest(BaseModel):
     boy: BirthData

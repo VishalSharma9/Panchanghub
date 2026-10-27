@@ -1,12 +1,11 @@
 """Vedic Kundli: lagna, planets, 16 vargas, dashas, ashtakavarga, partial shadbala, doshas and yogas."""
 from __future__ import annotations
 from datetime import datetime, timedelta, timezone
-import swisseph as swe
-from .ephem import (all_positions, houses, sign_info, nakshatra_of, norm, angdiff, dms, jd_from_utc, utc_from_jd,
+from .ephem import (swe, all_positions, houses, sign_info, nakshatra_of, norm, angdiff, dms, jd_from_utc, utc_from_jd,
                     SIGNS, RASHIS, NAKSHATRAS, NAK_LORDS, SIGN_LORDS, VEDIC_PLANETS, calc, ayanamsa, next_boundary,
                     local_from_jd)
 
-YEAR_DAYS = 365.2425  # Standard tropical solar year length for Vimshottari
+YEAR_DAYS = 365.2425  # mean Gregorian year, used for Vimshottari
 VIM_ORDER = ["Ketu", "Venus", "Sun", "Moon", "Mars", "Rahu", "Jupiter", "Saturn", "Mercury"]
 VIM_YEARS = {"Ketu": 7, "Venus": 20, "Sun": 6, "Moon": 10, "Mars": 7, "Rahu": 18, "Jupiter": 16, "Saturn": 19, "Mercury": 17}
 YOGINIS = [("Mangala", "Moon", 1), ("Pingala", "Sun", 2), ("Dhanya", "Jupiter", 3), ("Bhramari", "Mars", 4),

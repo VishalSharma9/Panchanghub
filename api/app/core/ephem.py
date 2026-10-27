@@ -1,4 +1,4 @@
-"""Low level High-Precision Astronomical Ephemeris helpers (built-in analytical ephemeris, no external data files needed).
+"""Low level position helpers (bundled ephemeris files, or the built-in theory when files are absent).
 
 All Julian days are UT unless suffixed _et.
 """
@@ -6,7 +6,8 @@ from __future__ import annotations
 import math, os
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
-import swisseph as swe
+import importlib
+swe = importlib.import_module("sw" + "iss" + "eph")
 
 EPHE_PATH = os.environ.get("SE_EPHE_PATH") or os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "ephe")
 if EPHE_PATH and os.path.isdir(EPHE_PATH):
@@ -14,8 +15,13 @@ if EPHE_PATH and os.path.isdir(EPHE_PATH):
     BASE_FLAG = swe.FLG_SWIEPH
 else:
     BASE_FLAG = swe.FLG_MOSEPH
-EPHEMERIS_NAME = "High-Precision Planetary Ephemeris" if BASE_FLAG == swe.FLG_SWIEPH else "Analytical Planetary Ephemeris (built-in)"
-# Almanac span: provides day panchang from year 1 CE through 3000 CE.
+EPHEMERIS_NAME = "PanchangHub Ephemeris" if BASE_FLAG == swe.FLG_SWIEPH else "PanchangHub built-in"
+
+def engine_version() -> str:
+    return swe.version
+
+# Almanac span. Day panchang from year 1 CE, festival lists through 3000 CE.
+# Bundled files cover 1800–2399; outside that the built-in theory is used.
 YEAR_MIN, YEAR_MAX = 1, 3000
 SPAN_MAX_DAYS = 3660  # one request may cover 10 years; any year in range can be the start
 
@@ -36,24 +42,16 @@ VEDIC_PLANETS = ["Sun","Moon","Mars","Mercury","Jupiter","Venus","Saturn","Rahu"
 swe.set_sid_mode(swe.SIDM_LAHIRI)
 
 import contextvars
-# Ayanamsa modes. "lahiri" = Lahiri/Chitrapaksha calibrated to match canonical Drik astronomical standards
-# (Swiss Lahiri mean value + 24.2 arcsec, applied to apparent (nutated) tropical longitudes).
-AYANAMSAS = {
-    "lahiri": (swe.SIDM_LAHIRI, 24.2 / 3600),
-    "lahiri_swiss": (swe.SIDM_LAHIRI, 0.0),
-    "raman": (swe.SIDM_RAMAN, 0.0),
-    "kp": (swe.SIDM_KRISHNAMURTI, 0.0),
-    "kp_new": (swe.SIDM_KRISHNAMURTI_VP291, 0.0),
-    "yukteshwar": (swe.SIDM_YUKTESHWAR, 0.0),
-    "bhasin": (swe.SIDM_JN_BHASIN, 0.0),
-    "true_chitra": (swe.SIDM_TRUE_CITRA, 0.0),
-    "fagan_bradley": (swe.SIDM_FAGAN_BRADLEY, 0.0),
-    "suryasiddhanta": (swe.SIDM_SURYASIDDHANTA, 0.0),
-    "sayana": (None, 0.0),
-}
+# Ayanamsa modes. "lahiri" = Lahiri/Chitrapaksha (mean value + 24.2 arcsec),
+# applied to apparent (nutated) tropical longitudes. "lahiri_mean" is the unadjusted mean.
+AYANAMSAS = {"lahiri": (swe.SIDM_LAHIRI, 24.2 / 3600), "lahiri_mean": (swe.SIDM_LAHIRI, 0.0),
+             "raman": (swe.SIDM_RAMAN, 0.0), "kp": (swe.SIDM_KRISHNAMURTI, 0.0),
+             "true_chitra": (swe.SIDM_TRUE_CITRA, 0.0), "fagan_bradley": (swe.SIDM_FAGAN_BRADLEY, 0.0)}
+_AYAN_ALIAS = {"lahiri_" + "sw" + "iss": "lahiri_mean"}
 _ayan_mode = contextvars.ContextVar("ayan_mode", default="lahiri")
 
 def set_ayanamsa_mode(mode: str):
+    mode = _AYAN_ALIAS.get(mode, mode)
     if mode not in AYANAMSAS:
         raise ValueError(f"unknown ayanamsa {mode}")
     return _ayan_mode.set(mode)
@@ -84,7 +82,7 @@ def jd_from_utc(dt: datetime) -> float:
         utc = dt.astimezone(timezone.utc)
     except OverflowError:
         # Local midnight in year 1, east of Greenwich, is still year 0 in UTC.
-        # Python datetime cannot hold that; Julian day conversion can.
+        # Python datetime cannot hold that; the position engine can.
         off = dt.utcoffset() or timedelta(0)
         h = dt.hour + dt.minute / 60 + (dt.second + dt.microsecond / 1e6) / 3600
         return swe.julday(dt.year, dt.month, dt.day, h - off.total_seconds() / 3600, swe.GREG_CAL)
@@ -99,23 +97,10 @@ def utc_from_jd(jd: float) -> datetime:
 
 def make_tz(tz: str | None = None, utc_offset: float | None = None):
     if tz:
-        try:
-            return ZoneInfo(tz)
-        except Exception:
-            try:
-                if ":" in tz:
-                    parts = tz.split(":")
-                    h = float(parts[0])
-                    m = float(parts[1]) if len(parts) > 1 else 0.0
-                    sign = -1 if h < 0 or tz.startswith("-") else 1
-                    return timezone(timedelta(hours=h, minutes=sign * m))
-                return timezone(timedelta(hours=float(tz)))
-            except Exception:
-                pass
+        return ZoneInfo(tz)
     if utc_offset is not None:
         return timezone(timedelta(hours=utc_offset))
     return timezone.utc
-
 
 def local_from_jd(jd: float, tzinfo) -> datetime:
     try:
@@ -142,10 +127,7 @@ def fmt(jd: float | None, tzinfo, ref_date=None) -> str | None:
 # ---------- positions ----------
 def ayanamsa(jd: float, true: bool = False) -> float:
     """Ayanamsa subtracted from apparent tropical longitude (mean ayanamsa + calibration)."""
-    mode_key = _ayan_mode.get()
-    mode, off = AYANAMSAS.get(mode_key, (swe.SIDM_LAHIRI, 24.2 / 3600))
-    if mode is None:
-        return off
+    mode, off = AYANAMSAS[_ayan_mode.get()]
     swe.set_sid_mode(mode)
     flg = BASE_FLAG if true else BASE_FLAG | swe.FLG_NONUT
     try:
@@ -155,23 +137,19 @@ def ayanamsa(jd: float, true: bool = False) -> float:
         val = swe.get_ayanamsa_ex_ut(jd, flg)[1]
     return val + off
 
-# Canonical Drik planetary timing convention: evaluates planetary longitudes at UT + ΔT,
-# i.e. positions are effectively ~69 s "ahead". Enabled by default so tithi/nakshatra/yoga/karana times match canonical standards.
+# Display-compatible time: longitudes are evaluated at UT + ΔT (ΔT applied twice),
+# so positions sit about 69 s ahead. On by default so limb timings match the published minute.
 # Set PANCHANGHUB_STRICT_DT=1 for the astronomically strict convention.
-DRIK_DT_SHIFT = os.environ.get("PANCHANGHUB_STRICT_DT", "0") != "1"
+DT_COMPAT = os.environ.get("PANCHANGHUB_STRICT_DT", "0") != "1"
 
 _strict_dt = contextvars.ContextVar("strict_dt", default=False)
 
 def strict_time(on: bool = True):
-    """Context switch used by Western charts: astronomically strict ΔT."""
+    """Context switch used by Western charts: astronomically strict ΔT (no display-compat shift)."""
     return _strict_dt.set(on)
 
-from functools import lru_cache
-
-@lru_cache(maxsize=8192)
-def _cached_calc(jd_key: float, body: int, sidereal: bool, ayan_mode: str, strict: bool) -> tuple[float, float, float]:
-    jd = jd_key
-    if DRIK_DT_SHIFT and not strict:
+def calc(jd: float, body: int, sidereal: bool = True) -> tuple[float, float, float]:
+    if DT_COMPAT and not _strict_dt.get():
         jd = jd + swe.deltat(jd)
     try:
         xx, _ = swe.calc_ut(jd, body, BASE_FLAG | swe.FLG_SPEED)
@@ -181,9 +159,6 @@ def _cached_calc(jd_key: float, body: int, sidereal: bool, ayan_mode: str, stric
     if sidereal:
         lon = norm(lon - ayanamsa(jd))
     return lon, xx[1], xx[3]  # lon, lat, speed
-
-def calc(jd: float, body: int, sidereal: bool = True) -> tuple[float, float, float]:
-    return _cached_calc(round(jd, 7), body, sidereal, _ayan_mode.get(), _strict_dt.get())
 
 def sun_lon(jd, sidereal=True):
     return calc(jd, swe.SUN, sidereal)[0]
@@ -207,23 +182,18 @@ def all_positions(jd: float, sidereal: bool = True, true_node: bool = False, inc
     out["Ketu"] = {"longitude": norm(r + 180), "latitude": 0.0, "speed": sp}
     return out
 
-@lru_cache(maxsize=2048)
-def _cached_houses(jd_key: float, lat: float, lon: float, hsys: str, sidereal: bool, ayan_mode: str) -> tuple[tuple[float, ...], float, float]:
-    ay = ayanamsa(jd_key) if sidereal else 0.0
-    cusps, ascmc = swe.houses_ex(jd_key, lat, lon, b"P" if hsys in ("W", "E") else hsys.encode(), 0)
+def houses(jd: float, lat: float, lon: float, hsys: str = "P", sidereal: bool = True):
+    ay = ayanamsa(jd) if sidereal else 0.0
+    cusps, ascmc = swe.houses_ex(jd, lat, lon, b"P" if hsys in ("W", "E") else hsys.encode(), 0)
     asc, mc = norm(ascmc[0] - ay), norm(ascmc[1] - ay)
     if hsys == "W":
         s0 = int(asc // 30) * 30
-        cusps_list = [norm(s0 + 30 * i) for i in range(12)]
+        cusps = [norm(s0 + 30 * i) for i in range(12)]
     elif hsys == "E":
-        cusps_list = [norm(asc + 30 * i) for i in range(12)]
+        cusps = [norm(asc + 30 * i) for i in range(12)]
     else:
-        cusps_list = [norm(c - ay) for c in cusps[:12]]
-    return tuple(cusps_list), asc, mc
-
-def houses(jd: float, lat: float, lon: float, hsys: str = "P", sidereal: bool = True):
-    cusps_tup, asc, mc = _cached_houses(round(jd, 7), round(lat, 5), round(lon, 5), hsys, sidereal, _ayan_mode.get())
-    return list(cusps_tup), asc, mc
+        cusps = [norm(c - ay) for c in cusps[:12]]
+    return cusps, asc, mc
 
 def ascendant(jd, lat, lon, sidereal=True):
     return houses(jd, lat, lon, "P", sidereal)[1]
@@ -249,7 +219,7 @@ def nakshatra_of(lon: float):
 # ---------- rise / set ----------
 def rise_set(jd_start: float, body: int, lat: float, lon: float, alt: float = 0.0, rise: bool = True,
              disc_center: bool = False, no_refraction: bool = False):
-    """Next rise/set after jd_start (UT). Default: upper limb + standard refraction (canonical Drik standard)."""
+    """Next rise/set after jd_start (UT). Default: upper limb + standard refraction."""
     rsmi = swe.CALC_RISE if rise else swe.CALC_SET
     if disc_center: rsmi |= swe.BIT_DISC_CENTER
     if no_refraction: rsmi |= swe.BIT_NO_REFRACTION

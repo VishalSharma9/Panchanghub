@@ -1,17 +1,17 @@
-"""Day-panchang pieces Drik shows and most astrology APIs omit.
+"""Extra day-panchang fields: gate, pakshi, mantri, agni, chandra vasa, shiva, tamil yoga, aadal, do-ghati.
 
 Rules that are cited, not guessed:
 * Pravishte / solar gate — civil days since the Sun entered the current sidereal sign, in the local timezone.
 * Ghati clock — 1 ghati = 24 min, 1 pala = 24 sec, 1 vipala = 0.4 sec.
-* Agnivasa — Pratipada (and every third tithi) is Prithvi, matching Drik's day page.
-* Chandra vasa — rashi direction, East/South/West/North repeating. Tula → West, as on Drik.
-* Mantri Mandala — Narada Samhita posts whose weekday trigger Drik publishes
+* Agnivasa — Pratipada (and every third tithi) is Prithvi.
+* Chandra vasa — rashi direction, East/South/West/North repeating. Tula → West.
+* Mantri Mandala — Narada Samhita posts by weekday
   (Raja, Mantri, Senadhipati, Sasyadhipati, Meghadhipati, Rasadhipati, Nirasadhipati).
 * Pancha Pakshi — birth bird by janma nakshatra and paksha (standard South-Indian grouping);
   the day's ruling bird by weekday and paksha; night ruler two birds on
   (Vulture, Owl, Crow, Cock, Peacock). Each fifth of the day and of the night,
   the Ruling slot moves to the next bird.
-* Shivavasa — tithi number 1–30 mod 7 (Vijayalur's Rudrabhisheka table). Amavasya is 30, so with Gowri.
+* Shivavasa — tithi number 1–30 mod 7 (Rudrabhisheka tithi table). Amavasya is 30, so with Gowri.
 * Tamil yoga — Amritadi weekday × nakshatra table.
 * Aadal — Moon's nakshatra counted from the Sun's is 2, 7, 9, 14, 16, 21 or 23.
 * Do Ghati — 15 day muhurtas and 15 night muhurtas; the 8th day muhurta is Abhijit, the 11th is Vijaya.

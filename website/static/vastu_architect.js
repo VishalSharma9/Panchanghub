@@ -477,7 +477,7 @@
         </div>
 
         <!-- 2. Categorized Multi-Instance Palettes -->
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px;margin-bottom:12px;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%, 280px), 1fr));gap:10px;margin-bottom:12px;">
           <div style="padding:9px 11px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;">
             <div style="font-size:12px;font-weight:800;color:#92400e;margin-bottom:6px;">
               🏠 1. ROOMS, DOORS, TEMPLE / PRAYER HALL, MEDITATION, GYM &amp; STORAGE:
@@ -508,7 +508,7 @@
         </div>
 
         <!-- 3. Interactive Wall Line Drawing & Perimeter Fence Loop Toolbar -->
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:10px;margin-bottom:12px;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%, 280px), 1fr));gap:10px;margin-bottom:12px;">
           <!-- Wall Line Tool -->
           <div style="padding:10px 12px;background:#f8fafc;border:1.5px solid #cbd5e1;border-radius:8px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;">
             <div>

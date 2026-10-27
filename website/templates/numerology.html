@@ -13,7 +13,7 @@
     <h2>Birth & Numerology Profile Details</h2>
     <div class="body">
         <form class="f" method="get" action="/numerology">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 16px;">
                 <label>
                     Full Name
                     <input type="text" name="name" value="{{ q.get('name', 'Soul Seeker') }}" required placeholder="e.g. Vishal Sharma">
@@ -31,7 +31,7 @@
                 </label>
             </div>
 
-            <div style="margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--border, #e2e8f0); display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px;">
+            <div style="margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--border, #e2e8f0); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: 16px;">
                 <label>
                     Birth Time (Optional for Kundli)
                     <input type="time" name="time" value="{{ q.get('time', '12:00') }}" step="60">
@@ -79,7 +79,7 @@
 
 <!-- TAB 1: CORE VIBRATIONS -->
 <div id="tab-core" class="tab-pane active" style="display: block;">
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 24px;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 16px; margin-bottom: 24px;">
         <div class="card" style="border-left: 4px solid #3b82f6;">
             <div class="body" style="padding: 16px;">
                 <div style="font-size: 13px; text-transform: uppercase; color: var(--text-muted, #64748b); font-weight: 600;">Life Path Number</div>
@@ -166,7 +166,7 @@
                 </p>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 16px;">
                 <div style="border: 1px solid var(--border, #e2e8f0); border-radius: 8px; padding: 14px;">
                     <div style="font-size: 12px; color: var(--text-muted, #64748b); text-transform: uppercase;">1st House (Lagna Lord)</div>
                     <div style="font-size: 18px; font-weight: 700; margin: 4px 0;">{{ n.astro_numerology.lagna.lord }} ({{ n.astro_numerology.lagna.sign }} Lagna)</div>

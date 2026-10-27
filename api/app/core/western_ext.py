@@ -3,8 +3,7 @@ Chiron/Lilith/asteroids, declinations, moon phases, compatibility score."""
 from __future__ import annotations
 import math
 from datetime import timedelta
-import swisseph as swe
-from .ephem import BASE_FLAG, jd_from_utc, utc_from_jd, norm, angdiff, SIGNS, sign_info, dms, calc, next_boundary, fmt, PLANETS
+from .ephem import swe, BASE_FLAG, jd_from_utc, utc_from_jd, norm, angdiff, SIGNS, sign_info, dms, calc, next_boundary, fmt, PLANETS
 from .western import natal_chart, ASPECTS, house_of
 
 EXTRA = {"Chiron": swe.CHIRON, "Lilith (Mean)": swe.MEAN_APOG, "Ceres": swe.CERES, "Pallas": swe.PALLAS, "Juno": swe.JUNO, "Vesta": swe.VESTA}

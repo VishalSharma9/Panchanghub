@@ -21,7 +21,7 @@
 {% if p.personal.chandrabalam or p.personal.tarabalam %}
 <p>{% if p.personal.chandrabalam %}<span class="{{ 'good' if p.personal.chandrabalam.favourable else 'bad' }}">Chandrabala {{ 'on' if p.personal.chandrabalam.favourable else 'off' }}</span>{% endif %}
 {% if p.personal.tarabalam %} · <span class="{{ 'good' if p.personal.tarabalam.favourable else 'bad' }}">Tarabala {{ p.personal.tarabalam.tara }}</span>{% endif %}</p>
-{% else %}<p>Drik prints one day for everybody in the city. Set your rashi and nakshatra and the hours are marked for you.</p>{% endif %}
+{% else %}<p>The general day is the same for the whole city. Set your rashi and nakshatra and the hours are marked for you.</p>{% endif %}
 <p><a class="btn alt" href="/mine">Today’s hours</a> <a class="btn" href="/week">This week</a></p>
 </div></section>
 <section class="card"><h2>Two cities</h2><div class="body"><p>Parents in one country, you in another. Both sunrise tithis and both Rahu Kalams stay on one page.</p><p><a class="btn alt" href="/compare">Compare places</a></p></div></section>
@@ -46,44 +46,11 @@
   <tr><td>Abhijit</td><td class="good">{{ span(p.muhurta.abhijit, ref) if p.muhurta.abhijit else 'None (Wednesday)' }}</td></tr>
  </table></div></section>
 </div>
-
-<h2 style="color:var(--kumkum-d);margin:24px 0 8px;font-size:20px;display:flex;align-items:center;gap:8px">Classical Jyotish &amp; Vedic Calculation Suite</h2>
-<div class="feature-grid">
-  <a class="feature-card" href="/vargas">
-    <div>
-      <h3><span>🌟</span> Shodashavargas (D1–D60)</h3>
-      <p>All 16 classical divisional charts, Shastiamsa deities, harmonic internal degrees, and Vargottama classifications across North, South, and East Indian styles.</p>
-    </div>
-    <span class="cta">Explore Divisional Charts →</span>
-  </a>
-  <a class="feature-card" href="/yogas">
-    <div>
-      <h3><span>⚡</span> Classical Yogas Scanner</h3>
-      <p>Automated detection of 60+ classical Vedic combinations from Brihat Parashara Hora Shastra, Phaladeepika, and Saravali with overall auspiciousness scoring.</p>
-    </div>
-    <span class="cta">Scan Chart Yogas →</span>
-  </a>
-  <a class="feature-card" href="/reading">
-    <div>
-      <h3><span>📖</span> Vedic Life Reading</h3>
-      <p>Holistic constitutional Lagna portraits, active 5-level Vimshottari timeline, Jaimini Chara Karakas, 144 House Lord matrix, and 12-house Shad Phala.</p>
-    </div>
-    <span class="cta">Read Vedic Portrait →</span>
-  </a>
-  <a class="feature-card" href="/kundli">
-    <div>
-      <h3><span>🪐</span> Janma Kundli &amp; PDF Report</h3>
-      <p>Complete birth horoscope with Shadbala (six-fold strength), Ashtakavarga, Sade Sati analysis, and instant high-resolution printable PDF download.</p>
-    </div>
-    <span class="cta">Generate Horoscope →</span>
-  </a>
-</div>
-
 <div class="grid2">
 <section class="card"><h2>Day Choghadiya</h2><div class="body"><table class="t"><tr><th>Choghadiya</th><th>Time</th></tr>
 {% for c in ch.day %}<tr><td class="{{ 'good' if c.quality in ['Good','Gain'] else 'bad' if c.quality in ['Bad','Loss','Evil'] else 'neutral' }}">{{ c.name }} – {{ c.quality }}</td><td>{{ span(c, ref) }}</td></tr>{% endfor %}</table>
 <p><a href="/choghadiya">Night choghadiya →</a></p></div></section>
 <section class="card"><h2>Upcoming festivals &amp; vrats</h2><div class="body"><table class="t"><tr><th>Date</th><th>Event</th></tr>
-{% for e in upcoming %}<tr><td>{{ e.date }} <span class="neutral">{{ e.weekday[:3] }}</span></td><td>{{ e.name }}</td></tr>{% endfor %}</table><p><a href="/festivals">All festivals →</a></p></div></section>
+{% for e in upcoming %}<tr><td>{{ e.date }} <span class="neutral">{{ e.weekday }}</span></td><td>{{ e.name }}</td></tr>{% endfor %}</table><p><a href="/festivals">All festivals →</a></p></div></section>
 </div>
 {% endblock %}

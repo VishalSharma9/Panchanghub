@@ -2,8 +2,7 @@
 Text is generated from transit house positions — deterministic and explainable."""
 from __future__ import annotations
 from datetime import date as Date, datetime, timedelta, timezone
-import swisseph as swe
-from .ephem import calc, jd_from_utc, SIGNS, RASHIS, NAKSHATRAS
+from .ephem import swe, calc, jd_from_utc, SIGNS, RASHIS, NAKSHATRAS
 
 AREA = {1: "self, health and confidence", 2: "money, family and speech", 3: "courage, siblings and short trips",
         4: "home, mother and inner peace", 5: "romance, creativity and children", 6: "work routine, health and competition",

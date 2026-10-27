@@ -7,7 +7,7 @@ def test_shadbala_full(client):
     assert set(sb) == {"Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"}
     for v in sb.values():
         for k in ("uccha", "saptavargaja", "ojhayugma", "kendradi", "drekkana", "sthana", "dig", "nathonnata", "paksha", "tribhaga",
-                  "abda_masa_vara_hora", "ayana", "kala", "cheshta", "naisargika", "drik", "total_rupas"):
+                  "abda_masa_vara_hora", "ayana", "kala", "cheshta", "naisargika", "drishti", "total_rupas"):
             assert k in v
         assert 0 <= v["uccha"] <= 60 and 0 <= v["dig"] <= 60
         assert 3 < v["total_rupas"] < 15

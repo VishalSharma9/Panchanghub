@@ -8,7 +8,7 @@
 <label>Janma rashi<select name="janma_rashi" onchange="this.form.submit()"><option value="">Not set</option>{% for i in range(12) %}<option value="{{ i+1 }}" {{ 'selected' if jr==i+1 }}>{{ RASHIS[i] }}</option>{% endfor %}</select></label>
 <label>Janma nakshatra<select name="janma_nakshatra" onchange="this.form.submit()"><option value="">Not set</option>{% for i in range(27) %}<option value="{{ i+1 }}" {{ 'selected' if jn==i+1 }}>{{ NAKSHATRAS[i] }}</option>{% endfor %}</select></label>
 </form>
-<section class="card"><h2>{{ rows[0].d.strftime('%d %b') }} – {{ rows[-1].d.strftime('%d %b %Y') }}</h2><div class="body" style="overflow-x:auto"><table class="t">
+<section class="card"><h2>{{ rows[0].d.strftime('%d %B') }} – {{ rows[-1].d.strftime('%d %B %Y') }}</h2><div class="body" style="overflow-x:auto"><table class="t">
 <tr><th>Day</th><th>Tithi</th><th>Chandrabala</th><th>Tarabala</th><th>Puja hour</th><th>Rahu</th><th>Avoid</th></tr>
 {% for row in rows %}{% set ref = row.p.date %}{% set y = row.you %}
 <tr>

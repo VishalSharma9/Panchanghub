@@ -81,20 +81,11 @@ VASTU = {
  "North-West": {"deity": "Vayu", "element": "Air", "planet": "Moon", "good_for": ["guest room", "garage", "toilet", "store of finished goods"], "avoid": ["master bedroom for long stay", "puja room"]},
  "Centre": {"deity": "Brahma (Brahmasthana)", "element": "Space", "planet": "-", "good_for": ["open courtyard", "light & air"], "avoid": ["pillars", "toilet", "staircase", "heavy furniture"]},
 }
-ROOM_BEST = {"kitchen": ["South-East", "North-West"], "puja room": ["North-East", "East", "North"], "temple / prayer hall": ["North-East", "East", "North"],
-             "meditation room": ["North-East", "East", "North"], "medication / medicine cabinet": ["North-East", "North", "East"],
-             "master bedroom": ["South-West", "South"], "bedroom": ["South", "West", "South-West", "North-West"],
-             "toilet": ["North-West", "West", "South"], "living room": ["North", "East", "North-East"],
+ROOM_BEST = {"kitchen": ["South-East", "North-West"], "puja room": ["North-East", "East", "North"], "master bedroom": ["South-West", "South"],
+             "bedroom": ["South", "West", "South-West", "North-West"], "toilet": ["North-West", "West", "South"], "living room": ["North", "East", "North-East"],
              "entrance": ["North-East", "East", "North"], "study": ["West", "East", "North-East"], "staircase": ["South", "West", "South-West"],
-             "guest room": ["North-West"], "dining room": ["West", "East"], "gym / workout room": ["South-East", "South", "North-West"],
-             "storage (heavy)": ["South-West", "South", "West"], "grain pantry": ["North-West", "South-West", "West"],
-             "washer / dryer": ["North-West", "South-East", "West"], "kitchen stove": ["South-East", "East"],
-             "water taps / sink": ["North-East", "North", "East"], "water hose / garden spigot": ["North-East", "North", "East"],
-             "kids slide / play set": ["North-East", "East", "North", "North-West"], "trench / ditch / drain": ["North-East", "North", "East"],
-             "deceased ancestors photo": ["South", "South-West"], "living family photo": ["South-West", "East", "North", "West"],
-             "gods / deities photo": ["North-East", "East", "North"], "tv screen": ["East", "North", "South-East"],
-             "water tank (overhead)": ["South-West", "West"], "underground water": ["North-East", "North", "East"],
-             "garage": ["North-West", "South-East"], "septic tank": ["North-West", "West"]}
+             "guest room": ["North-West"], "dining room": ["West", "East"], "water tank (overhead)": ["South-West", "West"],
+             "underground water": ["North-East", "North", "East"], "garage": ["North-West", "South-East"], "septic tank": ["North-West", "West"]}
 
 def vastu(layout: dict | None = None, facing: str | None = None):
     res = {"directions": VASTU, "room_guide": ROOM_BEST}
@@ -179,30 +170,13 @@ DAY_MEAN = ["crocodile — beginnings", "wind — breath, communication", "night
             "monkey — play, creativity", "road — path, community", "reed — authority, home", "jaguar — magic, earth", "eagle — vision",
             "owl — wisdom, ancestors", "earth — movement, synchronicity", "flint — truth, clarity", "storm — renewal", "sun — enlightenment, wholeness"]
 HAAB = ["Pop", "Wo'", "Sip", "Sotz'", "Sek", "Xul", "Yaxk'in", "Mol", "Ch'en", "Yax", "Sak'", "Keh", "Mak", "K'ank'in", "Muwan", "Pax", "K'ayab", "Kumk'u", "Wayeb'"]
-MAYAN_TONE_NAMES = [
-    "Magnetic (Hun — Unity & Purpose)",
-    "Lunar (Ka — Polarity & Challenge)",
-    "Electric (Ox — Service & Activation)",
-    "Self-Existing (Kan — Form & Measure)",
-    "Overtone (Ho — Radiance & Empowerment)",
-    "Rhythmic (Uak — Equality & Balance)",
-    "Resonant (Uuc — Attunement & Channeling)",
-    "Galactic (Uaxac — Integrity & Harmony)",
-    "Solar (Bolon — Intention & Realization)",
-    "Planetary (Lahun — Manifestation & Perfection)",
-    "Spectral (Buluc — Liberation & Release)",
-    "Crystal (Lahca — Cooperation & Dedication)",
-    "Cosmic (Oxlahun — Transcendence & Presence)",
-]
 def mayan(d: Date):
     jdn = d.toordinal() + 1721425  # proleptic Gregorian ordinal -> JDN
     days = jdn - 584283  # GMT correlation
     tone = (days + 3) % 13 + 1; sign = (days + 19) % 20
-    kin_260 = (((tone - 1 - sign) * 2) % 13) * 20 + sign + 1
     hd = (days + 348) % 365; hm, hday = divmod(hd, 20)
     b, r = divmod(days, 144000); k, r = divmod(r, 7200); t, r = divmod(r, 360); w, kin = divmod(r, 20)
     return {"date": d.isoformat(), "long_count": f"{b}.{k}.{t}.{w}.{kin}", "tzolkin": f"{tone} {DAY_SIGNS[sign]}", "tone": tone,
-            "tone_name": MAYAN_TONE_NAMES[tone - 1], "kin": kin_260,
             "day_sign": DAY_SIGNS[sign], "meaning": DAY_MEAN[sign], "haab": f"{hday} {HAAB[hm]}", "correlation": "GMT 584283"}
 
 # ---------------- Dreams ----------------

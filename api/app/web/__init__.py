@@ -9,10 +9,12 @@ from fastapi.responses import HTMLResponse, PlainTextResponse, Response, Redirec
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from ..models import BirthData, KundliRequest, MatchRequest, ChartRequest, VarshaphalaRequest, KPRequest, PrashnaRequest, normalize_date_str
+from ..models import BirthData, KundliRequest, MatchRequest, ChartRequest, VarshaphalaRequest, KPRequest, PrashnaRequest
+from ..models import normalize_date_str
 from ..api.routers import panchang as RP, vedic as RV, calendar as RC, core as RCore, extras as RX
 from ..core import ephem, i18n
 from ..api.routers import more as RM
+from ..api.routers import studio as ST
 from ..core import interpret as INTERP, esoteric as ESO, human_design as HDM
 import re as _re
 from ..core.for_you import for_you, syllable, moon_syllable
@@ -47,11 +49,10 @@ def hm(s, ref: str | None = None):
     d = (d + timedelta(seconds=30)).replace(second=0, microsecond=0)
     out = d.strftime("%I:%M %p")
     if ref and d.date().isoformat() != ref[:10]:
-        out += d.strftime(", %b %d")
+        out += d.strftime(", %B %d")
     return out
 
 def dt_ampm(s):
-    """Format ISO datetime string '2026-10-10T21:19:32+05:30' -> '2026-10-10 09:20 PM'."""
     if not s:
         return "—"
     try:
@@ -79,10 +80,7 @@ def loc_from(request: Request):
     c = request.cookies.get("ph_loc")
     if c:
         try:
-            from urllib.parse import unquote
-            raw = unquote(c) if ("%" in c) else c
-            v = json.loads(raw)
-            return {"city": v["city"], "lat": float(v["lat"]), "lon": float(v["lon"]), "tz": v["tz"], "source": v.get("src") or "saved"}
+            v = json.loads(c); return {"city": v["city"], "lat": float(v["lat"]), "lon": float(v["lon"]), "tz": v["tz"], "source": v.get("src") or "saved"}
         except Exception:
             pass
     loc = dict(DEFAULT_LOC)
@@ -93,13 +91,13 @@ def L(loc):
     return {"lat": loc["lat"], "lon": loc["lon"], "tz": loc["tz"], "utc_offset": None}
 
 def qdate(request, key="date"):
-    v = normalize_date_str(request.query_params.get(key))
+    v = request.query_params.get(key)
     try:
         d = Date.fromisoformat(v) if v else Date.today()
     except ValueError:
         return Date.today()
     if d.year < ephem.YEAR_MIN or d.year > ephem.YEAR_MAX:
-        raise HTTPException(422, f"Choose a date from {ephem.YEAR_MIN} CE through {ephem.YEAR_MAX} CE. That covers the complete canonical ephemeris span, from year 1 through 3000 CE.")
+        raise HTTPException(422, f"Choose a date from {ephem.YEAR_MIN} CE through {ephem.YEAR_MAX} CE.")
     return d
 
 def neighbor(d: Date, days: int):
@@ -124,9 +122,7 @@ def janma_from(request):
     c = request.cookies.get("ph_janma")
     if c:
         try:
-            from urllib.parse import unquote
-            raw = unquote(c) if ("%" in c) else c
-            v = json.loads(raw)
+            v = json.loads(c)
             return _opt_int(v.get("rashi"), 1, 12), _opt_int(v.get("nak"), 1, 27), False
         except Exception:
             pass
@@ -143,9 +139,7 @@ def loc2_from(request):
     c = request.cookies.get("ph_loc2")
     if c:
         try:
-            from urllib.parse import unquote
-            raw = unquote(c) if ("%" in c) else c
-            v = json.loads(raw)
+            v = json.loads(c)
             return {"city": v["city"], "lat": float(v["lat"]), "lon": float(v["lon"]), "tz": v["tz"]}, False
         except Exception:
             pass
@@ -190,36 +184,65 @@ def _term_re(lang):
     return _TERMS[lang]
 
 def localize_html(html: str, lang: str) -> str:
-    """Translate 100% of visible HTML text nodes into `lang` while preserving Sanskrit Shlokas & AM/PM."""
-    if lang == "en":
-        return html
-    return i18n.localize_html_full(html, lang)
+    """Translate every visible string. Scripts stay untouched. Language names stay as written."""
+    if lang == "en": return html
+    import re as _re2
+    locked = []
+    def hold(m):
+        locked.append(m.group(0))
+        return f"<!--PHLOCK{len(locked)-1}-->"
+    html = _re2.sub(r'<span id="langSwitch">.*?</span>', hold, html, count=1, flags=_re2.S)
+    from ..core.ui_lang import translate_plain
+    def plain(text):
+        out = translate_plain(text, lang)
+        if out == text:
+            return text
+        return out.replace("&", "&").replace("<", "<").replace(">", ">")
+    def tag(part):
+        if part.startswith("<script") or part.startswith("<style") or part.startswith("<textarea"):
+            return part
+        def attr(mm):
+            val = plain(mm.group(2)).replace(chr(34), chr(38) + "quot;")
+            return f'{mm.group(1)}="{val}"'
+        return _re.sub(r'(placeholder|aria-label|title|alt)="([^"]*)"', attr, part)
+    parts = _re.split(r"(<script\b.*?</script>|<style\b.*?</style>|<textarea\b.*?</textarea>|<[^>]+>)", html, flags=_re.S | _re.I)
+    for i, part in enumerate(parts):
+        if not part: continue
+        parts[i] = tag(part) if part.startswith("<") else plain(part)
+    out = "".join(parts)
+    for i, chunk in enumerate(locked):
+        out = out.replace(f"<!--PHLOCK{i}-->", chunk)
+    return out
 
 def page(request, tpl, title, desc, path, **ctx):
+    from ..core.ui_lang import client_pack, translate_plain
     loc = ctx.pop("loc", None) or loc_from(request)
     lang = lang_of(request)
-    from ..core import auth
-    current_user = auth.get_user_from_request(request.cookies, dict(request.headers))
-    resp = templates.TemplateResponse(request, tpl, {"title": title, "desc": desc, "canonical": SITE + path, "lang": lang, "LANGS": i18n.LANGS,
-                                                     "path": path, "loc": loc, "current_user": current_user, "locq": urlencode({"city": loc["city"], "lat": loc["lat"], "lon": loc["lon"], "tz": loc["tz"]}), **ctx})
     if lang != "en":
+        title = translate_plain(title, lang)
+        desc = translate_plain(desc, lang)
+    resp = templates.TemplateResponse(request, tpl, {"title": title, "desc": desc, "canonical": SITE + path, "lang": lang, "LANGS": i18n.LANGS,
+                                                     "path": path, "loc": loc, "locq": urlencode({"city": loc["city"], "lat": loc["lat"], "lon": loc["lon"], "tz": loc["tz"], **({"lang": lang} if lang != "en" else {})}),
+                                                     "ui_pack": client_pack(lang), "ui_json": json.dumps(client_pack(lang), ensure_ascii=False), **ctx})
+    if lang == "en":
+        resp.delete_cookie("ph_lang", path="/")
+    else:
         body = localize_html(resp.body.decode(), lang)
         resp = HTMLResponse(body, status_code=resp.status_code, headers={"Content-Language": lang})
+        resp.set_cookie("ph_lang", lang, max_age=31536000, path="/", samesite="lax")
     if getattr(request.state, "ph_birth_to_save", None):
-        _with_cookie(resp, "ph_birth", request.state.ph_birth_to_save)
-    if request.query_params.get("lang") in i18n.LANGS:
-        resp.set_cookie("ph_lang", request.query_params["lang"], max_age=31536000, path="/", samesite="lax")
+        resp.set_cookie("ph_birth", json.dumps(request.state.ph_birth_to_save), max_age=31536000, path="/", samesite="lax")
     return resp
 
 NAV = [("/", "Home"), ("/mine", "For You"), ("/week", "This Week"), ("/compare", "Two Cities"),
        ("/names", "Names"), ("/sade-sati", "Sade Sati"), ("/panchang", "Daily Panchang"),
        ("/calendar", "Calendar"), ("/festivals", "Festivals"), ("/choghadiya", "Choghadiya"),
-       ("/kundli", "Kundli"), ("/destiny", "Destiny & 9-Planet Control"), ("/traditions", "Traditions & Doshas"), ("/vargas", "Shodashavargas"), ("/varshaphala", "Varshaphala"), ("/kp", "KP System"),
-       ("/prashna", "Prashna"), ("/yogas", "Classical Yogas"), ("/reading", "Vedic Reading"),
+       ("/kundli", "Kundli"), ("/destiny", "Destiny"), ("/traditions", "Traditions"), ("/vargas", "Vargas"),
+       ("/varshaphala", "Varshaphala"), ("/kp", "KP"), ("/prashna", "Prashna"), ("/yogas", "Yogas"), ("/reading", "Reading"),
        ("/matching", "Matching"), ("/muhurat", "Muhurat"),
        ("/hora", "Hora"), ("/rahu-kaal", "Rahu Kaal"), ("/lagna-table", "Lagna & Gowri"), ("/transits", "Transits"),
        ("/western", "Western Chart"), ("/horoscope", "Horoscope"), ("/numerology", "Numerology"), ("/tarot", "Tarot"),
-       ("/human-design", "Human Design"), ("/vastu", "Vastu & Feng Shui"), ("/iching", "I-Ching"), ("/palmistry", "Palmistry"), ("/tools", "More Tools"), ("/regional", "Regional Calendars")]
+       ("/human-design", "Human Design"), ("/vastu", "Vastu"), ("/iching", "I-Ching"), ("/palmistry", "Palmistry"), ("/tools", "More Tools"), ("/regional", "Regional Calendars")]
 templates.env.globals["NAV"] = NAV
 
 def _resolve_city_coords(city_str: str, lat: float, lon: float, tz: str):
@@ -250,15 +273,8 @@ def birth_from_query(request, prefix=""):
             g("city", "New Delhi, India"), raw_lat, raw_lon, g("tz", "Asia/Kolkata")
         )
         clean_date = normalize_date_str(g("date")) or "1990-05-15"
-        res = dict(
-            date=clean_date,
-            time=tm if len(tm) > 5 else tm + ":00",
-            latitude=lat_f,
-            longitude=lon_f,
-            timezone=tz_s,
-            name=g("name") or ("Gargi" if prefix == "g_" else "Aryabhata"),
-            city=city_s,
-        )
+        res = dict(date=clean_date, time=tm if len(tm) > 5 else tm + ":00", latitude=lat_f, longitude=lon_f,
+                   timezone=tz_s, name=g("name") or ("Gargi" if prefix == "g_" else "Aryabhata"), city=city_s)
         if prefix == "":
             try:
                 request.state.ph_birth_to_save = res
@@ -276,32 +292,14 @@ def birth_from_query(request, prefix=""):
                     fixed_date = normalize_date_str(v["date"])
                     if fixed_date != v["date"]:
                         v["date"] = fixed_date
-                        try:
-                            request.state.ph_birth_to_save = v
-                        except Exception:
-                            pass
                     return v
             except Exception:
                 pass
     if prefix == "g_":
-        return dict(
-            date="1992-08-20",
-            time="14:15:00",
-            latitude=19.0760,
-            longitude=72.8777,
-            timezone="Asia/Kolkata",
-            name="Gargi",
-            city="Mumbai, India",
-        )
-    return dict(
-        date="1990-05-15",
-        time="10:30:00",
-        latitude=28.6139,
-        longitude=77.2090,
-        timezone="Asia/Kolkata",
-        name="Aryabhata",
-        city="New Delhi, India",
-    )
+        return dict(date="1992-08-20", time="14:15:00", latitude=19.0760, longitude=72.8777,
+                    timezone="Asia/Kolkata", name="Gargi", city="Mumbai, India")
+    return dict(date="1990-05-15", time="10:30:00", latitude=28.6139, longitude=77.2090,
+                timezone="Asia/Kolkata", name="Aryabhata", city="New Delhi, India")
 
 def register(app: FastAPI):
     app.mount("/static", StaticFiles(directory=os.path.join(WEB_ROOT, "static")), name="static")
@@ -355,8 +353,6 @@ def register(app: FastAPI):
     def compare(request: Request):
         loc = loc_from(request); d = qdate(request)
         loc2, explicit = loc2_from(request)
-        if not loc2:
-            loc2 = {"city": "Mumbai, India", "lat": 19.0760, "lon": 72.8777, "tz": "Asia/Kolkata"} if abs(loc["lat"] - 19.076) > 0.5 else {"city": "Varanasi, India", "lat": 25.3176, "lon": 82.9739, "tz": "Asia/Kolkata"}
         p = RP.panchang(d, L(loc), 0.0, None, None)
         p2 = RP.panchang(d, L(loc2), 0.0, None, None) if loc2 else None
         extra = {"city": loc["city"], "lat": loc["lat"], "lon": loc["lon"], "tz": loc["tz"]}
@@ -419,7 +415,7 @@ def register(app: FastAPI):
         loc = loc_from(request)
         q = request.query_params
         rashi = _opt_int(q.get("rashi"), 1, 12)
-        b = birth_from_query(request) if not rashi else None
+        b = birth_from_query(request) if q.get("date") and q.get("lat") else None
         sign = None
         moon_name = None
         if b:
@@ -498,14 +494,14 @@ def register(app: FastAPI):
     @app.get("/choghadiya", response_class=HTMLResponse, include_in_schema=False)
     def chog(request: Request):
         loc, d, data = _timing(request, "choghadiya")
-        return page(request, "choghadiya.html", f"Choghadiya {d.strftime('%d %b %Y')} – {loc['city']} | {BRAND}",
+        return page(request, "choghadiya.html", f"Choghadiya {d.strftime('%d %B %Y')} – {loc['city']} | {BRAND}",
                     f"Day and night Choghadiya muhurat for {loc['city']}.", "/choghadiya", loc=loc, c=data, d=d,
                     prev=neighbor(d, -1), next=neighbor(d, 1))
 
     @app.get("/hora", response_class=HTMLResponse, include_in_schema=False)
     def hora(request: Request):
         loc, d, data = _timing(request, "hora")
-        return page(request, "hora.html", f"Hora Timings {d.strftime('%d %b %Y')} – {loc['city']} | {BRAND}",
+        return page(request, "hora.html", f"Hora Timings {d.strftime('%d %B %Y')} – {loc['city']} | {BRAND}",
                     f"Planetary hora table for {loc['city']}.", "/hora", loc=loc, h=data, d=d,
                     prev=neighbor(d, -1), next=neighbor(d, 1))
 
@@ -606,12 +602,12 @@ def register(app: FastAPI):
 
             try:
                 v_req = VarshaphalaRequest(**{kk: v for kk, v in b.items() if kk != "city"})
-                varshaphala_data = RV.varshaphala_endpoint(v_req)
+                varshaphala_data = ST.varshaphala_endpoint(v_req)
             except Exception:
                 varshaphala_data = None
             try:
                 kp_req = KPRequest(**{kk: v for kk, v in b.items() if kk != "city"})
-                kp_data = RV.kp_endpoint(kp_req)
+                kp_data = ST.kp_endpoint(kp_req)
             except Exception:
                 kp_data = None
 
@@ -647,14 +643,14 @@ def register(app: FastAPI):
             req_dict = {kk: v for kk, v in b.items() if kk != "city"}
             req_dict["ayanamsa"] = ayan
             req = KundliRequest(**req_dict)
-            vdata = RV.vargas(req)
+            vdata = ST.vargas(req)
             fn = {"north": north_indian, "south": south_indian, "east": east_indian}.get(style, north_indian)
             for vk, vinfo in vdata["vargas"].items():
                 asc_s = ephem.SIGNS.index(vinfo["ascendant"]["sign_name"])
                 pl = [{"name": p["name"], "sign": ephem.SIGNS.index(p["sign_name"]), "retrograde": False} for p in vinfo["planets"]]
                 charts[vk] = fn(asc_s, pl, 320, vk)
 
-            taj_res = RV.tajika_sahams_endpoint(req)
+            taj_res = ST.tajika_sahams_endpoint(req)
             sahams = taj_res["sahams"]
             asc_nadi = taj_res["ascendant_nadiamsha"]
             asc_drekkana = taj_res["ascendant_drekkana_body_part"]
@@ -673,7 +669,7 @@ def register(app: FastAPI):
             req_dict = {kk: v for kk, v in b.items() if kk != "city"}
             req_dict["ayanamsa"] = ayan
             req = KundliRequest(**req_dict)
-            ydata = RV.comprehensive_yogas_endpoint(req)
+            ydata = ST.comprehensive_yogas_endpoint(req)
         return page(request, "yogas.html", f"Classical Vedic Yogas Scanner (60+ Yogas) | {BRAND}",
                     "Automated detection of classical Vedic planetary yogas: Pancha Mahapurusha, Raja, Dhana, Viparita, Saraswati, and Solar/Lunar combinations.",
                     "/yogas", b=b, ydata=ydata, ayanamsa=ayan)
@@ -690,10 +686,10 @@ def register(app: FastAPI):
             req_dict = {kk: v for kk, v in b.items() if kk != "city"}
             req_dict["ayanamsa"] = ayan
             req = KundliRequest(**req_dict)
-            rdata = RV.holistic_reading_endpoint(req)
-            cur_dasha = RV.current_dasha_endpoint(req)
-            karakas = RV.chara_karakas_endpoint(req)
-            corpus_data = RV.planetary_placements_corpus(req)
+            rdata = ST.holistic_reading_endpoint(req)
+            cur_dasha = ST.current_dasha_endpoint(req)
+            karakas = ST.chara_karakas_endpoint(req)
+            corpus_data = ST.planetary_placements_corpus(req)
         return page(request, "reading.html", f"Holistic Vedic Life Reading & 144 House Lords Analysis | {BRAND}",
                     "Detailed Vedic life reading including Ascendant portrait, 144 House Lord combinations, 12-house Shad Phala, and current dasha period.",
                     "/reading", b=b, rdata=rdata, cur_dasha=cur_dasha, karakas=karakas, corpus_data=corpus_data, ayanamsa=ayan)
@@ -708,7 +704,7 @@ def register(app: FastAPI):
         varsha_chart_svg = None
         if b:
             v_req = VarshaphalaRequest(**{kk: v for kk, v in b.items() if kk != "city"}, year=year)
-            vdata = RV.varshaphala_endpoint(v_req)
+            vdata = ST.varshaphala_endpoint(v_req)
             fn = {"north": north_indian, "south": south_indian, "east": east_indian}.get(style, north_indian)
             v_asc = ephem.SIGNS.index(vdata["varsha_lagna"]["sign"])
             v_pls = [{"name": p["name"], "sign": ephem.SIGNS.index(p["sign"]), "retrograde": p.get("retrograde", False)} for p in vdata["planets"][:9]]
@@ -726,8 +722,8 @@ def register(app: FastAPI):
         kp_data = None
         if b:
             kp_req = KPRequest(**{kk: v for kk, v in b.items() if kk != "city"}, horary_number=horary_number)
-            kp_data = RV.kp_endpoint(kp_req)
-        return page(request, "kp.html", f"Krishnamurti Paddhati (KP System Astrology) | {BRAND}",
+            kp_data = ST.kp_endpoint(kp_req)
+        return page(request, "kp.html", f"KP System (KP System Astrology) | {BRAND}",
                     "Accurate KP System astrology: Placidus cusps, Sign/Star/Sub/Sub-Sub lords, 4-fold Significators, Ruling Planets, and 1-249 Horary table.",
                     "/kp", b=b, kp_data=kp_data, horary_number=horary_number, qs=str(request.query_params))
 
@@ -775,7 +771,7 @@ def register(app: FastAPI):
                 query_category=category,
                 question_text=q_text or None
             )
-            pdata = RV.prashna_endpoint(p_req)
+            pdata = ST.prashna_endpoint(p_req)
 
             fn = {"north": north_indian, "south": south_indian, "east": east_indian}.get(style, north_indian)
             asc_s = ephem.SIGNS.index(pdata["prashna_lagna"]["sign"])
@@ -917,19 +913,6 @@ def register(app: FastAPI):
                   "cur_lat": c_lat, "cur_lon": c_lon, "cur_tz": c_tz, "cur_city": c_city, "scan_days": scan_days}
         )
 
-    @app.get("/tarot", response_class=HTMLResponse, include_in_schema=False)
-    def tarot(request: Request):
-        q = request.query_params; sp = q.get("spread", "three_card")
-        t = RX.tarot(sp if sp in ("single", "yes_no", "three_card", "love", "celtic_cross") else "three_card", q.get("question"), q.get("seed"))
-        return page(request, "tarot.html", f"Tarot Reading – {BRAND}", "Free tarot card reading.", "/tarot", t=t, sp=sp, q=q)
-
-    @app.get("/human-design", response_class=HTMLResponse, include_in_schema=False)
-    def human_design(request: Request):
-        b = birth_from_query(request); hd = None
-        if b: hd = RM.human_design(BirthData(**{kk: v for kk, v in b.items() if kk not in ("city", "name")}))
-        return page(request, "humandesign.html", f"Human Design Chart Calculator – {BRAND}", "Free Human Design bodygraph: type, strategy, authority, profile, centers, channels and gates.",
-                    "/human-design", b=b, hd=hd, CENTERS=list(HDM.CENTERS))
-
     @app.get("/vastu", response_class=HTMLResponse, include_in_schema=False)
     def vastu(request: Request):
         from ..core.astro_vastu_engine import compute_personalized_astro_vastu, compute_classical_feng_shui, PLAIN_ENGLISH_GLOSSARY
@@ -1026,13 +1009,6 @@ def register(app: FastAPI):
                   "gender": gender, "goal": goal, "approach": approach}
         )
 
-    @app.get("/iching", response_class=HTMLResponse, include_in_schema=False)
-    def iching(request: Request):
-        q = request.query_params
-        c = ESO.iching_cast(q.get("question") or "Daily Dharmic & Destiny Guidance", q.get("seed") or Date.today().isoformat())
-        return page(request, "iching.html", f"I-Ching Oracle – {BRAND}", "Cast an I-Ching hexagram with the three-coin method; all 64 hexagrams.",
-                    "/iching", c=c, q=q, all=ESO.iching_all())
-
     @app.get("/palmistry", response_class=HTMLResponse, include_in_schema=False)
     def palmistry(request: Request):
         q = request.query_params
@@ -1048,29 +1024,6 @@ def register(app: FastAPI):
                     "Upload a palm or thumbprint photo and switch across 10 color and spectral imaging modes to inspect palm lines, planetary mounts, and Nadi thumbprint whorls.",
                     "/palmistry", r=r, q=q, b=b)
 
-    @app.get("/tools", response_class=HTMLResponse, include_in_schema=False)
-    def tools(request: Request):
-        q = request.query_params; today = Date.today()
-        by = int(q.get("birth_year", 1990)); d = qdate(request, "on")
-        ctx = {"mayan": ESO.mayan(d), "cf": ESO.chinese_forecast(by, today.year), "by": by,
-               "kab": ESO.kabbalah(q.get("name") or "Aryabhata"), "dream": ESO.dream(q.get("symbol") or "lotus"),
-               "crys": ESO.crystals(), "q": q, "d": d}
-        return page(request, "tools.html", f"Mayan, Chinese Forecast, Kabbalah, Dreams & Crystals – {BRAND}", "More free tools: Mayan calendar, Chinese yearly forecast, Kabbalah, dream meanings, crystals.",
-                    "/tools", **ctx)
-
-    @app.get("/regional", response_class=HTMLResponse, include_in_schema=False)
-    def regional_page(request: Request):
-        from ..core import regional_rules as RR, muhurta_doshas as MDZ, festival_rules as FRZ
-        loc = loc_from(request); d = qdate(request); q = request.query_params
-        sid = q.get("siddhanta") if q.get("siddhanta") in ("surya", "vakya") else "drik"
-        jn = int(q["janma_nakshatra"]) if q.get("janma_nakshatra", "").isdigit() else None
-        ctx = {"r": RR.regional_calendar(d, loc["lat"], loc["lon"], loc["tz"], siddhanta=sid),
-               "ny": RR.regional_new_years(d.year, loc["lat"], loc["lon"], loc["tz"], siddhanta=sid),
-               "md": MDZ.day_doshas(d, loc["lat"], loc["lon"], loc["tz"], janma_nakshatra=jn), "fr": FRZ.RULES, "vk": __import__("app.core.vakya", fromlist=["x"]).vakya_panchang(d, loc["lat"], loc["lon"], loc["tz"]), "pk": __import__("app.core.punya_kaal", fromlist=["x"]).year_punya_kaal(d.year, loc["lat"], loc["lon"], loc["tz"]), "d": d, "sid": sid, "jn": jn, "loc": loc}
-        return page(request, "regional.html", f"Regional Calendars, Panchaka & Muhurta Doshas – {BRAND}",
-                    "Tamil, Malayalam, Bengali, Assamese, Odia, Gujarati and Marathi calendar dates, Vakya/Surya Siddhanta option, Panchaka, Bhadra and festival rules.",
-                    "/regional", **ctx)
-
     @app.get("/login", response_class=HTMLResponse, include_in_schema=False)
     def login_page(request: Request):
         from ..core import auth
@@ -1084,6 +1037,57 @@ def register(app: FastAPI):
         resp = RedirectResponse(url="/", status_code=303)
         resp.delete_cookie("ph_auth", path="/")
         return resp
+
+    @app.get("/tarot/card/{slug}", include_in_schema=False)
+    def tarot_card(slug: str):
+        from ..core.tarot_art import svg_for
+        svg = svg_for(slug)
+        if not svg:
+            raise HTTPException(404, "unknown card")
+        return Response(svg, media_type="image/svg+xml", headers={"Cache-Control": "public, max-age=86400"})
+
+    @app.get("/tarot", response_class=HTMLResponse, include_in_schema=False)
+    def tarot(request: Request):
+        q = request.query_params; sp = q.get("spread", "three_card")
+        t = RX.tarot(sp if sp in ("single", "yes_no", "three_card", "love", "celtic_cross") else "three_card", q.get("question"), q.get("seed"))
+        return page(request, "tarot.html", f"Tarot Reading – {BRAND}", "Free tarot card reading.", "/tarot", t=t, sp=sp, q=q)
+
+    @app.get("/human-design", response_class=HTMLResponse, include_in_schema=False)
+    def human_design(request: Request):
+        b = birth_from_query(request); hd = None
+        if b: hd = RM.human_design(BirthData(**{kk: v for kk, v in b.items() if kk not in ("city", "name")}))
+        return page(request, "humandesign.html", f"Human Design Chart Calculator – {BRAND}", "Free Human Design bodygraph: type, strategy, authority, profile, centers, channels and gates.",
+                    "/human-design", b=b, hd=hd, CENTERS=list(HDM.CENTERS))
+
+    @app.get("/iching", response_class=HTMLResponse, include_in_schema=False)
+    def iching(request: Request):
+        q = request.query_params; c = ESO.iching_cast(q.get("question"), q.get("seed")) if (q.get("question") or q.get("cast")) else None
+        return page(request, "iching.html", f"I-Ching Oracle – {BRAND}", "Cast an I-Ching hexagram with the three-coin method; all 64 hexagrams.",
+                    "/iching", c=c, q=q, all=ESO.iching_all())
+
+    @app.get("/tools", response_class=HTMLResponse, include_in_schema=False)
+    def tools(request: Request):
+        q = request.query_params; today = Date.today()
+        by = int(q.get("birth_year", 1990)); d = qdate(request, "on")
+        ctx = {"mayan": ESO.mayan(d), "cf": ESO.chinese_forecast(by, today.year), "by": by,
+               "kab": ESO.kabbalah(q["name"]) if q.get("name") else None, "dream": ESO.dream(q["symbol"]) if q.get("symbol") else None,
+               "crys": ESO.crystals(), "q": q, "d": d}
+        return page(request, "tools.html", f"Mayan, Chinese Forecast, Kabbalah, Dreams & Crystals – {BRAND}", "More free tools: Mayan calendar, Chinese yearly forecast, Kabbalah, dream meanings, crystals.",
+                    "/tools", **ctx)
+
+    @app.get("/regional", response_class=HTMLResponse, include_in_schema=False)
+    def regional_page(request: Request):
+        from ..core import regional_rules as RR, muhurta_doshas as MDZ, festival_rules as FRZ
+        loc = loc_from(request); d = qdate(request); q = request.query_params
+        raw = (q.get("siddhanta") or "hub").lower()
+        sid = "hub" if raw in ("drik", "hub", "modern") else raw if raw in ("surya", "vakya") else "hub"
+        jn = int(q["janma_nakshatra"]) if q.get("janma_nakshatra", "").isdigit() else None
+        ctx = {"r": RR.regional_calendar(d, loc["lat"], loc["lon"], loc["tz"], siddhanta=sid),
+               "ny": RR.regional_new_years(d.year, loc["lat"], loc["lon"], loc["tz"], siddhanta=sid),
+               "md": MDZ.day_doshas(d, loc["lat"], loc["lon"], loc["tz"], janma_nakshatra=jn), "fr": FRZ.RULES, "vk": __import__("app.core.vakya", fromlist=["x"]).vakya_panchang(d, loc["lat"], loc["lon"], loc["tz"]), "pk": __import__("app.core.punya_kaal", fromlist=["x"]).year_punya_kaal(d.year, loc["lat"], loc["lon"], loc["tz"]), "d": d, "sid": sid, "jn": jn, "loc": loc}
+        return page(request, "regional.html", f"Regional Calendars, Panchaka & Muhurta Doshas – {BRAND}",
+                    "Tamil, Malayalam, Bengali, Assamese, Odia, Gujarati and Marathi calendar dates, Vakya/Surya Siddhanta option, Panchaka, Bhadra and festival rules.",
+                    "/regional", **ctx)
 
     @app.get("/widget/panchang", response_class=HTMLResponse, include_in_schema=False)
     def widget(request: Request):

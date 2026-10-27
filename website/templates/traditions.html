@@ -45,7 +45,7 @@
   }
   .filter-group-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
     gap: 1rem;
     margin-bottom: 1rem;
   }
@@ -195,7 +195,7 @@
       <label>Birth Time
         <input type="time" name="time" value="{{ form.time }}" required>
       </label>
-      <label style="min-width:210px;">Birth City
+      <label style="min-width:0;">Birth City
         <input name="city" data-place="" value="{{ form.city }}" placeholder="Search birth city...">
       </label>
       <label>Gender (for Kua / Feng Shui)

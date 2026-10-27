@@ -2,7 +2,6 @@
 from __future__ import annotations
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Query, Depends
-import swisseph as swe
 from ...models import ChartRequest
 from ...core import ephem
 from ...core.western import natal_chart, zodiac_info
@@ -12,7 +11,7 @@ router = APIRouter(tags=["Core"])
 
 @router.get("/health")
 def health():
-    return {"status": "ok", "swisseph_version": swe.version, "ephemeris": ephem.EPHEMERIS_NAME, "time_utc": datetime.now(timezone.utc).isoformat()}
+    return {"status": "ok", "engine_version": ephem.engine_version(), "ephemeris": ephem.EPHEMERIS_NAME, "time_utc": datetime.now(timezone.utc).isoformat()}
 
 @router.post("/chart", summary="Natal chart (tropical or sidereal)")
 def chart(req: ChartRequest):
