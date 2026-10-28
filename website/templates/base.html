@@ -10,13 +10,14 @@
 <meta name="twitter:card" content="summary">
 <meta name="theme-color" content="#8e1b3a">
 <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/static/style.css?v=19">
+<link rel="stylesheet" href="/static/style.css?v=25">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"{{ BRAND }}","url":"{{ SITE }}/","potentialAction":{"@type":"SearchAction","target":"{{ SITE }}/panchang?city={search_term_string}","query-input":"required name=search_term_string"}}</script>
 </head>
 <body>
 <header class="top">
   <div class="wrap topbar">
-    <a class="brand" href="/" aria-label="{{ BRAND }} home"><img src="/static/logo.svg" alt="{{ BRAND }}" width="190" height="42"><span class="tag">Hindu almanac<br>Lahiri · local time</span></a>
+    <span class="diya" aria-hidden="true"><img src="/static/deepak.png" alt="" width="23" height="36"></span>
+    <a class="brand" href="/" aria-label="{{ BRAND }} home"><img src="/static/logo.svg" alt="{{ BRAND }}" width="190" height="42"><span class="tag">Panchang · Vikram Samvat<br>Shaka · Tamil · Bengali</span></a>
     <div class="toptools">
       <time id="liveClock" data-tz="{{ loc.tz }}" data-pending="{{ '1' if loc.source == 'default' else '0' }}">—</time>
       <span class="topdate" id="civilDate"></span>
@@ -25,6 +26,7 @@
       {% if lang and lang != 'en' %}<button type="button" id="langReset" class="langreset">English</button>{% endif %}
       </span>
       <a href="/login" class="langreset">Sign in</a>
+      <span class="diya" aria-hidden="true"><img src="/static/deepak.png" alt="" width="23" height="36"></span>
     </div>
   </div>
   <div class="locbar">
@@ -49,17 +51,30 @@
     </div>
   </div>
 </header>
-<nav class="main"><div class="wrap">{% for href,label in NAV %}<a href="{{ href }}" class="{{ 'on' if path==href }}">{{ label }}</a>{% endfor %}<a href="/api/docs">API</a></div></nav>
+<nav class="main"><div class="wrap">
+<div class="drop"><a href="/panchang">Panchang</a><div class="panel"><a href="/panchang">Dainik Panchang</a><a href="/calendar">Month Panchang</a><a href="/panji/odia">Odia Panji</a><a href="/panji/telugu">Telugu Panchangam</a><a href="/panji/vinchudo">Gujarati Vinchudo</a><a href="/panji/nepali">Nepali Patro</a><a href="/panji/chandrabalam">Chandrabalam</a><a href="/regional">Tamil · Malayalam · Bengali</a><a href="/systems">All calendar systems</a></div></div>
+<div class="drop"><a href="/calendar">Calendars</a><div class="panel"><a href="/calendar">Amanta month</a><a href="/observe/diwali">Diwali</a><a href="/observe/durga">Durga Puja</a><a href="/observe/navratri">Navratri</a><a href="/systems#vikram">Vikram Samvat</a><a href="/systems#shaka">Shaka Samvat</a><a href="/panji/nepali">Nepali Patro</a><a href="/festivals">Festival calendar</a></div></div>
+<div class="drop"><a href="/muhurat">Muhurat</a><div class="panel"><a href="/choghadiya">Choghadiya</a><a href="/hora">Shubha Hora</a><a href="/lagna-table">Lagna table</a><a href="/lagna-table#gowri">Gowri Panchangam</a><a href="/rahu-kaal">Rahu Kaal</a><a href="/muhurat?type=marriage">Vivah</a><a href="/muhurat?type=griha_pravesh">Griha Pravesh</a><a href="/muhurat?type=vehicle">Vehicle</a><a href="/muhurat?type=property">Property</a><a href="/pachchakkhan">Jain Pachchakkhan</a><a href="/regional#doshas">Panchaka & Abhijit</a></div></div>
+<div class="drop"><a href="/festivals">Vrat</a><div class="panel"><a href="/festivals?type=ekadashi">Ekadashi</a><a href="/festivals?type=dwadashi">Dwadashi</a><a href="/festivals?type=pradosh">Pradosh</a><a href="/festivals?type=sankashti">Sankashti</a><a href="/festivals?type=sashti">Skanda Sashti</a><a href="/festivals?type=shraddha">Shraddha</a><a href="/festivals?type=purnima">Satyanarayana / Purnima</a><a href="/festivals?type=amavasya">Amavasya</a><a href="/festivals?type=karthigai">Karthigai</a><a href="/festivals?type=chandra_darshan">Chandra Darshan</a><a href="/guide/katha">Vrat Katha</a></div></div>
+<div class="drop"><a href="/festivals">Festivals</a><div class="panel"><a href="/festivals">All festivals</a><a href="/guide/dashavatara">Dashavatara</a><a href="/guide/avatars">More avatars</a><a href="/guide/navdurga">Navdurga</a><a href="/guide/pilgrim">Pilgrim places</a><a href="/guide/vidhi">Puja vidhi</a><a href="/gallery">Festival art</a></div></div>
+<div class="drop"><a href="/kundli">Jyotish</a><div class="panel"><a href="/kundli">Janma Kundli</a><a href="/matching">Horoscope match</a><a href="/horoscope">Rashifal</a><a href="/sade-sati">Shani Sade Sati</a><a href="/names">Name initials</a><a href="/gemstone">Gemstone</a><a href="/rudraksha">Rudraksha</a><a href="/sahasra">Sahasra Chandrodaya</a><a href="/reports">Detailed reports & 22 dashas</a><a href="/prashna">Prashna</a><a href="/kp">KP</a><a href="/yogas">Yogas</a></div></div>
+<div class="drop"><a href="/transits">Planets</a><div class="panel"><a href="/transits">Positions & transits</a><a href="/sky/combust">Combustion</a><a href="/sky/retro">Retrograde</a><a href="/sky/solstice">Solstices</a><a href="/sky/seasons">Seasons</a><a href="/festivals?type=eclipse">Eclipses</a></div></div>
+<div class="drop"><a href="/tools">More</a><div class="panel"><a href="/lyrics">Aarti & stotra</a><a href="/vastu">Vastu</a><a href="/tarot">Tarot</a><a href="/numerology">Numerology</a><a href="/palmistry">Palmistry</a><a href="/tools">More tools</a><a href="/api/docs">API</a></div></div>
+</div></nav>
+<div class="ornament" aria-hidden="true">
+  <i class="edge"></i><i class="edge r"></i>
+</div>
 <div class="wrap layout">
 <aside class="side">
   <h4>Panchang</h4><a href="/mine">For your birth star</a><a href="/week">This week</a><a href="/compare">Two cities</a><a href="/names">Naming syllable</a><a href="/sade-sati">Sade Sati</a><a href="/panchang">Day Panchang</a><a href="/calendar">Month Calendar</a><a href="/choghadiya">Choghadiya</a><a href="/hora">Shubha Hora</a><a href="/rahu-kaal">Rahu Kaal</a><a href="/lagna-table">Lagna Table</a><a href="/lagna-table#gowri">Gowri Panchangam</a>
-  <h4>Calendars</h4><a href="/festivals">Festivals {{ '' }}</a><a href="/festivals?type=ekadashi">Ekadashi</a><a href="/festivals?type=purnima">Purnima</a><a href="/festivals?type=amavasya">Amavasya</a><a href="/festivals?type=pradosh">Pradosh</a><a href="/festivals?type=sankashti">Sankashti</a><a href="/festivals?type=sankranti">Sankranti</a><a href="/festivals?type=eclipse">Eclipses</a>
-  <h4>Jyotish</h4><a href="/destiny">Master Destiny</a><a href="/traditions">Traditions & Doshas</a><a href="/kundli">Janma Kundli</a><a href="/prashna">Prashna Kundali</a><a href="/vargas">Divisional Charts</a><a href="/varshaphala">Varshaphala</a><a href="/kp">KP System</a><a href="/yogas">Classical Yogas</a><a href="/reading">Vedic Reading</a><a href="/matching">Kundli Matching</a><a href="/muhurat">Muhurat</a><a href="/transits">Transits</a><a href="/horoscope">Rashifal</a>
+  <h4>Calendars</h4><a href="/panji/odia">Odia Panji</a><a href="/panji/telugu">Telugu</a><a href="/panji/vinchudo">Vinchudo</a><a href="/panji/nepali">Nepali Patro</a><a href="/panji/chandrabalam">Chandrabalam</a><a href="/observe/diwali">Diwali</a><a href="/observe/durga">Durga Puja</a><a href="/observe/navratri">Navratri</a><a href="/festivals">Festivals {{ '' }}</a><a href="/festivals?type=ekadashi">Ekadashi</a><a href="/festivals?type=shraddha">Shraddha</a><a href="/festivals?type=dwadashi">Dwadashi</a><a href="/guide/katha">Vrat Katha</a>
+  <h4>Jyotish</h4><a href="/destiny">Master Destiny</a><a href="/reports">Detailed Reports & 22 Dashas</a><a href="/traditions">Traditions & Doshas</a><a href="/kundli">Janma Kundli</a><a href="/prashna">Prashna Kundali</a><a href="/vargas">Divisional Charts</a><a href="/varshaphala">Varshaphala</a><a href="/kp">KP System</a><a href="/yogas">Classical Yogas</a><a href="/reading">Vedic Reading</a><a href="/matching">Kundli Matching</a><a href="/muhurat">Muhurat</a><a href="/transits">Transits</a><a href="/horoscope">Rashifal</a>
+  <h4>Lyrics</h4><a href="/lyrics#aarti">Aarti</a><a href="/lyrics#chalisa">Chalisa</a><a href="/lyrics#stotra">Stotram</a><a href="/lyrics#ashtakam">Ashtakam</a><a href="/lyrics#mantra">Vedic mantra</a><a href="/lyrics#namavali">Namavali</a><a href="/lyrics#saptashati">Durga Saptashati</a><a href="/lyrics#sundarkand">Sundarkand</a><a href="/lyrics#ramayanam">Nama Ramayanam</a>
   <h4>More</h4><a href="/vastu">Vastu & Feng Shui Architect</a><a href="/palmistry">Palmistry</a><a href="/western">Western Chart</a><a href="/numerology">Numerology</a><a href="/tarot">Tarot</a><a href="/human-design">Human Design</a><a href="/iching">I-Ching</a><a href="/regional">Regional Calendars & Doshas</a><a href="/tools">Mayan · Chinese · Kabbalah · Dreams · Crystals</a><a href="/api/docs">Developer API</a>
 </aside>
 <main>{% block content %}{% endblock %}</main>
 </div>
 <footer><div class="wrap">© {{ BRAND }}</div></footer>
 <script id="phUi" type="application/json">{{ ui_json|safe }}</script>
-<script src="/static/app.js?v=22" defer></script>
+<script src="/static/app.js?v=23" defer></script>
 </body></html>

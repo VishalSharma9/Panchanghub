@@ -19,6 +19,9 @@ const PHUI=(function(){try{return JSON.parse((document.getElementById('phUi')||{
     u.searchParams.set('lat', String(lat));
     u.searchParams.set('lon', String(lon));
     u.searchParams.set('tz', tz);
+    document.querySelectorAll('input[name="date"],input[name="time"],input[name="b_date"],input[name="b_time"],input[name="g_date"],input[name="g_time"]').forEach(function(el){
+      if(el.value) u.searchParams.set(el.name, el.value);
+    });
     let keepLang='';
     try{ keepLang=u.searchParams.get('lang') || localStorage.getItem('ph_lang') || ''; }catch(e){}
     if(keepLang && keepLang!=='en') u.searchParams.set('lang', keepLang);
@@ -104,8 +107,9 @@ const PHUI=(function(){try{return JSON.parse((document.getElementById('phUi')||{
     const pre=el.dataset.place, list=document.createElement('div');list.className='sugg';list.hidden=true;el.parentNode.style.position='relative';el.parentNode.appendChild(list);
     let tt;el.addEventListener('input',()=>{clearTimeout(tt);const q=el.value.trim();if(q.length<2){list.hidden=true;return}
       tt=setTimeout(async()=>{const j=await (await fetch('/api/cities?limit=8&q='+encodeURIComponent(q))).json();list.innerHTML='';
-        j.results.forEach(c=>{const d=document.createElement('div');d.textContent=placeLabel(c);d.onclick=()=>{el.value=[c.name,c.admin1_name,c.country_name||c.country].filter(Boolean).join(', ');
-          document.querySelector(`[name=${pre}lat]`).value=c.latitude;document.querySelector(`[name=${pre}lon]`).value=c.longitude;document.querySelector(`[name=${pre}tz]`).value=c.timezone;list.hidden=true};list.appendChild(d)});
+        j.results.forEach(c=>{const d=document.createElement('div');d.textContent=placeLabel(c);d.onclick=()=>{const f=el.form;el.value=[c.name,c.admin1_name,c.country_name||c.country].filter(Boolean).join(', ');
+          const set=(k,v)=>{const n=f.elements[pre+k]; if(n) n.value=v;};
+          set('lat', c.latitude); set('lon', c.longitude); set('tz', c.timezone); list.hidden=true};list.appendChild(d)});
         list.hidden=!j.results.length},200)})});
 })();
 

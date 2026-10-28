@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+{% if kind == 'gem' %}
+<h1>Gemstone</h1>
+<p class="sub">Navaratna for {{ src }}: <b>{{ row[0] }}</b>, lord {{ row[1] }}, stone {{ row[2] }} ({{ row[3] }}). A customary match of rashi and stone, not a prescription.</p>
+<form class="f" method="get"><label>Rashi<select name="rashi">{% for i, s in signs %}<option value="{{ i }}" {{ 'selected' if i==idx }}>{{ s }}</option>{% endfor %}</select></label><button class="btn alt">Show</button></form>
+<section class="card"><div class="body"><table class="t"><tr><th>Rashi</th><th>Lord</th><th>Stone</th></tr>{% for r, lord, stone, hi in table %}<tr><td>{{ r }}</td><td>{{ lord }}</td><td>{{ stone }} ({{ hi }})</td></tr>{% endfor %}</table></div></section>
+{% elif kind == 'rudraksha' %}
+<h1>Rudraksha</h1>
+<p class="sub">For {{ src }}, rashi {{ signs[idx][1] }}, the customary bead is <b>{{ mukhi }} mukhi</b>. Families and shops disagree on this table. It is a guide, not a rule from the shruti.</p>
+<form class="f" method="get"><label>Rashi<select name="rashi">{% for i, s in signs %}<option value="{{ i }}" {{ 'selected' if i==idx }}>{{ s }}</option>{% endfor %}</select></label><button class="btn alt">Show</button></form>
+{% else %}
+<h1>Sahasra Chandrodaya</h1>
+<p class="sub">The thousandth moonrise after birth. Counted at {{ loc.city }}, one moonrise for each day the Moon rises between sunrise and the next sunrise.</p>
+<form class="f" method="get"><label>Birth date<input type="date" name="birth" value="{{ birth }}"></label><button class="btn alt">Count</button></form>
+{% if found %}<section class="card"><h2>Thousandth moonrise</h2><div class="body"><p><b>{{ found.date }}</b> · {{ found.when }}</p></div></section>
+{% elif birth %}<p>Could not reach a thousandth moonrise in the almanac span.</p>{% endif %}
+{% endif %}
+<p class="sub"><a href="/names">Name initials from the nakshatra</a> · <a href="/gemstone">Gemstone</a> · <a href="/rudraksha">Rudraksha</a></p>
+{% endblock %}

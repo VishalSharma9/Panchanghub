@@ -152,6 +152,12 @@ def year_festivals(year: int, lat: float, lon: float, tz_name=None, utc_offset=N
         if hits(i, 7): add(x, "Masik Durgashtami", "ashtami")
         if hits(i, 22): add(x, "Kalashtami", "ashtami")
         if hits(i, 5): add(x, "Skanda Sashti", "sashti")
+        if hits(i, 11): add(x, f"{MONTHS[m]}{adh} Shukla Dwadashi", "dwadashi")
+        if hits(i, 26): add(x, f"{MONTHS[m]}{adh} Krishna Dwadashi", "dwadashi")
+        if m == 5 and not x["adhika"] and 15 <= t <= 29 and tp != t:
+            add(x, f"Shraddha · {TITHIS[t]}", "shraddha")
+        if m == 7 and x["nak"] == 2 and prev["nak"] != 2:
+            add(x, "Karthigai (Krittika in Kartika)", "karthigai")
         if t == 1 and tp != 1 and x["tithi"]["sunset"] == 1: add(x, "Chandra Darshan", "chandra_darshan")
     # sankrantis (exact time)
     j0 = local_midnight_jd(Date(year, 1, 1), tz); j1 = local_midnight_jd(Date(year + 1, 1, 1), tz)

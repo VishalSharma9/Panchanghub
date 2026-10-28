@@ -13,13 +13,15 @@ def valid_tz(tz: str) -> str:
 
 
 def normalize_date_str(v, default="1990-05-15"):
-    """Repair a 5-digit year typo and clamp an impossible calendar day."""
+    """Accept YYYY-MM-DD, DD/MM/YYYY, and DD-MM-YYYY. Never invent a date when default is None."""
     if isinstance(v, Date):
-        return v
+        return v.isoformat()
     if not isinstance(v, str) or not v.strip():
         return default
-    s = v.strip()
+    s = v.strip().replace(".", "-").replace("/", "-")
     parts = s.split("-")
+    if len(parts) == 3 and parts[0].isdigit() and len(parts[0]) <= 2 and len(parts[2]) >= 4:
+        parts = [parts[2], parts[1], parts[0]]
     if len(parts) == 3:
         y_raw, m_raw, d_raw = parts[0].lstrip("+"), parts[1], parts[2][:2]
         if len(y_raw) > 4 and y_raw.isdigit():
@@ -30,10 +32,12 @@ def normalize_date_str(v, default="1990-05-15"):
             else:
                 y_raw = y_raw[:4]
         try:
-            y_i = max(1, min(3000, int(y_raw)))
-            m_i = max(1, min(12, int(m_raw)))
-            d_i = max(1, min(31, int(d_raw)))
-            for dd in range(d_i, 27, -1):
+            y_i = int(y_raw)
+            m_i = int(m_raw)
+            d_i = int(d_raw)
+            if not (1 <= y_i <= 3000 and 1 <= m_i <= 12 and 1 <= d_i <= 31):
+                return default
+            for dd in range(d_i, 0, -1):
                 try:
                     return Date(y_i, m_i, dd).isoformat()
                 except ValueError:

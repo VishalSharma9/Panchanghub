@@ -16,6 +16,26 @@
 <div><span>Moonset</span><b>{{ p.moonset|hm(ref) if p.moonset else '—' }}</b></div>
 </div>
 <p class="vedic" id="vedicClock" data-sr="{{ p.sunrise }}" data-nsr="{{ p.next_sunrise }}">Vedic time since sunrise</p>
+{% set m = p.muhurta %}
+<div class="grid2">
+<section class="card goodcard"><h2>Auspicious today</h2><div class="body"><table class="kv">
+<tr><td>Brahma Muhurta</td><td class="good">{{ span(m.brahma_muhurta, ref) }}</td></tr>
+<tr><td>Abhijit</td><td class="good">{{ span(m.abhijit, ref) if m.abhijit else 'None today' }}</td></tr>
+<tr><td>Vijaya Muhurta</td><td>{{ span(m.vijaya_muhurta, ref) }}</td></tr>
+<tr><td>Godhuli</td><td>{{ span(m.godhuli_muhurta, ref) }}</td></tr>
+<tr><td>Amrit Kalam</td><td>{% for a in m.amrit_kalam %}<div>{{ span(a, ref) }}</div>{% else %}None{% endfor %}</td></tr>
+</table><p><a href="/panchang#auspicious">All good hours →</a></p></div></section>
+<section class="card badcard"><h2>Avoid today</h2><div class="body"><table class="kv">
+<tr><td>Rahu Kalam</td><td class="bad">{{ span(m.rahu_kalam, ref) }}</td></tr>
+<tr><td>Yamaganda</td><td class="bad">{{ span(m.yamaganda, ref) }}</td></tr>
+<tr><td>Gulikai</td><td class="bad">{{ span(m.gulikai_kalam, ref) }}</td></tr>
+<tr><td>Disha Shool</td><td class="bad">Do not set out {{ p.disha_shool }}</td></tr>
+<tr><td>Varjyam</td><td>{% for a in m.varjyam %}<div>{{ span(a, ref) }}</div>{% else %}None{% endfor %}</td></tr>
+</table><p><a href="/panchang#inauspicious">Full inauspicious list →</a> <a href="/rahu-kaal">Rahu Kaal month →</a></p></div></section>
+</div>
+<nav class="jumps" aria-label="Open a tool">
+<a href="/panchang">Full day panchang</a><a href="/calendar">Month calendar</a><a href="/choghadiya">Choghadiya</a><a href="/hora">Hora</a><a href="/festivals">Festivals</a><a href="/horoscope">Rashifal</a><a href="/muhurat">Muhurat</a><a href="/kundli">Kundli</a>
+</nav>
 <div class="grid3">
 <section class="card"><h2>For your birth star</h2><div class="body">
 {% if p.personal.chandrabalam or p.personal.tarabalam %}

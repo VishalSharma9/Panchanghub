@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Aarti, chalisa and stotra</h1>
+<p>Traditional verses, long out of copyright. The short notes are written for this site.</p>
+<p class="sub">{% for s in sections %}<a href="#{{ s.id }}">{{ s.title }}</a>{% if not loop.last %} · {% endif %}{% endfor %}</p>
+{% for s in sections %}
+<section class="card" id="{{ s.id }}"><h2>{{ s.title }}</h2><div class="body">
+{% for it in s['items'] %}<h3>{{ it.name }}</h3><pre style="white-space:pre-wrap;font:16px/1.7 Georgia,serif">{{ it.text }}</pre>{% endfor %}
+</div></section>
+{% endfor %}
+{% endblock %}

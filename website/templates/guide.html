@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ heading }}</h1>
+{% if extra %}<p class="sub">Sunset today at {{ loc.city }}: <b>{{ extra }}</b>. Speak a pachchakkhan before this.</p>{% endif %}
+{% for id, h, body in blocks %}<section class="card" id="{{ id }}"><h2>{{ h }}</h2><div class="body"><p>{{ body }}</p></div></section>{% endfor %}
+{% endblock %}

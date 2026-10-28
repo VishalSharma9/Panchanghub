@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ heading }} {{ year }}</h1>
+<p class="sub">{{ loc.city }}. Dates from this year’s panchang, not a copied list.</p>
+<div class="datebar"><a class="btn" href="/observe/{{ slug }}?year={{ year-1 }}">‹ {{ year-1 }}</a><a class="btn" href="/observe/{{ slug }}?year={{ year+1 }}">{{ year+1 }} ›</a>
+<a class="btn alt" href="/festivals?year={{ year }}">All festivals</a></div>
+<section class="card"><div class="body"><table class="t"><tr><th>Date</th><th>Day</th><th>Event</th></tr>
+{% for e in rows %}<tr><td><a href="/panchang?date={{ e.date }}">{{ e.date }}</a></td><td>{{ e.weekday }}</td><td>{{ e.name }}</td></tr>
+{% else %}<tr><td colspan="3">Nothing under this name in {{ year }}.</td></tr>{% endfor %}
+</table></div></section>
+{% endblock %}

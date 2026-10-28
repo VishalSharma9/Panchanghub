@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ heading }}</h1>
+<p class="sub">{{ loc.city }} · {{ day.isoformat() }} · sidereal Lahiri, except the solstice page which uses the tropical Sun.</p>
+<p class="sub"><a href="/sky/combust">Combustion</a> · <a href="/sky/retro">Retrograde</a> · <a href="/sky/solstice">Solstices</a> · <a href="/sky/seasons">Seasons</a> · <a href="/transits">Year transits</a></p>
+<section class="card"><div class="body"><table class="t"><tr><th></th><th>Sign</th><th></th><th></th></tr>
+{% for r in rows %}<tr><td><b>{{ r.name }}</b></td><td>{{ r.sign }}</td><td>{{ r.note }}</td><td>{{ r.flag }}</td></tr>{% endfor %}
+</table></div></section>
+{% endblock %}

@@ -34,14 +34,21 @@ RANKS = [("Ace", "new opportunity"), ("Two", "balance, decisions"), ("Three", "g
 
 def deck():
     from .tarot_art import card_slug
+    from pathlib import Path
+    art = Path(__file__).resolve().parents[2] / "web" / "static" / "tarot"
+    def face(name):
+        slug = card_slug(name)
+        if (art / f"{slug}.jpg").is_file():
+            return f"/static/tarot/{slug}.jpg"
+        return f"/tarot/card/{slug}.svg"
     cards = [{"id": i, "name": n, "arcana": "major", "upright": u, "reversed": r,
-              "image": f"/tarot/card/{card_slug(n)}.svg"} for i, (n, u, r) in enumerate(MAJOR)]
+              "image": face(n)} for i, (n, u, r) in enumerate(MAJOR)]
     for s, (theme, el) in SUITS.items():
         for rk, m in RANKS:
             name = f"{rk} of {s}"
             cards.append({"id": len(cards), "name": name, "arcana": "minor", "suit": s, "element": el,
                           "upright": f"{m} in {theme}", "reversed": f"blocked or excessive {m} in {theme}",
-                          "image": f"/tarot/card/{card_slug(name)}.svg"})
+                          "image": face(name)})
     return cards
 
 SPREADS = {"single": ["Card"], "yes_no": ["Answer"], "three_card": ["Past", "Present", "Future"],
@@ -50,17 +57,32 @@ SPREADS = {"single": ["Card"], "yes_no": ["Answer"], "three_card": ["Past", "Pre
                             "External influences", "Hopes and fears", "Outcome"]}
 
 def draw(spread: str = "three_card", seed: str | None = None, question: str | None = None):
-    rng = random.Random(int(hashlib.sha256((seed or str(random.random())).encode() + (question or "").encode()).hexdigest(), 16)) 
-    d = deck(); rng.shuffle(d)
-    pos = SPREADS[spread]; out = []
+    """Shuffle all 78, cut, then deal. A seed (the daily card) repeats; a live draw does not."""
+    if seed:
+        rng = random.Random(int(hashlib.sha256(f"{seed}|{question or ''}".encode()).hexdigest(), 16))
+    else:
+        rng = random.SystemRandom()
+    d = deck()
+    for i in range(len(d) - 1, 0, -1):
+        j = rng.randrange(i + 1)
+        d[i], d[j] = d[j], d[i]
+    cut = rng.randrange(1, len(d))
+    d = d[cut:] + d[:cut]
+    pos = SPREADS[spread]
+    out = []
     for i, p in enumerate(pos):
-        c = d[i]; rev = rng.random() < 0.3
-        out.append({"position": p, "card": c["name"], "reversed": rev, "meaning": c["reversed"] if rev else c["upright"],
-                    "image": c["image"]})
-    res = {"spread": spread, "question": question, "cards": out}
+        c = d[i]
+        rev = rng.random() < 0.18
+        out.append({"position": p, "card": c["name"], "reversed": rev,
+                    "meaning": c["reversed"] if rev else c["upright"], "image": c["image"]})
+    if len(out) <= 5 and out and all(c["reversed"] for c in out):
+        out[-1]["reversed"] = False
+        name = out[-1]["card"]
+        face = next(c for c in d if c["name"] == name)
+        out[-1]["meaning"] = face["upright"]
+    res = {"spread": spread, "question": question, "cards": out, "deck": 78}
     if spread == "yes_no":
-        c = d[0]; yes = (not out[0]["reversed"]) and c["name"] not in ("The Tower", "Death", "The Devil", "The Moon", "Five of Swords", "Ten of Swords", "Three of Swords")
-        res["answer"] = "Yes" if yes else "No"
+        res["answer"] = "No" if out[0]["reversed"] else "Yes"
     return res
 
 def daily(on: Date, sign_or_name: str = ""):

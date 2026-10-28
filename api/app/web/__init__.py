@@ -262,22 +262,24 @@ def _resolve_city_coords(city_str: str, lat: float, lon: float, tz: str):
         pass
     return city_str, lat, lon, tz
 
-def birth_from_query(request, prefix=""):
+def birth_from_query(request, prefix="", fallback=True):
     q = request.query_params
     g = lambda k, d=None: q.get(prefix + k, d)
-    if g("date") and (g("lat") or g("city")):
-        tm = g("time", "10:30")
+    raw_date = g("date")
+    if raw_date and (g("lat") or g("city") or g("tz")):
+        tm = g("time") or "10:30"
         raw_lat = float(g("lat")) if g("lat") else 28.6139
         raw_lon = float(g("lon")) if g("lon") else 77.2090
         city_s, lat_f, lon_f, tz_s = _resolve_city_coords(
             g("city", "New Delhi, India"), raw_lat, raw_lon, g("tz", "Asia/Kolkata")
         )
-        clean_date = normalize_date_str(g("date")) or "1990-05-15"
-        res = dict(date=clean_date, time=tm if len(tm) > 5 else tm + ":00", latitude=lat_f, longitude=lon_f,
-                   timezone=tz_s, name=g("name") or ("Gargi" if prefix == "g_" else "Aryabhata"), city=city_s)
-        if prefix == "":
+        clean_date = normalize_date_str(raw_date, default=None)
+        res = dict(date=clean_date or raw_date, time=tm if len(tm) > 5 else tm + ":00", latitude=lat_f, longitude=lon_f,
+                   timezone=tz_s, name=g("name") or ("Gargi" if prefix == "g_" else "Aryabhata"), city=city_s,
+                   bad_date=clean_date is None)
+        if prefix == "" and clean_date:
             try:
-                request.state.ph_birth_to_save = res
+                request.state.ph_birth_to_save = {k: v for k, v in res.items() if k != "bad_date"}
             except Exception:
                 pass
         return res
@@ -289,17 +291,20 @@ def birth_from_query(request, prefix=""):
                 raw = unquote(c) if ("%" in c) else c
                 v = json.loads(raw)
                 if v.get("date") and v.get("latitude") is not None:
-                    fixed_date = normalize_date_str(v["date"])
-                    if fixed_date != v["date"]:
+                    fixed_date = normalize_date_str(v["date"], default=None)
+                    if fixed_date:
                         v["date"] = fixed_date
-                    return v
+                        v["bad_date"] = False
+                        return v
             except Exception:
                 pass
+    if not fallback:
+        return None
     if prefix == "g_":
         return dict(date="1992-08-20", time="14:15:00", latitude=19.0760, longitude=72.8777,
-                    timezone="Asia/Kolkata", name="Gargi", city="Mumbai, India")
+                    timezone="Asia/Kolkata", name="Gargi", city="Mumbai, India", bad_date=False)
     return dict(date="1990-05-15", time="10:30:00", latitude=28.6139, longitude=77.2090,
-                timezone="Asia/Kolkata", name="Aryabhata", city="New Delhi, India")
+                timezone="Asia/Kolkata", name="Aryabhata", city="New Delhi, India", bad_date=False)
 
 def register(app: FastAPI):
     app.mount("/static", StaticFiles(directory=os.path.join(WEB_ROOT, "static")), name="static")
@@ -369,13 +374,13 @@ def register(app: FastAPI):
     @app.get("/names", response_class=HTMLResponse, include_in_schema=False)
     def names(request: Request):
         loc = loc_from(request)
-        b = birth_from_query(request)
+        b = birth_from_query(request, fallback=False)
         q = request.query_params
         syl = None
         nak, pada = _opt_int(q.get("nak"), 1, 27), _opt_int(q.get("pada"), 1, 4)
-        if b:
+        if b and not b.get("bad_date"):
             syl = moon_syllable(b["date"], b["time"], b["timezone"])
-        elif nak and pada:
+        elif nak and pada and not q.get("date"):
             syl = syllable(nak - 1, pada)
         return page(request, "names.html", f"Naming syllable | {BRAND}",
                     "Namakarana starting syllable from the Moon’s nakshatra pada.",
@@ -482,7 +487,7 @@ def register(app: FastAPI):
             pm = None
         nm = (first + timedelta(days=32)).replace(day=1)
         if nm.year > ephem.YEAR_MAX: nm = None
-        return page(request, "calendar.html", f"Hindu Calendar {first.strftime('%B %Y')} – {loc['city']} | {BRAND}",
+        return page(request, "calendar.html", f"Panchang · Vikram Samvat {first.strftime('%B %Y')} – {loc['city']} | {BRAND}",
                     f"Monthly Hindu calendar for {first.strftime('%B %Y')} with tithi, nakshatra and festivals.", "/calendar",
                     loc=loc, cal=cal, lead=lead, first=first, pm=pm, nm=nm, today=t.isoformat())
 
@@ -527,7 +532,7 @@ def register(app: FastAPI):
         f = RC.festivals(y, L(loc), typ)
         months = {}
         for e in f["events"]: months.setdefault(e["date"][:7], []).append(e)
-        types = ["festival", "ekadashi", "purnima", "amavasya", "sankranti", "pradosh", "sankashti", "shivaratri", "chaturthi", "eclipse"]
+        types = ["festival", "ekadashi", "purnima", "amavasya", "sankranti", "pradosh", "sankashti", "shivaratri", "chaturthi", "eclipse", "dwadashi", "shraddha", "sashti", "ashtami", "chandra_darshan", "karthigai"]
         return page(request, "festivals.html", f"Hindu Festivals & Vrat Calendar {y} – {loc['city']} | {BRAND}",
                     f"Complete {y} list of Hindu festivals, Ekadashi, Purnima, Amavasya, Pradosh, Sankranti and eclipses.", "/festivals",
                     loc=loc, months=months, year=y, typ=typ, types=types)
@@ -1164,8 +1169,26 @@ def register(app: FastAPI):
     @app.get("/sitemap.xml", include_in_schema=False)
     def sitemap():
         today = Date.today().isoformat()
-        urls = [p for p, _ in NAV] + ["/api/docs"]
+        urls = [p for p, _ in NAV] + ["/api/docs", "/systems", "/gallery", "/lyrics"]
         y = Date.today().year
         urls += [f"/festivals?year={yy}" for yy in (y - 1, y, y + 1)]
         body = "".join(f"<url><loc>{SITE}{u.replace('&', '&amp;')}</loc><lastmod>{today}</lastmod><changefreq>daily</changefreq></url>" for u in urls)
         return Response(f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{body}</urlset>', media_type="application/xml")
+
+    from .library_routes import mount as mount_library
+    mount_library(app, page, loc_from, year_of, qdate, L)
+
+    @app.get("/systems", response_class=HTMLResponse, include_in_schema=False)
+    def systems(request: Request):
+        return page(request, "systems.html", f"Calendar systems – Vikram Samvat, Shaka, Tamil, Bengali | {BRAND}",
+                    "Vikram Samvat, Shaka, Tamil, Malayalam, Bengali, Odia, Telugu, Kannada, Gujarati, Marathi, Nepali and Gaudiya calendars.",
+                    "/systems")
+
+    @app.get("/gallery", response_class=HTMLResponse, include_in_schema=False)
+    def gallery(request: Request):
+        return page(request, "gallery.html", f"Festival gallery | {BRAND}", "Original festival paintings: lamps, rangoli, kalash and deepak.", "/gallery")
+
+    @app.get("/lyrics", response_class=HTMLResponse, include_in_schema=False)
+    def lyrics(request: Request):
+        from ..core.library_text import LYRICS
+        return page(request, "lyrics.html", f"Aarti, chalisa and stotra | {BRAND}", "Traditional public-domain verses: aarti, Hanuman Chalisa, stotra, ashtakam and mantra.", "/lyrics", sections=LYRICS)

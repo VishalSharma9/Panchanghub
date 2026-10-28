@@ -26,7 +26,7 @@
 <p class="muted">Vakya Moon {{ '%.2f'|format(vk.moon_longitude) }}°, Sun {{ '%.2f'|format(vk.sun_longitude) }}° at sunrise. Vakya almanacs commonly differ from the Hub ephemeris by 1–3 hours.</p></div></section>
 <section class="card"><h2>Sankranti punya kaal {{ pk.year }}</h2><div class="body"><table class="t"><tr><th>Sankranti</th><th>Moment</th><th>Observed</th><th>Punya kaal</th><th>Maha punya kaal</th></tr>
 {% for s in pk.sankrantis %}<tr><td>{{ s.rashi }} ({{ s.class }})</td><td>{{ s.moment[:16].replace('T',' ') }}</td><td>{{ s.observed_on }}</td><td>{{ s.punya_kaal.start[11:16] }}–{{ s.punya_kaal.end[11:16] }}</td><td>{{ s.maha_punya_kaal.start[11:16] }}–{{ s.maha_punya_kaal.end[11:16] }}</td></tr>{% endfor %}</table></div></section>
-<section class="card"><h2>Muhurta doshas today</h2><div class="body"><table class="kv">
+<section class="card" id="doshas"><h2>Muhurta doshas today</h2><div class="body"><table class="kv">
 <tr><td>Panchaka</td><td>{% if md.panchaka.active %}{% for w in md.panchaka.windows %}<b>{{ w.type }}</b> {{ w.start[11:16] }}–{{ w.end[11:16] }} (began {{ w.panchaka_began[:16].replace('T',' ') }}) – {{ w.effect }}<br>{% endfor %}{% else %}None{% endif %}</td></tr>
 <tr><td>Bhadra</td><td>{% for b in md.bhadra %}{{ b.start[11:16] }}–{{ b.end[11:16] }} · residence {{ b.residence }}{{ ' (harmful)' if b.harmful }}<br>{% else %}None{% endfor %}</td></tr>
 <tr><td>Dagdha tithi</td><td>{{ 'Yes' if md.dagdha_tithi else 'No' }}</td></tr><tr><td>Krakacha / Samvartaka</td><td>{{ 'Yes' if md.krakacha_yoga else 'No' }} / {{ 'Yes' if md.samvartaka_yoga else 'No' }}</td></tr>

@@ -1,7 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Shubh Muhurat Finder</h1><p class="sub">{{ loc.city }}</p>
-<section class="card"><h2>Search</h2><div class="body"><form class="f" method="get" action="/muhurat">
+<h1>Shubh Muhurat Finder</h1><p class="sub">{{ loc.city }} · daily hours and ceremony windows, in one place</p>
+<nav class="jumps" aria-label="Daily muhurat">
+<a href="/panchang#auspicious">Abhijit & Brahma</a><a href="/choghadiya">Choghadiya</a><a href="/hora">Shubha Hora</a><a href="/lagna-table">Lagna Muhurat</a><a href="/rahu-kaal">Rahu · Yamaganda · Gulikai</a><a href="/panchang#doghati">Do Ghati</a><a href="/panchang#pakshi">Pancha Pakshi</a>
+</nav>
+<section class="card"><h2>Find a ceremony window</h2><div class="body"><form class="f" method="get" action="/muhurat">
 <label>Purpose<select name="type">{% for v,l in [('marriage','Vivah (Marriage)'),('griha_pravesh','Griha Pravesh'),('vehicle','Vehicle Purchase'),('property','Property Purchase'),('naming','Namkaran'),('mundan','Mundan'),('annaprashan','Annaprashan'),('business','Business Opening')] %}<option value="{{ v }}" {{ 'selected' if typ==v }}>{{ l }}</option>{% endfor %}</select></label>
 <label>From<input type="date" name="start" value="{{ s.isoformat() }}" min="0001-01-01" max="3000-12-31"></label><label>To<input type="date" name="end" value="{{ e.isoformat() }}" min="0001-01-01" max="3000-12-31"></label><button class="btn alt">Find muhurat</button></form>
 <p class="sub">Any day from year 1 through 3000. One search can cover up to 10 years.</p>

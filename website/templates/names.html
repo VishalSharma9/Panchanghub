@@ -3,7 +3,7 @@
 <h1>Naming syllable</h1>
 <p class="sub">Namakarana uses the Moon’s nakshatra pada at birth. Each pada has one starting sound. The name itself is chosen in the family; this page only fixes the sound.</p>
 <form class="f" method="get" action="/names">
-<label>Birth date<input type="date" name="date" value="{{ b.date if b else '' }}" min="0001-01-01" max="3000-12-31"></label>
+<label>Birth date<input type="date" name="date" value="{{ b.date if b and not b.bad_date else '' }}" max="3000-12-31" required></label>
 <label>Birth time<input type="time" name="time" value="{{ b.time[:5] if b else '10:30' }}"></label>
 <label>Place<input data-place="" name="city" value="{{ b.city if b and b.city else loc.city }}" autocomplete="off"></label>
 <input type="hidden" name="lat" value="{{ b.latitude if b else loc.lat }}">
@@ -11,6 +11,7 @@
 <input type="hidden" name="tz" value="{{ b.timezone if b else loc.tz }}">
 <button class="btn alt" type="submit">From this birth</button>
 </form>
+{% if b and b.bad_date %}<p class="bad">That birth date could not be read. Pick it again from the calendar, then press From this birth.</p>{% endif %}
 <p class="sub">Or pick the star if you already know it.</p>
 <form class="f" method="get" action="/names">
 <label>Nakshatra<select name="nak">{% for i in range(27) %}<option value="{{ i+1 }}" {{ 'selected' if nak==i+1 }}>{{ NAKSHATRAS[i] }}</option>{% endfor %}</select></label>
