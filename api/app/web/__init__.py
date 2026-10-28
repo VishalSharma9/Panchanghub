@@ -237,7 +237,7 @@ def page(request, tpl, title, desc, path, **ctx):
 NAV = [("/", "Home"), ("/mine", "For You"), ("/week", "This Week"), ("/compare", "Two Cities"),
        ("/names", "Names"), ("/sade-sati", "Sade Sati"), ("/panchang", "Daily Panchang"),
        ("/calendar", "Calendar"), ("/festivals", "Festivals"), ("/choghadiya", "Choghadiya"),
-       ("/kundli", "Kundli"), ("/destiny", "Destiny"), ("/traditions", "Traditions"), ("/vargas", "Vargas"),
+       ("/kundli", "Kundli"), ("/reports", "Detailed Reports & 22 Dashas"), ("/destiny", "Destiny"), ("/traditions", "Traditions"), ("/vargas", "Vargas"),
        ("/varshaphala", "Varshaphala"), ("/kp", "KP"), ("/prashna", "Prashna"), ("/yogas", "Yogas"), ("/reading", "Reading"),
        ("/matching", "Matching"), ("/muhurat", "Muhurat"),
        ("/hora", "Hora"), ("/rahu-kaal", "Rahu Kaal"), ("/lagna-table", "Lagna & Gowri"), ("/transits", "Transits"),
@@ -960,6 +960,67 @@ def register(app: FastAPI):
             "/vastu", v=v, q=q, rooms=list(ESO.ROOM_BEST), dirs=list(ESO.VASTU),
             astro_vastu=astro_vastu, feng_shui=feng_shui, glossary=PLAIN_ENGLISH_GLOSSARY,
             b_form={"date": dob_str, "time": tm_str[:5], "lat": b_lat, "lon": b_lon, "tz": b_tz, "city": b_city, "gender": gender}
+        )
+
+
+    @app.get("/reports", response_class=HTMLResponse, include_in_schema=False)
+    def reports_page(request: Request):
+        from ..core.detailed_reports_engine import get_reports_and_menus_catalog, generate_detailed_text_report
+        q = request.query_params
+        b = birth_from_query(request)
+        name = q.get("name") or (b.get("name") if b else "") or "Aryabhata"
+        dob_str = normalize_date_str(q.get("date") or q.get("dob") or (b.get("date") if b else "") or "1990-05-15")
+        tm_str = q.get("time") or (b.get("time") if b else "10:30:00")
+        if len(tm_str) == 5:
+            tm_str += ":00"
+        gender = q.get("gender", "male") if q.get("gender") in ("male", "female") else "male"
+        model_code = (q.get("model") or q.get("model_code") or "HP3").upper()
+        b_lat = float(q["lat"]) if q.get("lat") else (b.get("latitude") if b else 28.6139)
+        b_lon = float(q["lon"]) if q.get("lon") else (b.get("longitude") if b else 77.2090)
+        b_tz = q.get("tz") or (b.get("timezone") if b else "Asia/Kolkata")
+        b_city = q.get("city") or (b.get("city") if b else "New Delhi, India")
+        b_city, b_lat, b_lon, b_tz = _resolve_city_coords(b_city, b_lat, b_lon, b_tz)
+
+        catalog = get_reports_and_menus_catalog()
+        report = None
+        try:
+            try:
+                tz_b = ephem.make_tz(None, float(b_tz))
+            except (ValueError, TypeError):
+                tz_b = ephem.make_tz(str(b_tz), None)
+            d_obj = Date.fromisoformat(dob_str)
+            dt_utc = datetime.combine(d_obj, datetime.strptime(tm_str, "%H:%M:%S").time()).replace(tzinfo=tz_b).astimezone(timezone.utc)
+            report = generate_detailed_text_report(
+                dt_utc=dt_utc,
+                lat=b_lat,
+                lon=b_lon,
+                tz=tz_b,
+                name=name,
+                gender=gender,
+                model_code=model_code,
+            )
+        except Exception:
+            report = None
+
+        return page(
+            request, "reports.html",
+            f"Detailed Multi-Chapter Text Reports, All 22 Dashas & 9 Menus Studio – {BRAND}",
+            "Generate book-formatted Vedic Horoscope Dossiers across 20 Report Models (HP3, HC3, KP2, VP2, HM2, MASTER_COMPLETE), browse all 9 Menus & Submenus, 22 Dasha Systems, 11 Upagrahas, 15 Sphutas, 4 Avastha Systems, Panchadha Maitri, Saturn Cycles, Gemstones, and Birth Time Rectification.",
+            "/reports",
+            catalog=catalog,
+            report=report,
+            b=b,
+            form={
+                "name": name,
+                "date": dob_str,
+                "time": tm_str[:5],
+                "lat": b_lat,
+                "lon": b_lon,
+                "tz": b_tz,
+                "city": b_city,
+                "gender": gender,
+                "model_code": model_code,
+            },
         )
 
     @app.get("/traditions", response_class=HTMLResponse, include_in_schema=False)

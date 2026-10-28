@@ -269,3 +269,19 @@ class VisualVastuLayoutRequest(BaseModel):
 
 
 
+
+
+class DetailedReportRequest(KundliRequest):
+    gender: Optional[str] = Field("male", description="Native gender ('male' or 'female')")
+    model_code: Optional[str] = Field(
+        "HP3",
+        description="Report Model Code: HC1..HC4, HP1..HP4, KP1..KP2, VC1..VC2, VP1..VP2, HM1..HM2, PH1..PH2, PV, or MASTER_COMPLETE",
+    )
+    chapters: Optional[List[str]] = Field(None, description="Optional filter of specific chapter codes")
+    target_year: Optional[int] = Field(None, description="Target solar return year for Varshaphala chapters")
+
+
+class RectifyRelocateRequest(KundliRequest):
+    target_latitude: Optional[float] = Field(None, description="Target relocation latitude")
+    target_longitude: Optional[float] = Field(None, description="Target relocation longitude")
+    target_city: Optional[str] = Field(None, description="Target relocation city name")

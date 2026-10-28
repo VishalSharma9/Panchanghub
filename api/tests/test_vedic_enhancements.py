@@ -607,3 +607,49 @@ def test_full_language_translation_preserving_shlokas():
     assert tr_list[2] != 'Salutations to Supreme Goddess Mahalakshmi who dwells amidst lotuses.'
 
 
+
+
+def test_detailed_reports_22_dashas_9_menus_and_rectification_studio():
+    """Verify the 20 Report Models, 9 Menus, 22 Dashas, 11 Upagrahas, 15 Sphutas, 4 Avasthas, Saturn Cycles, Gemstones, Rectification/Relocation & /reports web studio."""
+    cat_res = client.get('/api/reports/catalog')
+    assert cat_res.status_code == 200
+    cat = cat_res.json()
+    assert cat['report_models_count'] == 20
+    assert cat['menus_count'] == 9
+    assert len(cat['worksheet_presets']) == 10
+
+    rep_res = client.post('/api/reports/generate', json={
+        **SAMPLE_BIRTH,
+        'name': 'Aryabhata',
+        'model_code': 'HP3',
+    })
+    assert rep_res.status_code == 200
+    rep = rep_res.json()
+    assert rep['model_selected']['code'] == 'HP3'
+    assert rep['chapters_count'] == 9
+    assert 'ph-book-dossier' in rep['printable_book_html']
+
+    d22_res = client.post('/api/kundli/dashas/all-systems', json=SAMPLE_BIRTH)
+    assert d22_res.status_code == 200
+    assert d22_res.json()['total_systems_computed'] == 22
+
+    upa_res = client.post('/api/kundli/upagrahas-and-sphutas', json=SAMPLE_BIRTH)
+    assert upa_res.status_code == 200
+    assert len(upa_res.json()['upagrahas']) == 11
+
+    sat_res = client.post('/api/kundli/saturn-cycles-and-doshas', json=SAMPLE_BIRTH)
+    assert sat_res.status_code == 200
+    assert 'life_stone_lagnesh' in sat_res.json()['gemstone_recommendations']
+
+    rect_res = client.post('/api/tools/rectify-and-relocate', json={
+        **SAMPLE_BIRTH,
+        'target_latitude': 40.7128,
+        'target_longitude': -74.0060,
+        'target_city': 'New York, USA',
+    })
+    assert rect_res.status_code == 200
+    assert len(rect_res.json()['birth_time_rectification']['division_shift_boundaries']) == 7
+
+    web_rep = client.get('/reports?name=Aryabhata&date=1990-05-15&time=10:30&model=HP3')
+    assert web_rep.status_code == 200
+    assert 'Detailed Multi-Chapter Text Reports' in web_rep.text

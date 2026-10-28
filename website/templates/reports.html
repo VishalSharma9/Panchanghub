@@ -1,0 +1,567 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .ph-reports-hero {
+    background: linear-gradient(135deg, rgba(30,27,75,0.96), rgba(49,16,66,0.94));
+    border: 1px solid rgba(245,158,11,0.35);
+    border-radius: 16px;
+    padding: 1.6rem 1.8rem;
+    margin-bottom: 1.5rem;
+    color: #f8fafc;
+  }
+  .ph-reports-badge {
+    display: inline-block;
+    background: rgba(245,158,11,0.18);
+    border: 1px solid rgba(245,158,11,0.45);
+    color: #fbbf24;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    margin-bottom: 0.6rem;
+  }
+  .ph-menu-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1.25rem 0;
+  }
+  .ph-menu-pill {
+    background: rgba(15,23,42,0.85);
+    border: 1px solid rgba(148,163,184,0.3);
+    color: #e2e8f0;
+    padding: 0.5rem 0.9rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.18s ease;
+  }
+  .ph-menu-pill:hover, .ph-menu-pill.active {
+    background: rgba(245,158,11,0.22);
+    border-color: #f59e0b;
+    color: #fbbf24;
+  }
+  .ph-book-chapter-card {
+    background: rgba(15,23,42,0.78);
+    border: 1px solid rgba(245,158,11,0.26);
+    border-radius: 14px;
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.4rem;
+  }
+  .ph-chapter-kicker {
+    color: #f59e0b;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 0.35rem;
+  }
+  .ph-chapter-title {
+    font-size: 1.3rem;
+    color: #fef3c7;
+    margin: 0 0 0.9rem 0;
+    border-bottom: 1px solid rgba(245,158,11,0.22);
+    padding-bottom: 0.55rem;
+  }
+  .ph-prose-para {
+    line-height: 1.72;
+    color: #e2e8f0;
+    margin-bottom: 0.85rem;
+    font-size: 0.97rem;
+  }
+  .ph-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+    gap: 1rem;
+  }
+  .ph-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 0.9rem;
+  }
+  .ph-mini-card {
+    background: rgba(30,41,59,0.72);
+    border: 1px solid rgba(148,163,184,0.22);
+    border-radius: 10px;
+    padding: 0.95rem 1.1rem;
+  }
+  @media print {
+    header, nav, footer, .no-print { display: none !important; }
+    .ph-book-chapter-card { break-inside: avoid; border: 1px solid #999; background: #fff !important; color: #000 !important; }
+    .ph-prose-para, .ph-chapter-title { color: #000 !important; }
+  }
+</style>
+
+<section class="ph-reports-hero">
+  <span class="ph-reports-badge">PanchangHub Archival Treatise &bull; 20 Report Models &bull; 9 Complete Menus &bull; 22 Dasha Systems</span>
+  <h1 style="margin:0 0 0.45rem 0; font-size:1.85rem;">Detailed Multi-Chapter Text Reports, All 22 Dashas &amp; 9-Menu Jyotish Studio</h1>
+  <p style="margin:0; color:#cbd5e1; max-width:940px; line-height:1.6;">
+    Generate comprehensive, book-formatted classical Vedic Horoscope Dossiers across <strong>20 Report Models</strong>
+    (from concise 8-page calculations to the 140-page Master Compendium), inspect all <strong>9 Top-Level Menus &amp; 45+ Submenus</strong>,
+    <strong>22 Classical Dasha Systems</strong>, <strong>11 Upagrahas &amp; 15 Sphutas</strong>, <strong>4-System Planetary Avasthas</strong>,
+    <strong>Panchadha Maitri</strong>, <strong>3 Lifetime Cycles of Saturn Sadhesati</strong>, <strong>Mangala Dosha (with 12 Cancellation Rules)</strong>,
+    <strong>Gemstone Protocols</strong>, and <strong>Birth Time Rectification &amp; Astro-Relocation</strong>.
+  </p>
+</section>
+
+<!-- Birth & Report Model Selector Form -->
+<section class="card no-print" style="margin-bottom:1.4rem;">
+  <form method="get" action="/reports" class="form-grid" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(175px,1fr)); gap:0.85rem; align-items:end;">
+    <div>
+      <label class="small muted">Native Name</label>
+      <input type="text" name="name" value="{{ form.name }}" class="input" style="width:100%;">
+    </div>
+    <div>
+      <label class="small muted">Birth Date (YYYY-MM-DD)</label>
+      <input type="date" name="date" value="{{ form.date }}" class="input" style="width:100%;">
+    </div>
+    <div>
+      <label class="small muted">Birth Time (HH:MM)</label>
+      <input type="time" name="time" value="{{ form.time }}" class="input" style="width:100%;">
+    </div>
+    <div>
+      <label class="small muted">Birth City</label>
+      <input type="text" name="city" value="{{ form.city }}" class="input" style="width:100%;">
+      <input type="hidden" name="lat" value="{{ form.lat }}">
+      <input type="hidden" name="lon" value="{{ form.lon }}">
+      <input type="hidden" name="tz" value="{{ form.tz }}">
+    </div>
+    <div>
+      <label class="small muted">Report Model (20 Dossiers)</label>
+      <select name="model" class="input" style="width:100%;">
+        {% for m in catalog.report_models %}
+          <option value="{{ m.code }}" {% if m.code == form.model_code %}selected{% endif %}>
+            {{ m.code }} — {{ m.title }} (~{{ m.estimated_pages }}p)
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div style="display:flex; gap:0.5rem;">
+      <button type="submit" class="btn" style="flex:1;">Generate Dossier</button>
+      <button type="button" class="btn secondary" onclick="window.print()" title="Print or Save Book Dossier as PDF">Print / PDF</button>
+    </div>
+  </form>
+</section>
+
+<!-- 9 Top-Level Menus Quick Navigation Bar -->
+<nav class="ph-menu-bar no-print" aria-label="9 Top-Level Jyotish Menus">
+  <a href="#sec-chapters" class="ph-menu-pill active">Menu 3: Multi-Chapter Book Report ({{ report.model_selected.code if report else 'HP3' }})</a>
+  <a href="#sec-avakhada" class="ph-menu-pill">Menu 1 &amp; 2: 17-Item Avakhada &amp; Ghata Chakra</a>
+  <a href="#sec-upagrahas" class="ph-menu-pill">Menu 1.2: 11 Upagrahas &amp; 15 Sphutas</a>
+  <a href="#sec-avasthas" class="ph-menu-pill">Menu 2.6: 4-System Avasthas &amp; Panchadha Maitri</a>
+  <a href="#sec-dashas22" class="ph-menu-pill">Menu 4: All 22 Dasha Systems</a>
+  <a href="#sec-saturn-gems" class="ph-menu-pill">Menu 8: Sadhesati (3 Cycles), Mangala &amp; Gemstones</a>
+  <a href="#sec-rectify" class="ph-menu-pill">Menu 9: Birth Time Rectifier, Relocation &amp; SPICA</a>
+  <a href="#sec-menus-catalog" class="ph-menu-pill">Complete 9-Menu &amp; 10-Worksheet Directory</a>
+</nav>
+
+{% if report %}
+{% set calc = report.complete_calculations %}
+{% set ava = calc.avakhada_and_ghata.avakhada_chakra %}
+{% set ghata = calc.avakhada_and_ghata.ghata_chakra %}
+{% set upa = calc.upagrahas_sphutas_avasthas_maitri %}
+{% set dashas22 = calc.all_22_dasha_systems %}
+{% set sat_gems = calc.saturn_cycles_mangala_and_gems %}
+{% set rect = calc.rectification_and_relocation %}
+
+<!-- Executive Native Banner -->
+<section class="card" style="margin-bottom:1.4rem; border-left:4px solid #f59e0b;">
+  <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:1rem;">
+    <div>
+      <div class="small muted">Active Dossier Model: <strong>{{ report.model_selected.code }}</strong> &bull; {{ report.model_selected.category }}</div>
+      <h2 style="margin:0.2rem 0;">{{ report.model_selected.title }} &mdash; {{ report.native_summary.name }}</h2>
+      <p class="small muted" style="margin:0;">
+        Lagna: <strong>{{ report.native_summary.lagna.rashi }} ({{ report.native_summary.lagna.sign }} {{ report.native_summary.lagna.dms }})</strong> &bull;
+        Moon: <strong>{{ report.native_summary.moon.rashi }} ({{ report.native_summary.moon.nakshatra }} Pada {{ report.native_summary.moon.pada }})</strong> &bull;
+        Naamakshara Syllable: <strong>"{{ report.native_summary.naamakshara_syllable }}"</strong> &bull;
+        Yogi Planet: <strong>{{ report.native_summary.yogi_planet }}</strong> &bull;
+        Avayogi Planet: <strong>{{ report.native_summary.avayogi_planet }}</strong>
+      </p>
+    </div>
+    <div class="no-print" style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+      <a href="/kundli?name={{ form.name }}&date={{ form.date }}&time={{ form.time }}&city={{ form.city }}&lat={{ form.lat }}&lon={{ form.lon }}&tz={{ form.tz }}" class="btn secondary small">Open Kundli</a>
+      <a href="/destiny?name={{ form.name }}&date={{ form.date }}&time={{ form.time }}&city={{ form.city }}&lat={{ form.lat }}&lon={{ form.lon }}&tz={{ form.tz }}" class="btn secondary small">Master Destiny &amp; 9-Planet Control</a>
+      <a href="/reading?name={{ form.name }}&date={{ form.date }}&time={{ form.time }}&city={{ form.city }}&lat={{ form.lat }}&lon={{ form.lon }}&tz={{ form.tz }}" class="btn secondary small">Holistic Reading</a>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================================= -->
+<!-- SECTION 1: MULTI-CHAPTER DETAILED TEXT REPORT (BOOK FORMAT)               -->
+<!-- ========================================================================= -->
+<div id="sec-chapters">
+  {% for ch in report.chapters %}
+  <article class="ph-book-chapter-card">
+    <div class="ph-chapter-kicker">{{ ch.menu_category }} &bull; Section Code {{ ch.chapter_code }}</div>
+    <h2 class="ph-chapter-title">{{ ch.title }}</h2>
+    {% for para in ch.narrative_paragraphs %}
+      <p class="ph-prose-para">{{ para }}</p>
+    {% endfor %}
+  </article>
+  {% endfor %}
+</div>
+
+<!-- ========================================================================= -->
+<!-- SECTION 2: 17-ITEM AVAKHADA CHAKRA & 8-ITEM GHATA CHAKRA                  -->
+<!-- ========================================================================= -->
+<section id="sec-avakhada" class="ph-book-chapter-card">
+  <div class="ph-chapter-kicker">Menu 2.1 &bull; Chapter 201 &amp; 314</div>
+  <h2 class="ph-chapter-title">17-Fold Avakhada Chakra, Naamakshara Syllable &amp; 8-Fold Ghata (Ghataka) Chakra</h2>
+  <div class="ph-grid-2">
+    <div>
+      <h3 style="margin-top:0; font-size:1.05rem; color:#fbbf24;">Avakhada Chakra (17 Classical Attributes)</h3>
+      <div class="table-wrap">
+        <table>
+          <tbody>
+            <tr><th>Janma Rashi (Moon Sign)</th><td>{{ ava.rashi }} (Lord: {{ ava.rashi_lord }})</td></tr>
+            <tr><th>Janma Nakshatra &amp; Pada</th><td>{{ ava.nakshatra }} — Pada {{ ava.nakshatra_pada }} (Lord: {{ ava.nakshatra_lord }})</td></tr>
+            <tr><th>Nakshatra Presiding Deity</th><td>{{ ava.nakshatra_deity }}</td></tr>
+            <tr><th>Naamakshara (Birth Pada Syllable)</th><td><strong style="color:#fbbf24; font-size:1.05rem;">{{ ava.naamakshara_pada_syllable }}</strong> (All 4 Padas: {{ ava.nakshatra_all_syllables }})</td></tr>
+            <tr><th>Rashi Paya (Metallic Footing)</th><td>{{ ava.paya_rashi }}</td></tr>
+            <tr><th>Nakshatra Paya</th><td>{{ ava.paya_nakshatra }}</td></tr>
+            <tr><th>Varna / Vashya</th><td>{{ ava.varna }} / {{ ava.vashya }}</td></tr>
+            <tr><th>Yoni / Gana / Nadi</th><td>{{ ava.yoni }} / {{ ava.gana }} / {{ ava.nadi }}</td></tr>
+            <tr><th>Tatva (Element)</th><td>{{ ava.tatva_element }}</td></tr>
+            <tr><th>Udaya Lagna (Ascendant)</th><td>{{ ava.lagna_sign }} (Lord: {{ ava.lagna_lord }})</td></tr>
+            <tr><th>Vedic / Western Sun Sign</th><td>{{ ava.sun_sign_vedic }} / {{ ava.sun_sign_western }}</td></tr>
+            <tr><th>Lahiri Ayanamsa &amp; LMT Offset</th><td>{{ ava.ayanamsa_dms }} ({{ ava.lmt_correction_minutes }} min LMT)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <h3 style="margin-top:0; font-size:1.05rem; color:#fbbf24;">Ghata (Ghataka) Chakra — Days &amp; Transits to Avoid</h3>
+      <div class="table-wrap">
+        <table>
+          <tbody>
+            <tr><th>Ghataka Rashi (Moon Transit)</th><td>{{ ghata.rashi }}</td></tr>
+            <tr><th>Ghataka Masa (Lunar Month)</th><td>{{ ghata.masa }}</td></tr>
+            <tr><th>Ghataka Tithi (Lunar Day)</th><td>{{ ghata.tithi }}</td></tr>
+            <tr><th>Ghataka Vara (Weekday)</th><td>{{ ghata.vara }}</td></tr>
+            <tr><th>Ghataka Nakshatra</th><td>{{ ghata.nakshatra }}</td></tr>
+            <tr><th>Ghataka Nitya Yoga</th><td>{{ ghata.yoga }}</td></tr>
+            <tr><th>Ghataka Karana</th><td>{{ ghata.karana }}</td></tr>
+            <tr><th>Ghataka Prahara &amp; Lagna</th><td>{{ ghata.prahara }} / {{ ghata.lagna }}</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="small muted" style="margin-top:0.75rem;">{{ calc.avakhada_and_ghata.guidance_note }}</p>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================================= -->
+<!-- SECTION 3: 11 UPAGRAHAS & 15 MATHEMATICAL SPHUTAS                         -->
+<!-- ========================================================================= -->
+<section id="sec-upagrahas" class="ph-book-chapter-card">
+  <div class="ph-chapter-kicker">Menu 1.2 &amp; 9.3 &bull; Chapter 337</div>
+  <h2 class="ph-chapter-title">11 Upagrahas (Aprakashika &amp; Kalavela Sub-Planets) &amp; 15 Mathematical Sphutas</h2>
+  <div class="ph-grid-2">
+    <div>
+      <h3 style="margin-top:0; font-size:1.05rem; color:#fbbf24;">11 Upagrahas (Dhuma, Vyatipata, Gulika, Mandi, etc.)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Upagraha</th><th>Rashi &amp; DMS</th><th>House</th><th>Nakshatra</th><th>D-9</th></tr>
+          </thead>
+          <tbody>
+            {% for u in upa.upagrahas %}
+            <tr>
+              <td><strong>{{ u.name }}</strong><br><span class="small muted">{{ u.formula }}</span></td>
+              <td>{{ u.sign }} {{ u.dms }}</td>
+              <td>H{{ u.house }}</td>
+              <td>{{ u.nakshatra }} (P{{ u.pada }})</td>
+              <td>{{ u.navamsha_sign }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <h3 style="margin-top:0; font-size:1.05rem; color:#fbbf24;">15 Mathematical Sphutas (Yogi, Avayogi, Beeja, Kshetra, Bhrigu Bindu, Kunda)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Sphuta Point</th><th>Rashi &amp; DMS</th><th>House</th><th>Nakshatra</th><th>Signification</th></tr>
+          </thead>
+          <tbody>
+            {% for sp in upa.sphutas %}
+            <tr>
+              <td><strong>{{ sp.name }}</strong><br><span class="small muted">{{ sp.formula }}</span></td>
+              <td>{{ sp.sign }} {{ sp.dms }}</td>
+              <td>H{{ sp.house }}</td>
+              <td>{{ sp.nakshatra }}</td>
+              <td class="small">{{ sp.signification }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================================= -->
+<!-- SECTION 4: 4-SYSTEM PLANETARY AVASTHAS & PANCHADHA MAITRI CHAKRA          -->
+<!-- ========================================================================= -->
+<section id="sec-avasthas" class="ph-book-chapter-card">
+  <div class="ph-chapter-kicker">Menu 2.2 &amp; 2.6 &bull; Chapter 306 &amp; 333</div>
+  <h2 class="ph-chapter-title">Four-System Planetary Avasthas (BPHS Ch. 45) &amp; Panchadha 5-Fold Maitri Chakra</h2>
+  <div class="table-wrap" style="margin-bottom:1.25rem;">
+    <table>
+      <thead>
+        <tr>
+          <th>Planet</th>
+          <th>Sign &amp; House</th>
+          <th>Baladi (Age State)</th>
+          <th>Jagradadi (Alertness)</th>
+          <th>Deeptadi (9-State Dignity)</th>
+          <th>Lajjitadi (6-State Mood)</th>
+          <th>Shayanadi (12-State Activity)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in upa.planetary_avasthas %}
+        <tr>
+          <td><strong>{{ a.planet }}</strong></td>
+          <td>{{ a.sign }} (H{{ a.house }})</td>
+          <td>{{ a.baladi_avastha }} ({{ (a.baladi_strength_factor * 100)|int }}%)</td>
+          <td>{{ a.jagradadi_avastha }}</td>
+          <td>{{ a.deeptadi_avastha }}</td>
+          <td>{{ a.lajjitadi_avastha }}</td>
+          <td><strong>{{ a.shayanadi_avastha }}</strong><br><span class="small muted">{{ a.shayanadi_effect }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="font-size:1.05rem; color:#fbbf24;">Panchadha Maitri Chakra (5-Fold Compound Planetary Relationship Matrix)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Planet</th>
+          {% for p2 in ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"] %}
+            <th>{{ p2 }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for p1, row in upa.panchadha_maitri_chakra.panchadha_compound.items() %}
+        <tr>
+          <th>{{ p1 }}</th>
+          {% for p2 in ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"] %}
+            <td class="small">{{ row[p2] }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ========================================================================= -->
+<!-- SECTION 5: ALL 22 CLASSICAL DASHA SYSTEMS                                 -->
+<!-- ========================================================================= -->
+<section id="sec-dashas22" class="ph-book-chapter-card">
+  <div class="ph-chapter-kicker">Menu 4 &bull; All 22 Classical Dasha Systems (13 Nakshatra + 9 Jaimini/Rashi Dashas)</div>
+  <h2 class="ph-chapter-title">Complete 22 Dasha Systems Explorer</h2>
+  <div class="ph-grid-3" style="margin-bottom:1.2rem;">
+    {% for sys_key, sys_val in dashas22.nakshatra_dashas.items() %}
+    <div class="ph-mini-card">
+      <div class="small" style="color:#fbbf24; font-weight:700; text-transform:uppercase;">Nakshatra Dasha &bull; {{ sys_key }}</div>
+      <div style="font-weight:700; margin:0.2rem 0 0.45rem 0;">
+        {{ sys_val.system or sys_val.method or sys_key|replace('_', ' ')|title }}
+      </div>
+      {% set plist = sys_val.mahadasha if sys_val.mahadasha is defined else sys_val.periods %}
+      <div class="table-wrap" style="max-height:190px; overflow-y:auto;">
+        <table>
+          <thead><tr><th>Lord/Sign</th><th>Start</th><th>End</th></tr></thead>
+          <tbody>
+            {% for per in plist[:9] %}
+            <tr>
+              <td><strong>{{ per.lord or per.yogini or per.sign }}</strong></td>
+              <td class="small">{{ per.start }}</td>
+              <td class="small">{{ per.end }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endfor %}
+
+    {% for sys_key, sys_val in dashas22.rashi_and_jaimini_dashas.items() %}
+    <div class="ph-mini-card">
+      <div class="small" style="color:#38bdf8; font-weight:700; text-transform:uppercase;">Jaimini / Rashi Dasha</div>
+      <div style="font-weight:700; margin:0.2rem 0 0.45rem 0;">{{ sys_val.system or sys_val.method }}</div>
+      <div class="table-wrap" style="max-height:190px; overflow-y:auto;">
+        <table>
+          <thead><tr><th>Rashi</th><th>Yrs</th><th>Start</th><th>End</th></tr></thead>
+          <tbody>
+            {% for per in sys_val.periods[:12] %}
+            <tr>
+              <td><strong>{{ per.sign }}</strong></td>
+              <td class="small">{{ per.years }}y</td>
+              <td class="small">{{ per.start }}</td>
+              <td class="small">{{ per.end }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- ========================================================================= -->
+<!-- SECTION 6: SATURN CYCLES (3 SADHESATI CYCLES), MANGALA DOSHA & GEMSTONES  -->
+<!-- ========================================================================= -->
+<section id="sec-saturn-gems" class="ph-book-chapter-card">
+  <div class="ph-chapter-kicker">Menu 8 &bull; Chapters 386–398</div>
+  <h2 class="ph-chapter-title">Saturn Sadhesati (3 Lifetime Cycles), Mangala Dosha (12 Cancellations) &amp; Ratna Pariksha Gemstones</h2>
+
+  <h3 style="font-size:1.05rem; color:#fbbf24; margin-top:0;">Three Lifetime Cycles of Saturn Sadhesati</h3>
+  <div class="ph-grid-3" style="margin-bottom:1.2rem;">
+    {% for cyc in sat_gems.saturn_cycles.sade_sati_3_lifetime_cycles %}
+    <div class="ph-mini-card">
+      <div style="font-weight:700; color:#fef3c7; margin-bottom:0.4rem;">
+        Cycle #{{ cyc.cycle_number }}: {{ cyc.cycle_start }} &rarr; {{ cyc.cycle_end }}
+      </div>
+      {% for ph in cyc.phases %}
+      <div style="border-top:1px solid rgba(148,163,184,0.2); padding-top:0.45rem; margin-top:0.45rem;" class="small">
+        <strong>{{ ph.dhayya_stage }}</strong> ({{ ph.saturn_sign }}: {{ ph.start }} to {{ ph.end }})<br>
+        <span class="muted">{{ ph.classical_effect }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="ph-grid-2" style="margin-bottom:1.2rem;">
+    <div class="ph-mini-card">
+      <h3 style="margin-top:0; font-size:1.05rem; color:#fbbf24;">Mangala (Kuja) Dosha Triple-Chart Evaluation</h3>
+      <p class="small"><strong>Status:</strong> {{ sat_gems.mangala_dosha_analysis.effective_status }} ({{ sat_gems.mangala_dosha_analysis.triple_chart_score }})</p>
+      <p class="small">{{ sat_gems.mangala_dosha_analysis.house_effect_narrative }}</p>
+      {% if sat_gems.mangala_dosha_analysis.cancellations_found %}
+        <div class="small" style="color:#4ade80; font-weight:600; margin-bottom:0.25rem;">Classical Cancellation Rules Triggered:</div>
+        <ul class="small" style="margin:0; padding-left:1.2rem;">
+          {% for c_rule in sat_gems.mangala_dosha_analysis.cancellations_found %}
+            <li>{{ c_rule }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+
+    <div class="ph-mini-card">
+      <h3 style="margin-top:0; font-size:1.05rem; color:#fbbf24;">Ratna Pariksha — Life, Lucky &amp; Destiny Gemstones</h3>
+      {% for g_item in [sat_gems.gemstone_recommendations.life_stone_lagnesh, sat_gems.gemstone_recommendations.lucky_stone_panchamesh, sat_gems.gemstone_recommendations.destiny_stone_bhagyesh] %}
+      <div style="border-bottom:1px solid rgba(148,163,184,0.2); padding-bottom:0.5rem; margin-bottom:0.5rem;" class="small">
+        <strong style="color:#fef3c7;">{{ g_item.role }} ({{ g_item.ruling_planet }}):</strong> {{ g_item.primary_gem }}<br>
+        <span class="muted">Weight: {{ g_item.weight_carats }} &bull; Metal: {{ g_item.metal }} &bull; Finger: {{ g_item.finger }} &bull; Timing: {{ g_item.day_and_hora }}</span><br>
+        <span class="muted">Mantra: <em>{{ g_item.mantra }}</em></span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================================= -->
+<!-- SECTION 7: BIRTH TIME RECTIFIER, ASTRO-RELOCATION & SPICA WORKSHEET       -->
+<!-- ========================================================================= -->
+<section id="sec-rectify" class="ph-book-chapter-card">
+  <div class="ph-chapter-kicker">Menu 9 &bull; Chapters 901–904</div>
+  <h2 class="ph-chapter-title">Birth Time Rectifier (Kunda &amp; Varga Boundaries), Astro-Relocation, Panch Pakshi &amp; SPICA Steps 1A–5</h2>
+
+  <div class="ph-grid-2" style="margin-bottom:1.2rem;">
+    <div>
+      <h3 style="margin-top:0; font-size:1.05rem; color:#fbbf24;">Exact Varga &amp; Kunda Lagna Boundary Sensitivity</h3>
+      <p class="small muted">
+        Kunda Lagna (81&times; Ascendant): <strong>{{ rect.birth_time_rectification.kunda_verification.kunda_sign }}</strong>
+        (House {{ rect.birth_time_rectification.kunda_verification.house_from_moon }} from Janma Rashi &mdash;
+        {% if rect.birth_time_rectification.kunda_verification.is_classically_rectified %}
+          <span style="color:#4ade80;">Classically Verified Exact</span>
+        {% else %}
+          <span>Adjust by &plusmn;1–2 mins to align with 1/5/7/9 from Moon</span>
+        {% endif %})
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Division</th><th>Current Sign</th><th>Prev Change</th><th>Next Change</th></tr>
+          </thead>
+          <tbody>
+            {% for b_row in rect.birth_time_rectification.division_shift_boundaries %}
+            <tr>
+              <td><strong>{{ b_row.division }}</strong></td>
+              <td>{{ b_row.current_sign }}</td>
+              <td class="small">{{ b_row.previous_boundary_local_time }} (-{{ b_row.minutes_since_previous_change }}m)</td>
+              <td class="small">{{ b_row.next_boundary_local_time }} (+{{ b_row.minutes_until_next_change }}m)</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div>
+      <h3 style="margin-top:0; font-size:1.05rem; color:#fbbf24;">SPICA Steps 1A–5 Planetary Auspiciousness Worksheet</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Planet</th><th>1A Rashi</th><th>1B Bhava</th><th>2 D-9</th><th>3 Vargot.</th><th>4 Rays</th><th>Step 5 Total</th></tr>
+          </thead>
+          <tbody>
+            {% for sp_row in rect.spica_steps_1a_to_5_worksheet %}
+            <tr>
+              <td><strong>{{ sp_row.planet }}</strong></td>
+              <td>{{ sp_row.step_1a_rashi_dignity }}</td>
+              <td>{{ sp_row.step_1b_bhava_placement }}</td>
+              <td>{{ sp_row.step_2_navamsha_disposition }}</td>
+              <td>{{ sp_row.step_3_vargottama_harmony }}</td>
+              <td>{{ sp_row.step_4_rays_clarity }}</td>
+              <td><strong>{{ sp_row.step_5_composite_auspiciousness }}/95</strong> ({{ sp_row.grade }})</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="ph-mini-card" style="margin-top:0.85rem;">
+        <div class="small" style="color:#fbbf24; font-weight:700;">Panch Pakshi (5-Bird Bio-Rhythm)</div>
+        <div class="small">
+          Birth Bird: <strong>{{ rect.panch_pakshi_biorhythm.birth_pakshi_bird }}</strong> ({{ rect.panch_pakshi_biorhythm.paksha }}) &bull;
+          Natal State: <strong>{{ rect.panch_pakshi_biorhythm.natal_activity_state }}</strong> &mdash; {{ rect.panch_pakshi_biorhythm.interpretation }}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ========================================================================= -->
+<!-- SECTION 8: COMPLETE 9-MENU & 10-WORKSHEET DIRECTORY                       -->
+<!-- ========================================================================= -->
+<section id="sec-menus-catalog" class="ph-book-chapter-card no-print">
+  <div class="ph-chapter-kicker">Complete Architecture Directory</div>
+  <h2 class="ph-chapter-title">All 9 Top-Level Menus, 45+ Submenus &amp; 10 Research Worksheet Presets</h2>
+  <div class="ph-grid-3">
+    {% for menu in catalog.menus %}
+    <div class="ph-mini-card">
+      <div style="font-weight:700; color:#fbbf24; margin-bottom:0.45rem;">{{ menu.title }}</div>
+      <ul class="small" style="margin:0; padding-left:1.15rem; line-height:1.55;">
+        {% for sub in menu.submenus %}
+          <li><strong>[{{ sub.id }}]</strong> {{ sub.title }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

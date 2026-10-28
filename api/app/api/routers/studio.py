@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException
 from ...models import (
     KundliRequest, MatchRequest, VarshaphalaRequest, KPRequest,
     PrashnaRequest, DestinyRequest, TraditionsReportRequest, PalmistryPhotoRequest,
-    VisualVastuLayoutRequest,
+    VisualVastuLayoutRequest, DetailedReportRequest, RectifyRelocateRequest,
 )
 from ...core import ephem
 from ...core.destiny_engine import compute_master_destiny_dossier
@@ -904,3 +904,100 @@ def palmistry_combine_vastu_endpoint(req: VisualVastuLayoutRequest):
     return analyze_visual_vastu_layout_endpoint(req)
 
 
+
+
+# ==============================================================================
+# DETAILED MULTI-CHAPTER TEXT REPORTS, 22 DASHAS, 9 MENUS & RECTIFICATION STUDIO
+# ==============================================================================
+
+@router.get("/reports/catalog", tags=["Detailed Text Reports & 9 Menus"], summary="Complete catalog of all 20 Report Models (HC1..HC4, HP1..HP4, KP1..KP2, VC1..VC2, VP1..VP2, HM1..HM2, PH1..PH2, PV, MASTER_COMPLETE), 9 Top-Level Menus & Submenus, and 10 Research Worksheet Presets")
+def reports_catalog_endpoint():
+    from ...core.detailed_reports_engine import get_reports_and_menus_catalog
+    return get_reports_and_menus_catalog()
+
+
+@router.post("/reports/generate", tags=["Detailed Text Reports & 9 Menus"], summary="Generate a multi-chapter book-formatted Vedic Horoscope Dossier & Printable HTML for any Report Model (HP3, HC3, KP2, VP2, MASTER_COMPLETE, etc.)")
+def reports_generate_endpoint(req: DetailedReportRequest):
+    from ...core.detailed_reports_engine import generate_detailed_text_report
+    ephem.set_ayanamsa_mode(req.ayanamsa)
+    return generate_detailed_text_report(
+        dt_utc=birth_utc(req),
+        lat=req.latitude,
+        lon=req.longitude,
+        tz=ephem.make_tz(req.timezone, req.utc_offset),
+        name=req.name or "Native",
+        gender=req.gender or "male",
+        model_code=req.model_code or "HP3",
+        chapters=req.chapters,
+        target_year=req.target_year,
+    )
+
+
+@router.post("/kundli/dashas/all-systems", tags=["Detailed Text Reports & 9 Menus"], summary="All 22 Classical Dasha Systems: 13 Nakshatra Dashas (Vimshottari, Ashtottari, Yogini, Kalachakra, Tribhagi, 8 Conditional) + 8 Jaimini & Rashi Dashas (Chara, Sthira, Narayana, Shoola, Niryaana Shoola, Drig, Navamsha, Lagna Kendradi)")
+def all_22_dashas_endpoint(req: KundliRequest):
+    from ...core.detailed_reports_engine import compute_all_22_dasha_systems
+    ephem.set_ayanamsa_mode(req.ayanamsa)
+    dt_utc = birth_utc(req)
+    birth_jd = ephem.jd_from_utc(dt_utc)
+    tz = ephem.make_tz(req.timezone, req.utc_offset)
+    pos = ephem.all_positions(birth_jd, sidereal=True, true_node=req.true_node)
+    _, asc, _ = ephem.houses(birth_jd, req.latitude, req.longitude, HS[req.house_system], True)
+    return compute_all_22_dasha_systems(pos, asc, birth_jd, tz)
+
+
+@router.post("/kundli/upagrahas-and-sphutas", tags=["Detailed Text Reports & 9 Menus"], summary="11 Upagrahas (Dhuma..Yamaghantaka), 15 Mathematical Sphutas (Prana, Deha, Mrityu, Trisphuta, Beeja, Kshetra, Yogi/Avayogi, Bhrigu Bindu, Kunda), 4-System Avasthas, Panchadha Maitri & 27-Star Tarabala")
+def upagrahas_and_sphutas_endpoint(req: KundliRequest):
+    from ...core.detailed_reports_engine import (
+        compute_avakhada_and_ghata_chakra,
+        compute_upagrahas_sphutas_avasthas_maitri,
+    )
+    ephem.set_ayanamsa_mode(req.ayanamsa)
+    dt_utc = birth_utc(req)
+    birth_jd = ephem.jd_from_utc(dt_utc)
+    tz = ephem.make_tz(req.timezone, req.utc_offset)
+    pos = ephem.all_positions(birth_jd, sidereal=True, true_node=req.true_node)
+    _, asc, _ = ephem.houses(birth_jd, req.latitude, req.longitude, HS[req.house_system], True)
+    ava = compute_avakhada_and_ghata_chakra(pos, asc, birth_jd, req.latitude, req.longitude, tz)
+    upa = compute_upagrahas_sphutas_avasthas_maitri(pos, asc, birth_jd, req.latitude, req.longitude)
+    return {**ava, **upa}
+
+
+@router.post("/kundli/saturn-cycles-and-doshas", tags=["Detailed Text Reports & 9 Menus"], summary="3 Lifetime Cycles of Saturn Sadhesati, Laghu Kalyani Dhayya, Mangala Dosha (from Lagna/Moon/Venus + 12 Cancellations), and Gemstone Recommendations I & II (Life, Lucky & Destiny Stones)")
+def saturn_cycles_and_doshas_endpoint(req: KundliRequest):
+    from ...core.detailed_reports_engine import compute_saturn_cycles_mangala_and_gems
+    ephem.set_ayanamsa_mode(req.ayanamsa)
+    dt_utc = birth_utc(req)
+    birth_jd = ephem.jd_from_utc(dt_utc)
+    tz = ephem.make_tz(req.timezone, req.utc_offset)
+    pos = ephem.all_positions(birth_jd, sidereal=True, true_node=req.true_node)
+    _, asc, _ = ephem.houses(birth_jd, req.latitude, req.longitude, HS[req.house_system], True)
+    return compute_saturn_cycles_mangala_and_gems(pos, asc, birth_jd, tz)
+
+
+@router.post("/tools/rectify-and-relocate", tags=["Detailed Text Reports & 9 Menus"], summary="Birth Time Rectifier (Lagna, D-9, D-10, D-60, Kunda & Pranapada exact shift boundaries), Astro-Relocation Tool, Panch Pakshi 5-Bird Bio-Rhythm, Navamsha Ages & SPICA Steps 1A–5 Worksheet")
+def rectify_and_relocate_endpoint(req: RectifyRelocateRequest):
+    from ...core.detailed_reports_engine import compute_rectification_and_relocation_tools
+    ephem.set_ayanamsa_mode(req.ayanamsa)
+    dt_utc = birth_utc(req)
+    tz = ephem.make_tz(req.timezone, req.utc_offset)
+    return compute_rectification_and_relocation_tools(
+        dt_utc=dt_utc,
+        lat=req.latitude,
+        lon=req.longitude,
+        tz=tz,
+        target_lat=req.target_latitude,
+        target_lon=req.target_longitude,
+        target_city=req.target_city,
+    )
+
+
+@router.post("/tools/rectify-time", tags=["Detailed Text Reports & 9 Menus"], summary="Birth Time Rectifier: Exact minute/second boundary shifts for Rashi, Drekkana, Navamsha, Dashamsha, Shashtiamsha, Kunda & Pranapada")
+def rectify_time_endpoint(req: RectifyRelocateRequest):
+    res = rectify_and_relocate_endpoint(req)
+    return res["birth_time_rectification"]
+
+
+@router.post("/tools/relocate-chart", tags=["Detailed Text Reports & 9 Menus"], summary="Change Location / Astro-Relocation Tool: Compare Natal vs Relocated Ascendant, Midheaven & Planetary House Shifts")
+def relocate_chart_endpoint(req: RectifyRelocateRequest):
+    res = rectify_and_relocate_endpoint(req)
+    return res["astro_relocation"]
