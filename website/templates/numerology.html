@@ -13,14 +13,15 @@
     <h2>Birth & Numerology Profile Details</h2>
     <div class="body">
         <form class="f" method="get" action="/numerology">
+            <input type="hidden" name="save_birth" value="1">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 16px;">
                 <label>
                     Full Name
-                    <input type="text" name="name" value="{{ q.get('name', 'Soul Seeker') }}" required placeholder="e.g. Vishal Sharma">
+                    <input type="text" name="name" value="{{ q.get('name') or (b.name if b and b.name else '') }}" required placeholder="Your full name">
                 </label>
                 <label>
                     Date of Birth
-                    <input type="date" name="dob" value="{{ q.get('dob', '1990-05-15') }}" required>
+                    <input type="date" name="dob" value="{{ q.get('dob') or (b.date if b and b.date else '') }}" required>
                 </label>
                 <label>
                     Calculation System
@@ -57,13 +58,13 @@
 {% if n %}
 <div class="card" style="margin-bottom: 18px; padding: 12px 16px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
     <strong style="color: var(--accent);">🔗 Cross-Linked Chart Dossiers:</strong>
-    <a class="btn" href="/destiny?name={{ q.get('name', 'Soul Seeker') }}&date={{ q.get('dob', '1990-05-15') }}&time={{ q.get('time', '12:00') }}&lat={{ q.get('lat', '28.6139') }}&lon={{ q.get('lon', '77.2090') }}&tz=5.5&city={{ q.get('city', 'New Delhi') }}" style="background: var(--accent); color: #111; font-weight: bold; text-decoration: none;">
+    <a class="btn" href="/destiny?name={{ b.name if b else '' }}&date={{ b.date if b else '' }}&time={{ b.time if b else '' }}&lat={{ b.latitude if b else '' }}&lon={{ b.longitude if b else '' }}&tz={{ b.timezone if b else '' }}&city={{ b.city if b else '' }}" style="background: var(--accent); color: #111; font-weight: bold; text-decoration: none;">
         🔱 Master Destiny, 9-Planet Control, Lottery, Progeny &amp; Past/Future Life
     </a>
-    <a class="btn" href="/traditions?name={{ q.get('name', 'Soul Seeker') }}&date={{ q.get('dob', '1990-05-15') }}&time={{ q.get('time', '12:00') }}&lat={{ q.get('lat', '28.6139') }}&lon={{ q.get('lon', '77.2090') }}&tz=5.5&city={{ q.get('city', 'New Delhi') }}" style="background: #0f766e; color: #fff; font-weight: bold; text-decoration: none;">
+    <a class="btn" href="/traditions?name={{ b.name if b else '' }}&date={{ b.date if b else '' }}&time={{ b.time if b else '' }}&lat={{ b.latitude if b and b.latitude is not none else '' }}&lon={{ b.longitude if b and b.longitude is not none else '' }}&tz={{ b.timezone if b else '' }}&city={{ b.city if b else '' }}" style="background: #0f766e; color: #fff; font-weight: bold; text-decoration: none;">
         🌍 World Traditions, Vata-Pitta-Kapha &amp; Elements
     </a>
-    <a class="btn" href="/kundli?name={{ q.get('name', 'Soul Seeker') }}&date={{ q.get('dob', '1990-05-15') }}&time={{ q.get('time', '12:00') }}&lat={{ q.get('lat', '28.6139') }}&lon={{ q.get('lon', '77.2090') }}&tz=5.5&city={{ q.get('city', 'New Delhi') }}" style="text-decoration: none;">
+    <a class="btn" href="/kundli?name={{ b.name if b else '' }}&date={{ b.date if b else '' }}&time={{ b.time if b else '' }}&lat={{ b.latitude if b and b.latitude is not none else '' }}&lon={{ b.longitude if b and b.longitude is not none else '' }}&tz={{ b.timezone if b else '' }}&city={{ b.city if b else '' }}" style="text-decoration: none;">
         📜 11-Worksheet Janma Kundli
     </a>
 </div>

@@ -3,6 +3,7 @@
 <h1>Naming syllable</h1>
 <p class="sub">Namakarana uses the Moon’s nakshatra pada at birth. Each pada has one starting sound. The name itself is chosen in the family; this page only fixes the sound.</p>
 <form class="f" method="get" action="/names">
+<input type="hidden" name="save_birth" value="1">
 <label>Birth date<input type="date" name="date" value="{{ b.date if b and not b.bad_date else '' }}" max="3000-12-31" required></label>
 <label>Birth time<input type="time" name="time" value="{{ b.time[:5] if b else '10:30' }}"></label>
 <label>Place<input data-place="" name="city" value="{{ b.city if b and b.city else loc.city }}" autocomplete="off"></label>

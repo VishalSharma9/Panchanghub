@@ -19,9 +19,6 @@ const PHUI=(function(){try{return JSON.parse((document.getElementById('phUi')||{
     u.searchParams.set('lat', String(lat));
     u.searchParams.set('lon', String(lon));
     u.searchParams.set('tz', tz);
-    document.querySelectorAll('input[name="date"],input[name="time"],input[name="b_date"],input[name="b_time"],input[name="g_date"],input[name="g_time"]').forEach(function(el){
-      if(el.value) u.searchParams.set(el.name, el.value);
-    });
     let keepLang='';
     try{ keepLang=u.searchParams.get('lang') || localStorage.getItem('ph_lang') || ''; }catch(e){}
     if(keepLang && keepLang!=='en') u.searchParams.set('lang', keepLang);

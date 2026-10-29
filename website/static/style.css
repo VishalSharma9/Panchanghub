@@ -94,7 +94,12 @@ form.f input:not([type=checkbox]):not([type=radio]):not([type=hidden]),form.f se
 .cal .d{background:#fff;border:1px solid var(--line);border-radius:8px;min-height:96px;padding:5px;font-size:12px}
 .cal .d.today{outline:2px solid var(--kumkum)}.cal .d .n{font-size:18px;font-weight:700;color:var(--kumkum-d)}
 .cal .d.purnima{background:#fff7dd}.cal .d.amavasya{background:#f1ece6}.cal .d .ev{color:var(--teal);font-weight:600}
-.charts{display:flex;flex-wrap:wrap;gap:12px}.charts figure{margin:0;text-align:center}.charts svg{max-width:100%;height:auto}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;align-items:start}
+.charts figure{margin:0;text-align:center;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px;max-width:420px}
+.charts svg{width:100%;max-width:340px;height:auto;aspect-ratio:1/1;display:block;margin:0 auto}
+.charts figcaption{font-weight:700;color:var(--kumkum-d);margin-top:6px;font-size:13px}
+.ws-section{display:none}
+#ws-birth{display:block}
 .hero{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
 .big{font-size:20px;font-weight:700;color:var(--kumkum-d)}
 footer{background:var(--kumkum-d);color:#f7e7cf;padding:18px 14px;margin-top:30px;font-size:13px}footer a{color:var(--haldi)}
@@ -132,7 +137,6 @@ main,.card,.grid2,.grid3,.hero,.layout,.wrap{min-width:0}
 img,svg,video,canvas{max-width:100%;height:auto}
 fieldset{min-width:0;max-width:100%;box-sizing:border-box}
 .charts figure{background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px;margin:0}
-.charts figcaption{font-weight:700;color:var(--kumkum-d);margin-top:6px;font-size:13px}
 .feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:16px;margin:18px 0}
 .feature-card{background:linear-gradient(145deg,#fff,#fffbf2);border:1px solid var(--line);border-top:4px solid var(--haldi);border-radius:10px;padding:16px;display:flex;flex-direction:column;justify-content:space-between;text-decoration:none;color:inherit}
 .feature-card h3{margin:0 0 6px;color:var(--kumkum-d);font-size:17px}

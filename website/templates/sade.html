@@ -8,6 +8,8 @@
 </form>
 <p class="sub">Or from a birth, which fixes the Moon sign for you.</p>
 <form class="f" method="get" action="/sade-sati">
+<input type="hidden" name="save_birth" value="1">
+<label>Name<input name="name" value="{{ b.name if b and b.name else '' }}" placeholder="Your name"></label>
 <label>Birth date<input type="date" name="date" value="{{ b.date if b else '' }}" max="3000-12-31"></label>
 <label>Birth time<input type="time" name="time" value="{{ b.time[:5] if b else '10:30' }}"></label>
 <label>Place<input data-place="" name="city" value="{{ b.city if b and b.city else loc.city }}" autocomplete="off"></label>

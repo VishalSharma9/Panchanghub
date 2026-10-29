@@ -22,6 +22,10 @@
   </div>
 </section>
 
+{% if not k %}
+<section class="card"><h2>Your birth chart</h2><div class="body"><p>Enter the name, birth date, birth time and birth place above, then press Generate Kundli. The chart is drawn from those details only. Nothing is filled in from a sample person.</p></div></section>
+{% endif %}
+
 {% if k %}
 
 <!-- Classical Vedic Workstation Bar & Tabs -->
@@ -31,8 +35,8 @@
     <span class="ws-subtitle">Inspired by the Classical Astrological Suite (Brihat Parashara Hora Shastra, Jaimini Sutras, Tajika Neelakanthi)</span>
   </div>
   <div class="ws-nav" id="wsNav">
-    <button class="ws-tab active" data-target="ws-all">👁️ All Worksheets</button>
-    <button class="ws-tab" data-target="ws-birth">🌟 1. Birth Chart I &amp; II</button>
+    <button class="ws-tab" data-target="ws-all">👁️ All Worksheets</button>
+    <button class="ws-tab active" data-target="ws-birth">🌟 1. Birth Chart I &amp; II</button>
     <button class="ws-tab" data-target="ws-vargas">💠 2. Shodashavarga Grid</button>
     <button class="ws-tab" data-target="ws-sudarshan">☸️ 3. Sudarshan Chakra</button>
     <button class="ws-tab" data-target="ws-special">👑 4. Special Lagnas &amp; Arudhas</button>
@@ -782,7 +786,7 @@ document.getElementById('pdfBtn').onclick = async e => {
   const rawTime = gVal('time', '10:30:00');
   const body = {
     name: gVal('name', 'Native') || 'Native',
-    date: gVal('date', '1990-05-15'),
+    date: gVal('date', ''),
     time: rawTime.length > 5 ? rawTime : rawTime + ':00',
     latitude: +(gVal('lat', 28.6139)),
     longitude: +(gVal('lon', 77.2090)),

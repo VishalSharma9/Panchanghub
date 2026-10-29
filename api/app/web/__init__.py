@@ -3,7 +3,7 @@ plus client JS that calls the public /api endpoints (city search, geolocation, S
 from __future__ import annotations
 import json, os
 from datetime import date as Date, datetime, timedelta, timezone
-from urllib.parse import urlencode
+from urllib.parse import unquote, urlencode
 from fastapi import FastAPI, Request, Query, HTTPException
 from fastapi.responses import HTMLResponse, PlainTextResponse, Response, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -262,49 +262,87 @@ def _resolve_city_coords(city_str: str, lat: float, lon: float, tz: str):
         pass
     return city_str, lat, lon, tz
 
-def birth_from_query(request, prefix="", fallback=True):
+def _read_birth_cookie(request):
+    c = request.cookies.get("ph_birth")
+    if not c:
+        return None
+    try:
+        raw = unquote(c) if "%" in c else c
+        raw = raw.strip()
+        if raw.startswith('"') and raw.endswith('"'):
+            raw = raw[1:-1]
+        v = json.loads(raw)
+        if not v.get("date"):
+            return None
+        fixed = normalize_date_str(v["date"], default=None)
+        if not fixed:
+            return None
+        v["date"] = fixed
+        v["bad_date"] = False
+        v["name"] = (v.get("name") or "").strip()
+        return v
+    except Exception:
+        return None
+
+
+def birth_from_query(request, prefix="", fallback=False):
+    """Birth details for this session.
+
+    A page updates the saved birth only when the user actually submitted one
+    (their name, or a birth form). A panchang day or a city change must not
+    replace it, and the sample person is never filled in for them.
+    """
     q = request.query_params
     g = lambda k, d=None: q.get(prefix + k, d)
-    raw_date = g("date")
-    if raw_date and (g("lat") or g("city") or g("tz")):
-        tm = g("time") or "10:30"
-        raw_lat = float(g("lat")) if g("lat") else 28.6139
-        raw_lon = float(g("lon")) if g("lon") else 77.2090
-        city_s, lat_f, lon_f, tz_s = _resolve_city_coords(
-            g("city", "New Delhi, India"), raw_lat, raw_lon, g("tz", "Asia/Kolkata")
-        )
-        clean_date = normalize_date_str(raw_date, default=None)
-        res = dict(date=clean_date or raw_date, time=tm if len(tm) > 5 else tm + ":00", latitude=lat_f, longitude=lon_f,
-                   timezone=tz_s, name=g("name") or ("Gargi" if prefix == "g_" else "Aryabhata"), city=city_s,
-                   bad_date=clean_date is None)
-        if prefix == "" and clean_date:
+    raw_date = g("date") or g("dob")
+    raw_name = (g("name") or "").strip()
+    has_place = bool(g("lat") or g("city") or g("tz"))
+    explicit = bool(raw_name) or g("save_birth") == "1" or bool(raw_date and g("time") and has_place) or (prefix in ("b_", "g_") and bool(raw_date and has_place))
+    saved = _read_birth_cookie(request) if prefix in ("", "b_") else None
+    if explicit and raw_date:
+        tm = g("time") or (saved or {}).get("time") or ""
+        if tm and len(tm) == 5:
+            tm += ":00"
+        lat_raw = g("lat")
+        lon_raw = g("lon")
+        if lat_raw is None and saved and saved.get("latitude") is not None:
+            lat_raw = str(saved["latitude"])
+            lon_raw = lon_raw if lon_raw is not None else str(saved.get("longitude") or "")
+        city_in = g("city") or (saved.get("city") if saved else "") or ""
+        tz_in = g("tz") or (saved.get("timezone") if saved else "") or ""
+        lat_f = float(lat_raw) if lat_raw not in (None, "") else None
+        lon_f = float(lon_raw) if lon_raw not in (None, "") else None
+        if lat_f is not None and lon_f is not None:
+            city_s, lat_f, lon_f, tz_s = _resolve_city_coords(city_in, lat_f, lon_f, tz_in or "Asia/Kolkata")
+        else:
+            city_s, tz_s = city_in, tz_in
+        clean = normalize_date_str(raw_date, default=None)
+        name = raw_name
+        if not name and saved and saved.get("date") == (clean or raw_date):
+            name = saved.get("name") or ""
+        res = dict(date=clean or raw_date, time=tm, latitude=lat_f, longitude=lon_f,
+                   timezone=tz_s or None, name=name, city=city_s, bad_date=clean is None)
+        if prefix in ("", "b_") and clean and (name or g("save_birth") == "1"):
+            payload = {k: v for k, v in res.items() if k != "bad_date" and v is not None}
             try:
-                request.state.ph_birth_to_save = {k: v for k, v in res.items() if k != "bad_date"}
+                request.state.ph_birth_to_save = payload
             except Exception:
                 pass
         return res
-    if prefix == "":
-        c = request.cookies.get("ph_birth")
-        if c:
-            try:
-                from urllib.parse import unquote
-                raw = unquote(c) if ("%" in c) else c
-                v = json.loads(raw)
-                if v.get("date") and v.get("latitude") is not None:
-                    fixed_date = normalize_date_str(v["date"], default=None)
-                    if fixed_date:
-                        v["date"] = fixed_date
-                        v["bad_date"] = False
-                        return v
-            except Exception:
-                pass
-    if not fallback:
-        return None
-    if prefix == "g_":
+    if saved:
+        return saved
+    if fallback and prefix == "g_":
         return dict(date="1992-08-20", time="14:15:00", latitude=19.0760, longitude=72.8777,
                     timezone="Asia/Kolkata", name="Gargi", city="Mumbai, India", bad_date=False)
-    return dict(date="1990-05-15", time="10:30:00", latitude=28.6139, longitude=77.2090,
-                timezone="Asia/Kolkata", name="Aryabhata", city="New Delhi, India", bad_date=False)
+    if fallback:
+        return dict(date="1990-05-15", time="10:30:00", latitude=28.6139, longitude=77.2090,
+                    timezone="Asia/Kolkata", name="Aryabhata", city="New Delhi, India", bad_date=False)
+    return None
+
+
+def _chartable(b):
+    return bool(b and b.get("date") and b.get("time") and b.get("timezone") and b.get("latitude") is not None and b.get("longitude") is not None and not b.get("bad_date"))
+
 
 def register(app: FastAPI):
     app.mount("/static", StaticFiles(directory=os.path.join(WEB_ROOT, "static")), name="static")
@@ -420,10 +458,13 @@ def register(app: FastAPI):
         loc = loc_from(request)
         q = request.query_params
         rashi = _opt_int(q.get("rashi"), 1, 12)
-        b = birth_from_query(request) if q.get("date") and q.get("lat") else None
+        b = birth_from_query(request)
         sign = None
         moon_name = None
-        if b:
+        if rashi and not q.get("date"):
+            sign = rashi - 1
+            moon_name = RASHIS[sign]
+        elif _chartable(b):
             syl = moon_syllable(b["date"], b["time"], b["timezone"])
             moon_name = syl["rashi"]
             sign = RASHIS.index(moon_name)
@@ -540,9 +581,10 @@ def register(app: FastAPI):
     @app.get("/kundli", response_class=HTMLResponse, include_in_schema=False)
     def kundli(request: Request):
         b = birth_from_query(request); k = None; charts = {}; style = request.query_params.get("style", "north")
+        ready = _chartable(b)
         special_lagnas = None; av_suite = None; sudarshan_data = None; varshaphala_data = None; kp_data = None; holistic_reading = None; soul_guidance = None; remedies_corpus = None
-        if b:
-            req = KundliRequest(**{kk: v for kk, v in b.items() if kk != "city"})
+        if ready:
+            req = KundliRequest(**{kk: v for kk, v in b.items() if kk not in ("city", "bad_date")})
             k = RV.kundli(req)
             k["reading"] = INTERP.kundli_reading(k)
             k["remedy_plan"] = ESO.remedies_for(k)
@@ -624,7 +666,10 @@ def register(app: FastAPI):
                 remedies_corpus = None
                 soul_guidance = None
 
-        qs_val = str(request.query_params) or urlencode({"name": b.get("name") or "Native", "date": b["date"], "time": b["time"], "lat": b["latitude"], "lon": b["longitude"], "tz": b["timezone"], "city": b.get("city") or ""})
+        if ready:
+            qs_val = urlencode({"name": b.get("name") or "", "date": b["date"], "time": b["time"], "lat": b["latitude"], "lon": b["longitude"], "tz": b.get("timezone") or "", "city": b.get("city") or ""})
+        else:
+            qs_val = ""
         return page(request, "kundli.html", f"Free Kundli (Janam Kundali) Online – {BRAND}",
                     "Free Vedic birth chart with North/South Indian charts, D1–D60 vargas, Vimshottari & Yogini dasha, ashtakavarga, doshas and yogas.",
                     "/kundli", b=b, k=k, charts=charts, style=style, qs=qs_val,
@@ -644,7 +689,7 @@ def register(app: FastAPI):
         sahams = None
         asc_nadi = None
         asc_drekkana = None
-        if b:
+        if _chartable(b):
             req_dict = {kk: v for kk, v in b.items() if kk != "city"}
             req_dict["ayanamsa"] = ayan
             req = KundliRequest(**req_dict)
@@ -670,7 +715,7 @@ def register(app: FastAPI):
         b = birth_from_query(request)
         ayan = request.query_params.get("ayanamsa", "lahiri")
         ydata = None
-        if b:
+        if _chartable(b):
             req_dict = {kk: v for kk, v in b.items() if kk != "city"}
             req_dict["ayanamsa"] = ayan
             req = KundliRequest(**req_dict)
@@ -687,7 +732,7 @@ def register(app: FastAPI):
         cur_dasha = None
         karakas = None
         corpus_data = None
-        if b:
+        if _chartable(b):
             req_dict = {kk: v for kk, v in b.items() if kk != "city"}
             req_dict["ayanamsa"] = ayan
             req = KundliRequest(**req_dict)
@@ -707,7 +752,7 @@ def register(app: FastAPI):
         year = int(yr) if yr and yr.isdigit() else None
         vdata = None
         varsha_chart_svg = None
-        if b:
+        if _chartable(b):
             v_req = VarshaphalaRequest(**{kk: v for kk, v in b.items() if kk != "city"}, year=year)
             vdata = ST.varshaphala_endpoint(v_req)
             fn = {"north": north_indian, "south": south_indian, "east": east_indian}.get(style, north_indian)
@@ -725,7 +770,7 @@ def register(app: FastAPI):
         h_num = request.query_params.get("horary")
         horary_number = int(h_num) if h_num and h_num.isdigit() and 1 <= int(h_num) <= 249 else None
         kp_data = None
-        if b:
+        if _chartable(b):
             kp_req = KPRequest(**{kk: v for kk, v in b.items() if kk != "city"}, horary_number=horary_number)
             kp_data = ST.kp_endpoint(kp_req)
         return page(request, "kp.html", f"KP System (KP System Astrology) | {BRAND}",
@@ -826,7 +871,7 @@ def register(app: FastAPI):
     @app.get("/western", response_class=HTMLResponse, include_in_schema=False)
     def western(request: Request):
         b = birth_from_query(request); c = None; svg = None
-        if b:
+        if _chartable(b):
             hs = request.query_params.get("hs", "placidus")
             c = RCore.chart(ChartRequest(**{kk: v for kk, v in b.items() if kk not in ("city", "name")}, house_system=hs))
             svg = western_wheel(c["ascendant"]["longitude"], [h["cusp"] for h in c["houses"]], c["planets"])
@@ -844,14 +889,14 @@ def register(app: FastAPI):
     def numerology(request: Request):
         q = request.query_params; n = None
         b = birth_from_query(request)
-        name = q.get("name") or (b.get("name") if b else "") or "Soul Seeker"
-        dob_str = normalize_date_str(q.get("dob") or (b.get("date") if b else "") or "1990-05-15")
+        name = (q.get("name") or (b.get("name") if b else "") or "").strip()
+        dob_str = normalize_date_str(q.get("dob") or q.get("date") or (b.get("date") if b else "") or "", default=None) or ""
         system = q.get("system", "pythagorean")
-        lat = float(q["lat"]) if q.get("lat") else (b.get("latitude") if b else None)
-        lon = float(q["lon"]) if q.get("lon") else (b.get("longitude") if b else None)
-        tm = q.get("time") or (b.get("time") if b else "12:00:00")
-        tz = q.get("tz") or (b.get("timezone") if b else "Asia/Kolkata")
-        if dob_str:
+        lat = float(q["lat"]) if q.get("lat") else (b.get("latitude") if b and b.get("latitude") is not None else None)
+        lon = float(q["lon"]) if q.get("lon") else (b.get("longitude") if b and b.get("longitude") is not None else None)
+        tm = q.get("time") or (b.get("time") if b else "") or ""
+        tz = q.get("tz") or (b.get("timezone") if b else "") or ""
+        if name and dob_str:
             try:
                 dob = Date.fromisoformat(dob_str)
                 bd = {"time": tm, "latitude": lat, "longitude": lon, "timezone": tz} if (lat is not None and lon is not None) else None
@@ -868,16 +913,17 @@ def register(app: FastAPI):
         q = request.query_params
         loc = loc_from(request)
         b = birth_from_query(request)
-        name = q.get("name") or (b.get("name") if b else "") or "Aryabhata"
-        dob_str = normalize_date_str(q.get("date") or q.get("dob") or (b.get("date") if b else "") or "1990-05-15")
-        tm_str = q.get("time") or (b.get("time") if b else "08:30:00")
+        name = (q.get("name") or (b.get("name") if b else "") or "").strip()
+        dob_str = normalize_date_str(q.get("date") or q.get("dob") or (b.get("date") if b else "") or "", default=None) or ""
+        tm_str = q.get("time") or (b.get("time") if b else "") or ""
         if len(tm_str) == 5:
             tm_str += ":00"
-        b_lat = float(q["lat"]) if q.get("lat") else (b.get("latitude") if b else 28.6139)
-        b_lon = float(q["lon"]) if q.get("lon") else (b.get("longitude") if b else 77.2090)
-        b_tz = q.get("tz") or (b.get("timezone") if b else "Asia/Kolkata")
+        b_lat = float(q["lat"]) if q.get("lat") else (b.get("latitude") if b and b.get("latitude") is not None else (28.6139 if dob_str else ""))
+        b_lon = float(q["lon"]) if q.get("lon") else (b.get("longitude") if b and b.get("longitude") is not None else (77.2090 if dob_str else ""))
+        b_tz = q.get("tz") or (b.get("timezone") if b else "") or ""
         b_city = q.get("city") or (b.get("city") if b else "New Delhi, India")
-        b_city, b_lat, b_lon, b_tz = _resolve_city_coords(b_city, b_lat, b_lon, b_tz)
+        if dob_str and b_lat != "":
+            b_city, b_lat, b_lon, b_tz = _resolve_city_coords(b_city, float(b_lat), float(b_lon), b_tz or "Asia/Kolkata")
 
         c_lat = float(q["cur_lat"]) if q.get("cur_lat") else loc["lat"]
         c_lon = float(q["cur_lon"]) if q.get("cur_lon") else loc["lon"]
@@ -923,16 +969,17 @@ def register(app: FastAPI):
         from ..core.astro_vastu_engine import compute_personalized_astro_vastu, compute_classical_feng_shui, PLAIN_ENGLISH_GLOSSARY
         q = request.query_params
         b = birth_from_query(request)
-        dob_str = normalize_date_str(q.get("date") or q.get("dob") or (b.get("date") if b else "") or "1990-05-15")
-        tm_str = q.get("time") or (b.get("time") if b else "08:30:00")
+        dob_str = normalize_date_str(q.get("date") or q.get("dob") or (b.get("date") if b else "") or "", default=None) or ""
+        tm_str = q.get("time") or (b.get("time") if b else "") or ""
         if len(tm_str) == 5:
             tm_str += ":00"
         gender = q.get("gender", "male") if q.get("gender") in ("male", "female") else "male"
-        b_lat = float(q["lat"]) if q.get("lat") else (b.get("latitude") if b else 28.6139)
-        b_lon = float(q["lon"]) if q.get("lon") else (b.get("longitude") if b else 77.2090)
-        b_tz = q.get("tz") or (b.get("timezone") if b else "Asia/Kolkata")
+        b_lat = float(q["lat"]) if q.get("lat") else (b.get("latitude") if b and b.get("latitude") is not None else (28.6139 if dob_str else ""))
+        b_lon = float(q["lon"]) if q.get("lon") else (b.get("longitude") if b and b.get("longitude") is not None else (77.2090 if dob_str else ""))
+        b_tz = q.get("tz") or (b.get("timezone") if b else "") or ""
         b_city = q.get("city") or (b.get("city") if b else "New Delhi, India")
-        b_city, b_lat, b_lon, b_tz = _resolve_city_coords(b_city, b_lat, b_lon, b_tz)
+        if dob_str and b_lat != "":
+            b_city, b_lat, b_lon, b_tz = _resolve_city_coords(b_city, float(b_lat), float(b_lon), b_tz or "Asia/Kolkata")
 
         astro_vastu = None
         feng_shui = None
@@ -953,7 +1000,7 @@ def register(app: FastAPI):
         except Exception:
             astro_vastu = None
             try:
-                feng_shui = compute_classical_feng_shui(1990, gender)
+                feng_shui = compute_classical_feng_shui(Date.today().year, gender)
             except Exception:
                 feng_shui = None
 
@@ -973,18 +1020,19 @@ def register(app: FastAPI):
         from ..core.detailed_reports_engine import get_reports_and_menus_catalog, generate_detailed_text_report
         q = request.query_params
         b = birth_from_query(request)
-        name = q.get("name") or (b.get("name") if b else "") or "Aryabhata"
-        dob_str = normalize_date_str(q.get("date") or q.get("dob") or (b.get("date") if b else "") or "1990-05-15")
-        tm_str = q.get("time") or (b.get("time") if b else "10:30:00")
+        name = (q.get("name") or (b.get("name") if b else "") or "").strip()
+        dob_str = normalize_date_str(q.get("date") or q.get("dob") or (b.get("date") if b else "") or "", default=None) or ""
+        tm_str = q.get("time") or (b.get("time") if b else "") or ""
         if len(tm_str) == 5:
             tm_str += ":00"
         gender = q.get("gender", "male") if q.get("gender") in ("male", "female") else "male"
         model_code = (q.get("model") or q.get("model_code") or "HP3").upper()
-        b_lat = float(q["lat"]) if q.get("lat") else (b.get("latitude") if b else 28.6139)
-        b_lon = float(q["lon"]) if q.get("lon") else (b.get("longitude") if b else 77.2090)
-        b_tz = q.get("tz") or (b.get("timezone") if b else "Asia/Kolkata")
+        b_lat = float(q["lat"]) if q.get("lat") else (b.get("latitude") if b and b.get("latitude") is not None else (28.6139 if dob_str else ""))
+        b_lon = float(q["lon"]) if q.get("lon") else (b.get("longitude") if b and b.get("longitude") is not None else (77.2090 if dob_str else ""))
+        b_tz = q.get("tz") or (b.get("timezone") if b else "") or ""
         b_city = q.get("city") or (b.get("city") if b else "New Delhi, India")
-        b_city, b_lat, b_lon, b_tz = _resolve_city_coords(b_city, b_lat, b_lon, b_tz)
+        if dob_str and b_lat != "":
+            b_city, b_lat, b_lon, b_tz = _resolve_city_coords(b_city, float(b_lat), float(b_lon), b_tz or "Asia/Kolkata")
 
         catalog = get_reports_and_menus_catalog()
         report = None
@@ -1033,20 +1081,21 @@ def register(app: FastAPI):
         from ..core.traditions_engine import compute_traditions_report, get_traditions_catalog
         q = request.query_params
         b = birth_from_query(request)
-        name = q.get("name") or (b.get("name") if b else "") or "Aryabhata"
-        dob_str = normalize_date_str(q.get("date") or q.get("dob") or (b.get("date") if b else "") or "1990-05-15")
-        tm_str = q.get("time") or (b.get("time") if b else "10:30:00")
+        name = (q.get("name") or (b.get("name") if b else "") or "").strip()
+        dob_str = normalize_date_str(q.get("date") or q.get("dob") or (b.get("date") if b else "") or "", default=None) or ""
+        tm_str = q.get("time") or (b.get("time") if b else "") or ""
         if len(tm_str) == 5:
             tm_str += ":00"
         gender = q.get("gender", "male") if q.get("gender") in ("male", "female") else "male"
         goal = q.get("goal", "all")
         approach = q.get("approach", "all")
         selected_list = q.getlist("traditions") if hasattr(q, "getlist") else []
-        b_lat = float(q["lat"]) if q.get("lat") else (b.get("latitude") if b else 28.6139)
-        b_lon = float(q["lon"]) if q.get("lon") else (b.get("longitude") if b else 77.2090)
-        b_tz = q.get("tz") or (b.get("timezone") if b else "Asia/Kolkata")
+        b_lat = float(q["lat"]) if q.get("lat") else (b.get("latitude") if b and b.get("latitude") is not None else (28.6139 if dob_str else ""))
+        b_lon = float(q["lon"]) if q.get("lon") else (b.get("longitude") if b and b.get("longitude") is not None else (77.2090 if dob_str else ""))
+        b_tz = q.get("tz") or (b.get("timezone") if b else "") or ""
         b_city = q.get("city") or (b.get("city") if b else "New Delhi, India")
-        b_city, b_lat, b_lon, b_tz = _resolve_city_coords(b_city, b_lat, b_lon, b_tz)
+        if dob_str and b_lat != "":
+            b_city, b_lat, b_lon, b_tz = _resolve_city_coords(b_city, float(b_lat), float(b_lon), b_tz or "Asia/Kolkata")
 
         catalog = get_traditions_catalog()
         report = None
@@ -1121,7 +1170,7 @@ def register(app: FastAPI):
     @app.get("/human-design", response_class=HTMLResponse, include_in_schema=False)
     def human_design(request: Request):
         b = birth_from_query(request); hd = None
-        if b: hd = RM.human_design(BirthData(**{kk: v for kk, v in b.items() if kk not in ("city", "name")}))
+        if _chartable(b): hd = RM.human_design(BirthData(**{kk: v for kk, v in b.items() if kk not in ("city", "name")}))
         return page(request, "humandesign.html", f"Human Design Chart Calculator – {BRAND}", "Free Human Design bodygraph: type, strategy, authority, profile, centers, channels and gates.",
                     "/human-design", b=b, hd=hd, CENTERS=list(HDM.CENTERS))
 
